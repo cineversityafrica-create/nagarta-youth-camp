@@ -1,0 +1,48 @@
+<%- include('../partials/head', { title: 'Activities' }) %>
+<%- include('../partials/sidebar', { page: 'activities' }) %>
+
+<main class="ml-64 p-8">
+  <div class="mb-8">
+    <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Manage</p>
+    <h2 class="font-serif text-3xl font-semibold text-maroon italic">Experience Activities</h2>
+  </div>
+
+  <div class="grid gap-4 mb-8">
+    <% activities.forEach(act => { %>
+      <div class="bg-white rounded-lg shadow-sm p-5">
+        <form method="POST" action="/admin/activities/<%= act.id %>">
+          <input type="hidden" name="_method" value="PUT" />
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Title</label>
+              <input type="text" name="title" value="<%= act.title %>"
+                class="w-full px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Subtitle / Description</label>
+              <input type="text" name="subtitle" value="<%= act.subtitle %>"
+                class="w-full px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold" />
+            </div>
+            <div>
+              <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Icon Name</label>
+              <input type="text" name="iconName" value="<%= act.iconName %>"
+                class="w-full px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold" />
+            </div>
+            <div>
+              <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Display Order</label>
+              <input type="number" name="displayOrder" value="<%= act.displayOrder %>"
+                class="w-full px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold" />
+            </div>
+            <div class="flex items-end gap-2">
+              <button type="submit" class="bg-gold text-maroon px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">Update</button>
+              <a href="/admin/activities/<%= act.id %>/delete" onclick="return confirm('Delete this activity?')"
+                class="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase hover:bg-red-100 transition-colors">Delete</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    <% }) %>
+  </div>
+</main>
+</body>
+</html>

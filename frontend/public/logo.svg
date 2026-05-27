@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <!-- Organic blob background -->
+  <path d="M250,32 C298,22 358,52 395,102 C432,152 442,220 430,280 C418,340 385,390 338,415 C291,440 232,442 182,420 C132,398 90,355 70,302 C50,249 58,185 85,138 C112,91 158,58 208,40 C222,35 236,33 250,32Z" fill="#B51C2C"/>
+
+  <!-- Top-left figure: head + reaching arm toward center + outer arm -->
+  <circle cx="158" cy="138" r="20" fill="white"/>
+  <path d="M168,155 C185,175 205,200 250,248" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M160,144 C146,132 128,122 115,110" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M152,152 C140,165 130,178 135,192" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+
+  <!-- Top-right figure: head + arm toward center + raised outer arm -->
+  <circle cx="348" cy="145" r="19" fill="white"/>
+  <path d="M338,162 C320,185 304,210 252,248" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M354,152 C368,142 382,136 392,143" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M344,156 C352,170 348,185 340,192" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+
+  <!-- Right figure: spiral/scroll — curling arm from center outward -->
+  <path d="M254,252 C278,248 308,240 328,228 C348,216 352,200 341,192 C330,184 316,190 314,205 C312,220 325,228 336,224 C348,220 348,207 337,204" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+
+  <!-- Bottom-left figure: head + legs spread + arm toward center -->
+  <circle cx="158" cy="352" r="18" fill="white"/>
+  <path d="M168,342 C190,318 214,295 252,252" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M152,366 C140,378 126,383 112,378" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M168,368 C172,382 168,396 158,404" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+
+  <!-- Bottom-right figure: head + two legs down + arm toward center -->
+  <circle cx="322" cy="362" r="17" fill="white"/>
+  <path d="M316,350 C296,318 272,288 252,252" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M314,376 C310,392 305,406 296,412" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M328,376 C334,390 332,404 322,412" stroke="white" stroke-width="14" stroke-linecap="round" fill="none"/>
+
+  <!-- Central orange sun dot -->
+  <circle cx="252" cy="252" r="26" fill="#F5A10A"/>
+</svg>

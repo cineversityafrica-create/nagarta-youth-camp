@@ -1,0 +1,43 @@
+<%- include('../partials/head', { title: 'Contact Messages' }) %>
+<%- include('../partials/sidebar', { page: 'messages' }) %>
+
+<main class="ml-64 p-8">
+  <div class="mb-8">
+    <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Inbox</p>
+    <h2 class="font-serif text-3xl font-semibold text-maroon italic">Contact Messages</h2>
+  </div>
+
+  <div class="space-y-4">
+    <% messages.forEach(msg => { %>
+      <div class="bg-white rounded-lg shadow-sm p-5 <%= msg.resolved ? 'opacity-60' : 'border-l-4 border-gold' %>">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="font-semibold text-maroon"><%= msg.name %> <span class="font-normal text-sm text-burgundy">— <%= msg.email %></span></p>
+            <% if (msg.subject) { %><p class="text-sm text-gold font-medium mt-0.5"><%= msg.subject %></p><% } %>
+            <p class="text-sm text-maroon mt-2 leading-relaxed"><%= msg.message %></p>
+            <p class="text-xs text-burgundy mt-2"><%= new Date(msg.createdAt).toLocaleString() %></p>
+          </div>
+          <div class="flex gap-2 ml-4 flex-shrink-0">
+            <% if (!msg.resolved) { %>
+              <a href="/admin/messages/<%= msg.id %>/resolve"
+                class="text-xs bg-green-50 border border-green-200 text-green-700 px-3 py-1 rounded font-semibold hover:bg-green-100 transition-colors">
+                Mark Resolved
+              </a>
+            <% } else { %>
+              <span class="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded">Resolved</span>
+            <% } %>
+            <a href="/admin/messages/<%= msg.id %>/delete" onclick="return confirm('Delete this message?')"
+              class="text-xs bg-red-50 border border-red-200 text-red-600 px-3 py-1 rounded font-semibold hover:bg-red-100 transition-colors">
+              Delete
+            </a>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+    <% if (messages.length === 0) { %>
+      <p class="text-center py-12 text-burgundy italic text-sm">No messages yet.</p>
+    <% } %>
+  </div>
+</main>
+</body>
+</html>

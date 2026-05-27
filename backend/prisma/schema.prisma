@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  password      String
+  name          String
+  phone         String?
+  role          String         @default("CAMPER") // PARENT | CAMPER | ADMIN
+  suspended     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  registrations Registration[]
+  children      Child[]
+  @@map("users")
+}
+
+model Child {
+  id               String         @id @default(cuid())
+  parentId         String
+  parent           User           @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  name             String
+  age              Int
+  school           String?
+  dietaryNeeds     String?
+  medicalNotes     String?
+  emergencyContact String?
+  photo            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  registrations    Registration[]
+  @@map("children")
+}
+
+model Registration {
+  id            String   @id @default(cuid())
+  referenceCode String   @unique @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  childId       String?
+  child         Child?   @relation(fields: [childId], references: [id])
+  type          String   @default("SELF")    // SELF | CHILD
+  status        String   @default("PENDING") // PENDING | CONFIRMED | WAITLISTED | CANCELLED
+  paymentStatus String   @default("UNPAID")  // UNPAID | PARTIAL | PAID
+  notes         String?
+  parentName    String?
+  parentAddress String?
+  parentPhone   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@map("registrations")
+}
+
+model Activity {
+  id           String   @id @default(cuid())
+  title        String
+  subtitle     String
+  iconName     String   @default("star")
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@map("activities")
+}
+
+model ScheduleDay {
+  id        String   @id @default(cuid())
+  dayNumber Int      @unique
+  date      String
+  title     String
+  summary   String
+  details   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("schedule_days")
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  label     String
+  group     String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("site_content")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("contact_messages")
+}
+
+model Announcement {
+  id         String   @id @default(cuid())
+  title      String
+  body       String
+  published  Boolean  @default(true)
+  targetRole String?  // null = all | PARENT | CAMPER
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@map("announcements")
+}

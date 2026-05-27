@@ -1,0 +1,58 @@
+<%- include('../partials/head', { title: 'Users' }) %>
+<%- include('../partials/sidebar', { page: 'users' }) %>
+
+<main class="ml-64 p-8">
+  <div class="mb-8">
+    <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Manage</p>
+    <h2 class="font-serif text-3xl font-semibold text-maroon italic">Users</h2>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-100">
+        <tr>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Name</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Email</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Role</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Status</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Joined</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(user => { %>
+          <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-3 text-maroon font-medium"><%= user.name %></td>
+            <td class="px-4 py-3 text-burgundy text-xs"><%= user.email %></td>
+            <td class="px-4 py-3">
+              <form method="POST" action="/admin/users/<%= user.id %>/role">
+                <input type="hidden" name="_method" value="PATCH" />
+                <select name="role" onchange="this.form.submit()"
+                  class="text-xs border border-beige rounded px-2 py-1 bg-white">
+                  <% ['PARENT','CAMPER','ADMIN'].forEach(r => { %>
+                    <option value="<%= r %>" <%= user.role === r ? 'selected' : '' %>><%= r %></option>
+                  <% }) %>
+                </select>
+              </form>
+            </td>
+            <td class="px-4 py-3">
+              <a href="/admin/users/<%= user.id %>/<%= user.suspended ? 'unsuspend' : 'suspend' %>"
+                class="text-xs px-2 py-1 rounded <%= user.suspended ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' %>">
+                <%= user.suspended ? 'Suspended' : 'Active' %>
+              </a>
+            </td>
+            <td class="px-4 py-3 text-xs text-burgundy"><%= new Date(user.createdAt).toLocaleDateString() %></td>
+            <td class="px-4 py-3">
+              <% if (user.role !== 'ADMIN') { %>
+                <a href="/admin/users/<%= user.id %>/delete" onclick="return confirm('Delete this user and all their data?')"
+                  class="text-xs text-red-500 hover:underline">Delete</a>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

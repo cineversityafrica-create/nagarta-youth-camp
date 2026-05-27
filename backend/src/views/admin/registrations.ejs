@@ -1,0 +1,71 @@
+<%- include('../partials/head', { title: 'Registrations' }) %>
+<%- include('../partials/sidebar', { page: 'registrations' }) %>
+
+<main class="ml-64 p-8">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Manage</p>
+      <h2 class="font-serif text-3xl font-semibold text-maroon italic">Registrations</h2>
+    </div>
+    <a href="/admin/registrations/export"
+      class="bg-gold text-maroon px-5 py-2 rounded text-sm font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
+      Export CSV
+    </a>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-100">
+        <tr>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Reference</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Participant</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Registered By</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Type</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Status</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Payment</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Date</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% registrations.forEach(reg => { %>
+          <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-3 font-mono text-xs text-burgundy"><%= reg.referenceCode.slice(0, 12) %>...</td>
+            <td class="px-4 py-3 text-maroon font-medium"><%= reg.child ? reg.child.name : reg.user.name %></td>
+            <td class="px-4 py-3 text-burgundy text-xs"><%= reg.user.email %></td>
+            <td class="px-4 py-3"><span class="text-xs bg-beige text-maroon px-2 py-1 rounded"><%= reg.type %></span></td>
+            <td class="px-4 py-3">
+              <form method="POST" action="/admin/registrations/<%= reg.id %>/status">
+                <input type="hidden" name="_method" value="PATCH" />
+                <select name="status" onchange="this.form.submit()"
+                  class="text-xs border border-beige rounded px-2 py-1 bg-white">
+                  <% ['PENDING','CONFIRMED','WAITLISTED','CANCELLED'].forEach(s => { %>
+                    <option value="<%= s %>" <%= reg.status === s ? 'selected' : '' %>><%= s %></option>
+                  <% }) %>
+                </select>
+              </form>
+            </td>
+            <td class="px-4 py-3">
+              <form method="POST" action="/admin/registrations/<%= reg.id %>/payment">
+                <input type="hidden" name="_method" value="PATCH" />
+                <select name="paymentStatus" onchange="this.form.submit()"
+                  class="text-xs border border-beige rounded px-2 py-1 bg-white">
+                  <% ['UNPAID','PARTIAL','PAID'].forEach(p => { %>
+                    <option value="<%= p %>" <%= reg.paymentStatus === p ? 'selected' : '' %>><%= p %></option>
+                  <% }) %>
+                </select>
+              </form>
+            </td>
+            <td class="px-4 py-3 text-xs text-burgundy"><%= new Date(reg.createdAt).toLocaleDateString() %></td>
+            <td class="px-4 py-3 text-xs text-burgundy"><%= reg.child?.age ? reg.child.age + 'y' : '—' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% if (registrations.length === 0) { %>
+      <p class="text-center py-12 text-burgundy text-sm italic">No registrations yet.</p>
+    <% } %>
+  </div>
+</main>
+</body>
+</html>

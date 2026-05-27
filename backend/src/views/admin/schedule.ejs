@@ -1,0 +1,45 @@
+<%- include('../partials/head', { title: 'Schedule' }) %>
+<%- include('../partials/sidebar', { page: 'schedule' }) %>
+
+<main class="ml-64 p-8">
+  <div class="mb-8">
+    <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Manage</p>
+    <h2 class="font-serif text-3xl font-semibold text-maroon italic">5-Day Schedule</h2>
+  </div>
+
+  <div class="space-y-4">
+    <% days.forEach(day => { %>
+      <div class="bg-white rounded-lg shadow-sm p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="bg-burgundy text-gold text-xs font-semibold tracking-wider px-3 py-1 rounded-full">Day <%= day.dayNumber %></span>
+          <span class="text-sm text-burgundy"><%= day.date %></span>
+        </div>
+        <form method="POST" action="/admin/schedule/<%= day.id %>">
+          <input type="hidden" name="_method" value="PUT" />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Title</label>
+              <input type="text" name="title" value="<%= day.title %>"
+                class="w-full px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold" />
+            </div>
+            <div>
+              <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Date Label</label>
+              <input type="text" name="date" value="<%= day.date %>"
+                class="w-full px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Summary</label>
+              <textarea name="summary" rows="2"
+                class="w-full px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold"><%= day.summary %></textarea>
+            </div>
+          </div>
+          <button type="submit" class="mt-3 bg-gold text-maroon px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
+            Save Day <%= day.dayNumber %>
+          </button>
+        </form>
+      </div>
+    <% }) %>
+  </div>
+</main>
+</body>
+</html>

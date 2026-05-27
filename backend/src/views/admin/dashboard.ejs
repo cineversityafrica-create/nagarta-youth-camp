@@ -1,0 +1,69 @@
+<%- include('../partials/head', { title: 'Dashboard' }) %>
+<%- include('../partials/sidebar', { page: 'dashboard' }) %>
+
+<main class="ml-64 p-8 min-h-screen bg-white">
+  <div class="mb-8">
+    <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Overview</p>
+    <h2 class="font-serif text-3xl font-semibold text-maroon italic">Camp Dashboard</h2>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
+      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Total Registrations</p>
+      <p class="text-4xl font-serif font-semibold text-maroon"><%= stats.totalRegistrations %></p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
+      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Spots Remaining</p>
+      <p class="text-4xl font-serif font-semibold text-maroon"><%= stats.spotsRemaining %><span class="text-lg text-gray-300"> / <%= stats.capacity %></span></p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
+      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Confirmed</p>
+      <p class="text-4xl font-serif font-semibold text-maroon"><%= stats.confirmedRegistrations %></p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
+      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Unread Messages</p>
+      <p class="text-4xl font-serif font-semibold text-maroon"><%= stats.unreadMessages %></p>
+    </div>
+  </div>
+
+  <!-- Recent Registrations -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-serif text-xl font-semibold text-maroon">Recent Registrations</h3>
+      <a href="/admin/registrations" class="text-xs text-gold hover:underline tracking-wider font-medium">View All</a>
+    </div>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Name</th>
+          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Email</th>
+          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Type</th>
+          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% stats.recentRegistrations.forEach(reg => { %>
+          <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            <td class="py-3 text-maroon font-medium"><%= reg.child ? reg.child.name : reg.user.name %></td>
+            <td class="py-3 text-gray-500"><%= reg.user.email %></td>
+            <td class="py-3"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"><%= reg.type %></span></td>
+            <td class="py-3">
+              <span class="text-xs px-2 py-1 rounded-full
+                <%= reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                    reg.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                    reg.status === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' %>">
+                <%= reg.status %>
+              </span>
+            </td>
+          </tr>
+        <% }) %>
+        <% if (stats.recentRegistrations.length === 0) { %>
+          <tr><td colspan="4" class="py-10 text-center text-gray-400 text-sm italic">No registrations yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

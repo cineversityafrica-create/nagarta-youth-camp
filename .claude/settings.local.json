@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "Bash(npm install *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(Remove-Item \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\\\\frontend\\\\next.config.ts\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\" | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next|dist|\\\\.git|prisma-client' } | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\\\\\", \"  \"\\) })",
+      "Bash(mkdir -p \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\\\\.claude\" 2>/dev/null; echo \"ok\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(docker --version)",
+      "Bash(pg_isready)",
+      "Bash(psql --version)",
+      "Bash(echo \"MIGRATE_EXIT:$?\")",
+      "Bash(echo \"GEN_EXIT:$?\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\", \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Downloads\", \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Pictures\" -Include \"*.png\",\"*.jpg\",\"*.jpeg\",\"*.webp\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Sort-Object LastWriteTime -Descending)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Format-Table Name, LastWriteTime, DirectoryName -AutoSize)",
+      "Bash(curl -s http://localhost:5000/health)",
+      "Bash(curl -s http://localhost:5000/api/site-content)",
+      "Bash(node -e ' *)",
+      "Bash(New-Item -ItemType File -Path \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\\\\backend\\\\.env.example\" -Force)",
+      "Bash(Out-Null)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(grep -E \"\\\\.env$|\\\\.db$|\\\\.PNG$\")",
+      "Bash(git rm *)",
+      "Bash(git config *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
