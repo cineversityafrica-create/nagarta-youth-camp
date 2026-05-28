@@ -29,7 +29,13 @@
       "Bash(grep -E \"\\\\.env$|\\\\.db$|\\\\.PNG$\")",
       "Bash(git rm *)",
       "Bash(git config *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(git ls-remote *)",
+      "Bash(gh auth *)",
+      "Bash(node -e \"require\\('dotenv'\\).config\\(\\); console.log\\('DB:', process.env.DATABASE_URL?.substring\\(0,40\\)\\)\")"
     ]
   }
 }
