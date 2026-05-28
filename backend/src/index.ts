@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
 // Serve shared static assets (logo, etc.)
-app.use(express.static(path.join(__dirname, '../../frontend/public')));
+app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
 
 // Session for admin UI
 app.use(session({
@@ -56,9 +56,9 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 8 * 60 * 60 * 1000 },
 }));
 
-// EJS views
+// EJS views — path works for both dev (src/) and prod (dist/)
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, '..', 'src', 'views'));
 
 // ── Public REST API ──────────────────────────────────────────────────────────
 app.use('/api/auth', authRouter);
