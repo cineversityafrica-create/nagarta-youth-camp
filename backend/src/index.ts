@@ -282,6 +282,22 @@ app.get('/', (_req, res) => res.redirect('/admin'));
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
+// Reset admin — call this URL in browser to update admin credentials
+app.get('/api/reset-admin', async (req, res) => {
+  if (req.query.secret !== 'nagarta-reset-2026') return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const hashed = await bcrypt.hash('Admin@nagarta!', 12);
+    const user = await prisma.user.upsert({
+      where: { email: 'admin@campingnagartayouth.com' },
+      update: { password: hashed, role: 'ADMIN', name: 'Camp Administrator' },
+      create: { email: 'admin@campingnagartayouth.com', password: hashed, name: 'Camp Administrator', role: 'ADMIN' },
+    });
+    // Remove old admin if email changed
+    await prisma.user.deleteMany({ where: { role: 'ADMIN', NOT: { email: 'admin@campingnagartayouth.com' } } });
+    res.json({ success: true, admin: user.email, message: 'Admin credentials updated!' });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
 // One-time seed endpoint — protected by secret key
 app.post('/api/seed', async (req, res) => {
   const secret = req.headers['x-seed-secret'];
