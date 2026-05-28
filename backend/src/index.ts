@@ -274,6 +274,21 @@ app.get('/', (_req, res) => res.redirect('/admin'));
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
+// One-time seed endpoint — protected by secret key
+app.post('/api/seed', async (req, res) => {
+  const secret = req.headers['x-seed-secret'];
+  if (secret !== process.env.SEED_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const existing = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+    if (existing) return res.json({ message: 'Already seeded', admin: existing.email });
+    const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin@2026!', 12);
+    const admin = await prisma.user.create({
+      data: { email: process.env.ADMIN_EMAIL || 'admin@nagartacamp.com', password: hashed, name: process.env.ADMIN_NAME || 'Camp Administrator', role: 'ADMIN' },
+    });
+    res.json({ message: 'Seeded successfully', admin: admin.email });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
 // 404
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
