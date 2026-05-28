@@ -44,10 +44,14 @@ const FALLBACK: Record<string, unknown> = {
 
 async function apiFetch<T>(path: string, options?: RequestInit, fallbackKey?: string): Promise<T> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
     const res = await fetch(`${BASE_URL}${path}`, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...options?.headers },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json() as Promise<T>;
   } catch (err) {
