@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation';
 import { submitRegistration } from '@/lib/api';
 import { getToken, isLoggedIn } from '@/lib/auth';
 
-type TabMode = 'SELF' | 'CHILD';
-
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
 
@@ -15,12 +13,10 @@ const emptyChild = { name: '', age: '', school: '', dietaryNeeds: '', medicalNot
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<TabMode>('CHILD');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState<{ referenceCode: string; name: string } | null>(null);
 
-  const [selfNotes, setSelfNotes] = useState('');
   const [child, setChild] = useState(emptyChild);
   const [childNotes, setChildNotes] = useState('');
   const [childPhoto, setChildPhoto] = useState('');
@@ -48,7 +44,6 @@ export default function RegisterPage() {
     setSuccess(null);
     setChild(emptyChild);
     setChildNotes('');
-    setSelfNotes('');
     setChildPhoto('');
     setPhotoPreview('');
     setParent({ name: '', address: '', phone: '' });
@@ -65,20 +60,16 @@ export default function RegisterPage() {
     setLoading(true);
     const token = getToken()!;
     try {
-      const payload =
-        tab === 'SELF'
-          ? { type: 'SELF', notes: selfNotes }
-          : {
-              type: 'CHILD',
-              notes: childNotes,
-              child: { ...child, age: parseInt(child.age) || 0, photo: childPhoto || undefined },
-              parentName: parent.name || undefined,
-              parentAddress: parent.address || undefined,
-              parentPhone: parent.phone || undefined,
-            };
+      const payload = {
+        type: 'CHILD',
+        notes: childNotes,
+        child: { ...child, age: parseInt(child.age) || 0, photo: childPhoto || undefined },
+        parentName: parent.name || undefined,
+        parentAddress: parent.address || undefined,
+        parentPhone: parent.phone || undefined,
+      };
       const result = await submitRegistration(payload, token) as { referenceCode: string };
-      const registeredName = tab === 'CHILD' ? child.name : 'yourself';
-      setSuccess({ referenceCode: result.referenceCode, name: registeredName });
+      setSuccess({ referenceCode: result.referenceCode, name: child.name });
     } catch {
       setError('Registration failed. Please check you are signed in and try again.');
     } finally {
@@ -98,8 +89,9 @@ export default function RegisterPage() {
       <div className="max-w-2xl mx-auto px-6 py-16">
         <div className="text-center mb-10">
           <p className="label-caps text-gold tracking-widest2 mb-3">NAGARTA 2026</p>
-          <h1 className="font-serif text-4xl font-semibold text-maroon italic">Registration</h1>
+          <h1 className="font-serif text-4xl font-semibold text-maroon italic">Register an Attendee</h1>
           <div className="gold-divider mx-auto mt-4" />
+          <p className="text-sm text-maroon/60 mt-4">Complete the form below to reserve a spot for your camper.</p>
         </div>
 
         {/* Success banner — stays visible above the form */}
@@ -113,7 +105,7 @@ export default function RegisterPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-maroon text-sm">
-                  {success.name === 'yourself' ? 'You are registered!' : `${success.name} is registered!`}
+                  {`${success.name} is registered!`}
                 </p>
                 <p className="text-xs text-burgundy mt-0.5 mb-2">Spot reserved. Confirmation will be sent to your email.</p>
                 <div className="bg-beige rounded px-3 py-2 inline-block">
@@ -140,26 +132,6 @@ export default function RegisterPage() {
         )}
 
         <div className="bg-white rounded-xl shadow-sm border border-beige p-8">
-          {/* Tabs */}
-          <div className="flex border border-beige rounded-lg overflow-hidden mb-8">
-            <button
-              onClick={() => setTab('CHILD')}
-              className={`flex-1 py-3 text-xs font-semibold tracking-wider uppercase transition-colors ${
-                tab === 'CHILD' ? 'bg-burgundy text-gold' : 'text-maroon/60 hover:bg-beige'
-              }`}
-            >
-              I&apos;m a Parent
-            </button>
-            <button
-              onClick={() => setTab('SELF')}
-              className={`flex-1 py-3 text-xs font-semibold tracking-wider uppercase transition-colors ${
-                tab === 'SELF' ? 'bg-burgundy text-gold' : 'text-maroon/60 hover:bg-beige'
-              }`}
-            >
-              Registering Myself
-            </button>
-          </div>
-
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-3 text-sm mb-6">
               {error}{' '}
@@ -170,10 +142,8 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {tab === 'CHILD' ? (
-              <>
-                {/* Child Info */}
-                <p className="text-sm text-burgundy font-semibold mb-3">Attendee&apos;s Information</p>
+            {/* Attendee Info */}
+            <p className="text-sm text-burgundy font-semibold mb-3">Attendee&apos;s Information</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Photo upload */}
                   <div className="sm:col-span-2">
@@ -196,7 +166,7 @@ export default function RegisterPage() {
                           {photoPreview ? 'Change Photo' : 'Upload Photo'}
                           <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                         </label>
-                        <p className="text-xs text-burgundy/50 mt-1.5">JPG, PNG or WEBP · Max 5MB</p>
+                        <p className="text-xs text-burgundy/50 mt-1.5">Used by camp staff to identify the attendee on arrival. JPG, PNG or WEBP · Max 5MB</p>
                       </div>
                     </div>
                   </div>
@@ -249,16 +219,6 @@ export default function RegisterPage() {
                     </div>
                   </div>
                 </div>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-burgundy font-medium mb-2">Self Registration (Age 16+)</p>
-                <div>
-                  <label className={labelClass}>Additional Notes</label>
-                  <textarea rows={3} value={selfNotes} onChange={e => setSelfNotes(e.target.value)} placeholder="Anything you'd like the camp team to know?" className={inputClass} />
-                </div>
-              </>
-            )}
 
             <div className="pt-2">
               <button
@@ -266,7 +226,7 @@ export default function RegisterPage() {
                 disabled={loading}
                 className="w-full bg-gold text-maroon font-semibold py-4 rounded-lg tracking-widest uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50"
               >
-                {loading ? 'Submitting...' : 'Reserve My Spot'}
+                {loading ? 'Submitting...' : 'Reserve Spot'}
               </button>
               <p className="text-xs text-center text-maroon/40 mt-3">
                 You must be{' '}
