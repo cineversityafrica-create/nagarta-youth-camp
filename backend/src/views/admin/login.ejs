@@ -17,16 +17,15 @@
         </div>
       <% } %>
 
-      <form method="POST" action="/admin/login" class="space-y-4">
+      <form method="POST" action="/admin/login" autocomplete="off" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold tracking-wider uppercase text-burgundy mb-1" for="email">Email</label>
-          <input type="email" id="email" name="email" required
-            class="w-full px-4 py-3 border border-beige rounded bg-white text-maroon focus:outline-none focus:ring-2 focus:ring-gold text-sm"
-            placeholder="admin@nagartacamp.com" />
+          <input type="email" id="email" name="email" required autocomplete="off"
+            class="w-full px-4 py-3 border border-beige rounded bg-white text-maroon focus:outline-none focus:ring-2 focus:ring-gold text-sm" />
         </div>
         <div>
           <label class="block text-xs font-semibold tracking-wider uppercase text-burgundy mb-1" for="password">Password</label>
-          <input type="password" id="password" name="password" required
+          <input type="password" id="password" name="password" required autocomplete="new-password"
             class="w-full px-4 py-3 border border-beige rounded bg-white text-maroon focus:outline-none focus:ring-2 focus:ring-gold text-sm"
             placeholder="••••••••" />
         </div>
