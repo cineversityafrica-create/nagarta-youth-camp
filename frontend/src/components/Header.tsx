@@ -35,7 +35,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="hover:opacity-80 transition-opacity flex-shrink-0">
-          <Image src="/logo.png" alt="NAGARTA Youth Camp" width={48} height={48} priority className="object-contain" />
+          <Image src="/logo-full.png" alt="NAGARTA Youth Camp" width={48} height={48} priority className="object-contain" />
         </Link>
 
         {/* Desktop Nav */}

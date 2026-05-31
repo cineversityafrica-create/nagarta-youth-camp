@@ -48,7 +48,7 @@ export default function LogoWatermark() {
           transition: 'opacity 0.1s linear',
         }}
       >
-        <Image src="/logo.png" alt="" fill style={{ objectFit: 'contain' }} />
+        <Image src="/logo-full.png" alt="" fill style={{ objectFit: 'contain' }} />
       </div>
     </div>
   );

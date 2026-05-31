@@ -78,7 +78,7 @@ export default function SignUpPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex justify-center hover:opacity-80 transition-opacity">
-            <Image src="/logo.png" alt="NAGARTA" width={72} height={72} className="object-contain" />
+            <Image src="/logo-full.png" alt="NAGARTA" width={72} height={72} className="object-contain" />
           </Link>
           <p className="text-beige/60 text-sm tracking-wider mt-3">Youth Camp 2026</p>
         </div>

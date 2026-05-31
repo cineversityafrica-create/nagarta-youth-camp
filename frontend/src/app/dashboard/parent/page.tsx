@@ -139,7 +139,7 @@ export default function ParentDashboard() {
       {/* Top bar */}
       <div className="bg-maroon border-b border-burgundy">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/"><Image src="/logo.png" alt="NAGARTA" width={40} height={40} className="object-contain" /></Link>
+          <Link href="/"><Image src="/logo-full.png" alt="NAGARTA" width={40} height={40} className="object-contain" /></Link>
           <div className="flex items-center gap-4">
             <span className="text-cream/60 text-sm">Parent Portal</span>
             <button onClick={() => { clearAuth(); router.push('/'); }} className="text-xs text-beige/40 hover:text-gold transition-colors">

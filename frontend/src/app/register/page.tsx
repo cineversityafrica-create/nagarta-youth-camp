@@ -82,7 +82,7 @@ export default function RegisterPage() {
       {/* Top bar */}
       <div className="bg-maroon py-3 px-6">
         <Link href="/">
-          <Image src="/logo.png" alt="NAGARTA" width={40} height={40} className="object-contain" />
+          <Image src="/logo-full.png" alt="NAGARTA" width={40} height={40} className="object-contain" />
         </Link>
       </div>
 

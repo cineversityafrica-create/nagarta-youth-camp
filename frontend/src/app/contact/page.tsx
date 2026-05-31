@@ -36,7 +36,7 @@ export default function ContactPage() {
       {/* Top bar */}
       <div className="bg-maroon py-4 px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/"><Image src="/logo.png" alt="NAGARTA" width={40} height={40} className="object-contain" /></Link>
+          <Link href="/"><Image src="/logo-full.png" alt="NAGARTA" width={40} height={40} className="object-contain" /></Link>
           <Link href="/" className="text-xs text-beige/50 hover:text-gold transition-colors">&larr; Back to home</Link>
         </div>
       </div>
