@@ -38,7 +38,7 @@
                 <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs">—</div>
               <% } %>
             </td>
-            <td class="px-4 py-3 font-mono text-xs text-burgundy"><%= reg.referenceCode.slice(0, 12) %>...</td>
+            <td class="px-4 py-3 font-mono text-xs text-burgundy"><%= reg.referenceCode %></td>
             <td class="px-4 py-3 text-maroon font-medium">
               <%= reg.child ? reg.child.name : reg.user.name %>
               <% if (reg.child && reg.child.age) { %><span class="text-xs text-burgundy/50">· <%= reg.child.age %>y</span><% } %>

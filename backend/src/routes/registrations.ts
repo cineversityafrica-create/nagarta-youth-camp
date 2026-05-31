@@ -5,6 +5,12 @@ import { authenticate, AuthRequest } from '../middleware/authenticate';
 
 const router = Router();
 
+function generateRefCode(): string {
+  const digits  = Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join('');
+  const letters = Array.from({ length: 4 }, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]).join('');
+  return `NAG${digits}${letters}`;
+}
+
 const selfSchema = z.object({
   type: z.literal('SELF'),
   notes: z.string().optional(),
@@ -41,7 +47,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     if (data.type === 'SELF') {
       const reg = await prisma.registration.create({
-        data: { userId, type: 'SELF', notes: data.notes },
+        data: { userId, type: 'SELF', notes: data.notes, referenceCode: generateRefCode() },
       });
       return res.status(201).json({ referenceCode: reg.referenceCode, status: reg.status });
     }
@@ -58,6 +64,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         parentName: data.parentName,
         parentAddress: data.parentAddress,
         parentPhone: data.parentPhone,
+        referenceCode: generateRefCode(),
       },
     });
     return res.status(201).json({ referenceCode: reg.referenceCode, status: reg.status });
