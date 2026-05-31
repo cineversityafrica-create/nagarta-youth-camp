@@ -17,10 +17,10 @@
     <table class="w-full text-sm">
       <thead class="bg-gray-50 border-b border-gray-100">
         <tr>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Photo</th>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Reference</th>
-          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Participant</th>
+          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Attendee</th>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Registered By</th>
-          <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Type</th>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Status</th>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Payment</th>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Date</th>
@@ -30,13 +30,22 @@
       <tbody>
         <% registrations.forEach(reg => { %>
           <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-3">
+              <% if (reg.child && reg.child.photo) { %>
+                <img src="<%= reg.child.photo %>" alt="Attendee"
+                  class="w-10 h-10 rounded-full object-cover border border-beige" />
+              <% } else { %>
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs">—</div>
+              <% } %>
+            </td>
             <td class="px-4 py-3 font-mono text-xs text-burgundy"><%= reg.referenceCode.slice(0, 12) %>...</td>
-            <td class="px-4 py-3 text-maroon font-medium"><%= reg.child ? reg.child.name : reg.user.name %></td>
+            <td class="px-4 py-3 text-maroon font-medium">
+              <%= reg.child ? reg.child.name : reg.user.name %>
+              <% if (reg.child && reg.child.age) { %><span class="text-xs text-burgundy/50">· <%= reg.child.age %>y</span><% } %>
+            </td>
             <td class="px-4 py-3 text-burgundy text-xs"><%= reg.user.email %></td>
-            <td class="px-4 py-3"><span class="text-xs bg-beige text-maroon px-2 py-1 rounded"><%= reg.type %></span></td>
             <td class="px-4 py-3">
               <form method="POST" action="/admin/registrations/<%= reg.id %>/status">
-                <input type="hidden" name="_method" value="PATCH" />
                 <select name="status" onchange="this.form.submit()"
                   class="text-xs border border-beige rounded px-2 py-1 bg-white">
                   <% ['PENDING','CONFIRMED','WAITLISTED','CANCELLED'].forEach(s => { %>
@@ -47,7 +56,6 @@
             </td>
             <td class="px-4 py-3">
               <form method="POST" action="/admin/registrations/<%= reg.id %>/payment">
-                <input type="hidden" name="_method" value="PATCH" />
                 <select name="paymentStatus" onchange="this.form.submit()"
                   class="text-xs border border-beige rounded px-2 py-1 bg-white">
                   <% ['UNPAID','PARTIAL','PAID'].forEach(p => { %>
@@ -57,7 +65,62 @@
               </form>
             </td>
             <td class="px-4 py-3 text-xs text-burgundy"><%= new Date(reg.createdAt).toLocaleDateString() %></td>
-            <td class="px-4 py-3 text-xs text-burgundy"><%= reg.child?.age ? reg.child.age + 'y' : '—' %></td>
+            <td class="px-4 py-3 text-right">
+              <button type="button" onclick="toggleDetails('<%= reg.id %>')"
+                class="text-xs text-gold font-semibold hover:underline">Details</button>
+            </td>
+          </tr>
+
+          <!-- Expandable details row -->
+          <tr id="details-<%= reg.id %>" style="display:none" class="bg-gray-50/60 border-b border-gray-100">
+            <td colspan="8" class="px-6 py-5">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Photo + download -->
+                <div>
+                  <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Attendee Photo</p>
+                  <% if (reg.child && reg.child.photo) { %>
+                    <img src="<%= reg.child.photo %>" alt="Attendee"
+                      class="w-32 h-32 rounded-lg object-cover border border-beige mb-2" />
+                    <br />
+                    <a href="<%= reg.child.photo %>"
+                      download="attendee-<%= (reg.child.name || 'photo').replace(/[^a-z0-9]/gi, '_') %>.jpg"
+                      class="inline-block bg-gold text-maroon px-3 py-1.5 rounded text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
+                      Download Photo
+                    </a>
+                  <% } else { %>
+                    <p class="text-xs text-burgundy/50 italic">No photo uploaded.</p>
+                  <% } %>
+                </div>
+
+                <!-- Attendee details -->
+                <div>
+                  <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Attendee Details</p>
+                  <dl class="text-xs text-maroon space-y-1">
+                    <div><span class="text-burgundy/50">Name:</span> <%= reg.child ? reg.child.name : '—' %></div>
+                    <div><span class="text-burgundy/50">Age:</span> <%= reg.child && reg.child.age ? reg.child.age : '—' %></div>
+                    <div><span class="text-burgundy/50">School:</span> <%= reg.child && reg.child.school ? reg.child.school : '—' %></div>
+                    <div><span class="text-burgundy/50">Dietary needs:</span> <%= reg.child && reg.child.dietaryNeeds ? reg.child.dietaryNeeds : '—' %></div>
+                    <div><span class="text-burgundy/50">Medical notes:</span> <%= reg.child && reg.child.medicalNotes ? reg.child.medicalNotes : '—' %></div>
+                    <div><span class="text-burgundy/50">Emergency contact:</span> <%= reg.child && reg.child.emergencyContact ? reg.child.emergencyContact : '—' %></div>
+                    <div><span class="text-burgundy/50">Reference:</span> <span class="font-mono"><%= reg.referenceCode %></span></div>
+                    <% if (reg.notes) { %><div><span class="text-burgundy/50">Notes:</span> <%= reg.notes %></div><% } %>
+                  </dl>
+                </div>
+
+                <!-- Parent / Guardian -->
+                <div>
+                  <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Parent / Guardian</p>
+                  <dl class="text-xs text-maroon space-y-1">
+                    <div><span class="text-burgundy/50">Name:</span> <%= reg.parentName || reg.user.name || '—' %></div>
+                    <div><span class="text-burgundy/50">Address:</span> <%= reg.parentAddress || '—' %></div>
+                    <div><span class="text-burgundy/50">Phone:</span> <%= reg.parentPhone || reg.user.phone || '—' %></div>
+                    <div><span class="text-burgundy/50">Account email:</span> <%= reg.user.email %></div>
+                  </dl>
+                </div>
+
+              </div>
+            </td>
           </tr>
         <% }) %>
       </tbody>
@@ -67,5 +130,12 @@
     <% } %>
   </div>
 </main>
+
+<script>
+  function toggleDetails(id) {
+    var row = document.getElementById('details-' + id);
+    if (row) row.style.display = (row.style.display === 'none' || !row.style.display) ? 'table-row' : 'none';
+  }
+</script>
 </body>
 </html>
