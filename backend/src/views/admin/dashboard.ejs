@@ -36,18 +36,20 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-100">
-          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Name</th>
-          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Email</th>
-          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Type</th>
+          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Camper</th>
+          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Parent Email</th>
           <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Status</th>
+          <th class="pb-3"></th>
         </tr>
       </thead>
       <tbody>
         <% stats.recentRegistrations.forEach(reg => { %>
           <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-            <td class="py-3 text-maroon font-medium"><%= reg.child ? reg.child.name : reg.user.name %></td>
-            <td class="py-3 text-gray-500"><%= reg.user.email %></td>
-            <td class="py-3"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"><%= reg.type %></span></td>
+            <td class="py-3">
+              <p class="text-maroon font-medium text-sm"><%= reg.child ? reg.child.name : reg.user.name %></p>
+              <p class="text-xs text-gray-400"><%= reg.type %></p>
+            </td>
+            <td class="py-3 text-gray-500 text-sm"><%= reg.user.email %></td>
             <td class="py-3">
               <span class="text-xs px-2 py-1 rounded-full
                 <%= reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
@@ -55,6 +57,10 @@
                     reg.status === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' %>">
                 <%= reg.status %>
               </span>
+            </td>
+            <td class="py-3 text-right">
+              <a href="/admin/users/<%= reg.userId %>"
+                class="text-xs text-gold font-semibold hover:underline whitespace-nowrap">View Parent →</a>
             </td>
           </tr>
         <% }) %>
