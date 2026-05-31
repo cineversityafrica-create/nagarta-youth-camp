@@ -1,0 +1,153 @@
+<%- include('../partials/head', { title: user.name + ' — Parent Portal' }) %>
+<%- include('../partials/sidebar', { page: 'users' }) %>
+
+<main class="ml-64 p-8">
+
+  <!-- Back link -->
+  <a href="/admin/users" class="inline-flex items-center gap-1.5 text-xs text-burgundy/60 hover:text-gold mb-6 transition-colors">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Back to Users
+  </a>
+
+  <!-- Page heading -->
+  <div class="flex items-start justify-between mb-8">
+    <div>
+      <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Parent Portal</p>
+      <h2 class="font-serif text-3xl font-semibold text-maroon italic"><%= user.name || '(No name)' %></h2>
+    </div>
+    <span class="mt-1 text-xs px-3 py-1 rounded-full font-semibold
+      <%= user.suspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700' %>">
+      <%= user.suspended ? 'Suspended' : 'Active' %>
+    </span>
+  </div>
+
+  <!-- Parent details card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+    <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-4">Account Details</p>
+    <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div>
+        <dt class="text-xs text-burgundy/50 mb-0.5">Email</dt>
+        <dd class="text-maroon font-medium break-all"><%= user.email %></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-burgundy/50 mb-0.5">Phone</dt>
+        <dd class="text-maroon font-medium"><%= user.phone || '—' %></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-burgundy/50 mb-0.5">Role</dt>
+        <dd class="text-maroon font-medium"><%= user.role %></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-burgundy/50 mb-0.5">Joined</dt>
+        <dd class="text-maroon font-medium"><%= new Date(user.createdAt).toLocaleDateString() %></dd>
+      </div>
+    </dl>
+  </div>
+
+  <!-- Campers section -->
+  <div class="mb-4 flex items-center justify-between">
+    <div>
+      <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Registered Campers</p>
+      <p class="text-sm text-burgundy/60"><%= user.registrations.length %> registration<%= user.registrations.length !== 1 ? 's' : '' %></p>
+    </div>
+  </div>
+
+  <% if (user.registrations.length === 0) { %>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center">
+      <p class="text-burgundy/50 text-sm italic">This parent has no registrations yet.</p>
+    </div>
+  <% } else { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+      <% user.registrations.forEach(reg => { %>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+          <!-- Camper photo banner -->
+          <div class="relative h-40 bg-gray-50 flex items-center justify-center">
+            <% if (reg.child && reg.child.photo) { %>
+              <img src="<%= reg.child.photo %>" alt="<%= reg.child.name %>"
+                class="w-full h-full object-cover" />
+              <!-- Download overlay button -->
+              <a href="<%= reg.child.photo %>"
+                download="camper-<%= (reg.child.name || 'photo').replace(/[^a-z0-9]/gi, '_') %>.jpg"
+                class="absolute bottom-2 right-2 bg-maroon/80 hover:bg-maroon text-gold text-xs px-3 py-1.5 rounded-full font-semibold tracking-wider uppercase flex items-center gap-1.5 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download Photo
+              </a>
+            <% } else { %>
+              <div class="flex flex-col items-center gap-2 text-gray-300">
+                <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <span class="text-xs">No photo uploaded</span>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Camper info -->
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <p class="text-maroon font-semibold text-sm"><%= reg.child ? reg.child.name : '(Self)' %></p>
+                <% if (reg.child && reg.child.age) { %>
+                  <p class="text-xs text-burgundy/50"><%= reg.child.age %> years old</p>
+                <% } %>
+              </div>
+              <!-- Status badge -->
+              <span class="text-xs px-2 py-0.5 rounded-full font-semibold
+                <%= reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                   reg.status === 'PENDING'    ? 'bg-amber-100 text-amber-700' :
+                   reg.status === 'WAITLISTED' ? 'bg-blue-100 text-blue-700'  :
+                                                 'bg-red-100 text-red-600' %>">
+                <%= reg.status %>
+              </span>
+            </div>
+
+            <dl class="text-xs text-maroon space-y-1 mt-3">
+              <% if (reg.child && reg.child.school) { %>
+                <div class="flex gap-1"><span class="text-burgundy/50 w-20 flex-shrink-0">School:</span><span><%= reg.child.school %></span></div>
+              <% } %>
+              <% if (reg.child && reg.child.dietaryNeeds) { %>
+                <div class="flex gap-1"><span class="text-burgundy/50 w-20 flex-shrink-0">Dietary:</span><span><%= reg.child.dietaryNeeds %></span></div>
+              <% } %>
+              <% if (reg.child && reg.child.medicalNotes) { %>
+                <div class="flex gap-1"><span class="text-burgundy/50 w-20 flex-shrink-0">Medical:</span><span><%= reg.child.medicalNotes %></span></div>
+              <% } %>
+              <% if (reg.child && reg.child.emergencyContact) { %>
+                <div class="flex gap-1"><span class="text-burgundy/50 w-20 flex-shrink-0">Emergency:</span><span><%= reg.child.emergencyContact %></span></div>
+              <% } %>
+            </dl>
+
+            <!-- Reference + payment row -->
+            <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+              <div>
+                <p class="text-xs text-burgundy/40 mb-0.5">Reference</p>
+                <p class="font-mono text-xs text-burgundy"><%= reg.referenceCode.slice(0, 14) %>…</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded font-semibold
+                <%= reg.paymentStatus === 'PAID'    ? 'bg-green-100 text-green-700' :
+                   reg.paymentStatus === 'PARTIAL'  ? 'bg-amber-100 text-amber-700' :
+                                                      'bg-gray-100 text-gray-500' %>">
+                <%= reg.paymentStatus %>
+              </span>
+            </div>
+
+            <!-- View in registrations link -->
+            <div class="mt-3">
+              <a href="/admin/registrations"
+                class="text-xs text-gold hover:underline font-semibold">
+                View in Registrations →
+              </a>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+</main>
+</body>
+</html>

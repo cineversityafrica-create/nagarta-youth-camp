@@ -16,7 +16,7 @@
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Role</th>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Status</th>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Joined</th>
-          <th class="px-4 py-3"></th>
+          <th class="px-4 py-3 text-right text-xs tracking-wider uppercase font-semibold text-gray-400">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -42,11 +42,15 @@
               </a>
             </td>
             <td class="px-4 py-3 text-xs text-burgundy"><%= new Date(user.createdAt).toLocaleDateString() %></td>
-            <td class="px-4 py-3">
-              <% if (user.role !== 'ADMIN') { %>
-                <a href="/admin/users/<%= user.id %>/delete" onclick="return confirm('Delete this user and all their data?')"
-                  class="text-xs text-red-500 hover:underline">Delete</a>
-              <% } %>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-3">
+                <a href="/admin/users/<%= user.id %>"
+                  class="text-xs text-gold font-semibold hover:underline">View Campers</a>
+                <% if (user.role !== 'ADMIN') { %>
+                  <a href="/admin/users/<%= user.id %>/delete" onclick="return confirm('Delete this user and all their data?')"
+                    class="text-xs text-red-500 hover:underline">Delete</a>
+                <% } %>
+              </div>
             </td>
           </tr>
         <% }) %>

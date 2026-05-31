@@ -283,6 +283,22 @@ app.get('/admin/users', requireAdminSession, async (_req, res) => {
   res.render('admin/users', { users });
 });
 
+app.get('/admin/users/:id', requireAdminSession, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.params.id },
+    select: {
+      id: true, name: true, email: true, phone: true,
+      role: true, suspended: true, createdAt: true,
+      registrations: {
+        orderBy: { createdAt: 'desc' },
+        include: { child: true },
+      },
+    },
+  });
+  if (!user) return res.redirect('/admin/users');
+  res.render('admin/user-detail', { user });
+});
+
 app.post('/admin/users/:id/role', requireAdminSession, async (req, res) => {
   await prisma.user.update({ where: { id: req.params.id }, data: { role: req.body.role as string } });
   res.redirect('/admin/users');
