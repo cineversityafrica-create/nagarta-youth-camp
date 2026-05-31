@@ -48,14 +48,28 @@ model Registration {
   child         Child?   @relation(fields: [childId], references: [id])
   type          String   @default("SELF")    // SELF | CHILD
   status        String   @default("PENDING") // PENDING | CONFIRMED | WAITLISTED | CANCELLED
-  paymentStatus String   @default("UNPAID")  // UNPAID | PARTIAL | PAID
+  paymentStatus String               @default("UNPAID")  // UNPAID | PARTIAL | PAID
   notes         String?
   parentName    String?
   parentAddress String?
   parentPhone   String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  transactions  PaymentTransaction[]
   @@map("registrations")
+}
+
+model PaymentTransaction {
+  id             String       @id @default(cuid())
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  amount         Int          // stored in pesewas/kobo (amount × 100)
+  currency       String       @default("GHS")
+  method         String       // CASH | VISA | MOBILE_MONEY
+  reference      String?      // Paystack reference or manual note
+  note           String?
+  createdAt      DateTime     @default(now())
+  @@map("payment_transactions")
 }
 
 model Activity {

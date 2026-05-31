@@ -7,6 +7,7 @@ import methodOverride from 'method-override';
 import session from 'express-session';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import nodemailer from 'nodemailer';
 
 import { prisma } from './lib/prisma';
 import { signToken, verifyToken } from './lib/jwt';
@@ -317,6 +318,134 @@ app.get('/admin/users/:id/unsuspend', requireAdminSession, async (req, res) => {
 app.get('/admin/users/:id/delete', requireAdminSession, async (req, res) => {
   await prisma.user.delete({ where: { id: req.params.id } });
   res.redirect('/admin/users');
+});
+
+// ── Payment portal ───────────────────────────────────────────────────────────
+
+async function sendReceiptEmail(to: string, subject: string, html: string) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+  await transporter.sendMail({ from: process.env.SMTP_FROM || process.env.SMTP_USER, to, subject, html });
+}
+
+function buildReceiptHtml(reg: any, packingItems: string[]): string {
+  const photoHtml = reg.child?.photo
+    ? `<img src="${reg.child.photo}" style="width:130px;height:130px;object-fit:cover;border-radius:8px;border:2px solid #decbb2;" />`
+    : `<div style="width:130px;height:130px;border-radius:8px;border:2px dashed #decbb2;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">No Photo</div>`;
+  const txRows = (reg.transactions || []).map((t: any) =>
+    `<tr><td style="padding:3px 10px 3px 0;">${new Date(t.createdAt).toLocaleDateString('en-GB')}</td>`
+    + `<td style="padding:3px 10px 3px 0;">${t.method.replace('_', ' ')}</td>`
+    + `<td style="padding:3px 10px 3px 0;font-family:monospace;">${t.reference || '—'}</td>`
+    + `<td style="padding:3px 0;text-align:right;font-weight:600;">₵${(t.amount / 100).toFixed(2)}</td></tr>`
+  ).join('');
+  const totalPaid = (reg.transactions || []).reduce((s: number, t: any) => s + t.amount, 0);
+  const packList = packingItems.length
+    ? `<ul style="columns:2;gap:20px;margin:4px 0;padding-left:18px;">${packingItems.map(i => `<li style="font-size:11px;margin-bottom:3px;">${i}</li>`).join('')}</ul>`
+    : `<p style="font-size:11px;color:#aaa;font-style:italic;">No items selected.</p>`;
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>NAGARTA Receipt</title>
+  <style>body{font-family:Georgia,serif;padding:28px;color:#301317;background:#fff;font-size:12px;}
+  .hdr{background:#301317;color:#cba36b;padding:14px 20px;border-radius:8px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+  .hdr h1{margin:0;font-size:19px;letter-spacing:2px;} .hdr p{margin:0;font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:.65;}
+  .sec{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#531c22;font-family:Arial,sans-serif;border-bottom:1px solid #decbb2;padding-bottom:3px;margin:14px 0 6px;}
+  table{border-collapse:collapse;width:100%;} td{padding:3px 8px 3px 0;vertical-align:top;font-size:12px;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;background:#decbb2;color:#301317;}
+  .ref{font-family:monospace;font-size:14px;font-weight:700;color:#531c22;letter-spacing:2px;}
+  .footer{margin-top:18px;border-top:1px solid #decbb2;padding-top:8px;font-size:9px;color:#aaa;text-align:center;}</style>
+  </head><body>
+  <div class="hdr"><div><h1>NAGARTA Youth Camp 2026</h1><p>Official Registration Receipt</p></div>
+  <div style="text-align:right;font-size:10px;opacity:.65;">${new Date().toLocaleDateString('en-GB')}</div></div>
+  <div style="display:flex;gap:22px;margin-bottom:16px;">
+    <div style="flex-shrink:0;">${photoHtml}
+    <div style="margin-top:8px;text-align:center;"><span class="badge">${reg.status}</span> <span class="badge">${reg.paymentStatus}</span></div></div>
+    <div style="flex:1;">
+      <div class="sec">Camper Details</div>
+      <table>${[
+        ['Full Name', reg.child?.name || reg.user?.name],
+        ['Age', reg.child?.age ? reg.child.age + ' years' : ''],
+        ['School', reg.child?.school],
+        ['Dietary', reg.child?.dietaryNeeds],
+        ['Medical', reg.child?.medicalNotes],
+        ['Emergency', reg.child?.emergencyContact],
+      ].filter(r => r[1]).map(r => `<tr><td style="color:#531c22;font-weight:600;white-space:nowrap;">${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+      <div class="sec">Parent / Guardian</div>
+      <table>${[
+        ['Name', reg.parentName || reg.user?.name],
+        ['Phone', reg.parentPhone || reg.user?.phone],
+        ['Email', reg.user?.email],
+        ['Address', reg.parentAddress],
+      ].filter(r => r[1]).map(r => `<tr><td style="color:#531c22;font-weight:600;white-space:nowrap;">${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+      <div class="sec">Reference</div><p class="ref">${reg.referenceCode}</p>
+    </div></div>
+  ${txRows ? `<div class="sec">Payment Transactions</div><table><thead><tr>
+    <th style="text-align:left;font-size:9px;text-transform:uppercase;color:#aaa;padding-bottom:4px;">Date</th>
+    <th style="text-align:left;font-size:9px;text-transform:uppercase;color:#aaa;padding-bottom:4px;">Method</th>
+    <th style="text-align:left;font-size:9px;text-transform:uppercase;color:#aaa;padding-bottom:4px;">Reference</th>
+    <th style="text-align:right;font-size:9px;text-transform:uppercase;color:#aaa;padding-bottom:4px;">Amount</th>
+    </tr></thead><tbody>${txRows}</tbody></table>
+    <p style="text-align:right;font-weight:700;font-size:13px;margin-top:5px;">Total Paid: ₵${(totalPaid / 100).toFixed(2)}</p>` : ''}
+  <div class="sec">Packing List</div>${packList}
+  <div class="footer">NAGARTA Youth Camp 2026 &nbsp;·&nbsp; Official Receipt &nbsp;·&nbsp; ${reg.referenceCode}</div>
+  </body></html>`;
+}
+
+app.get('/admin/payments', requireAdminSession, async (req, res) => {
+  const ref = ((req.query.ref as string) || '').trim().toUpperCase();
+  const success = (req.query.success as string) || null;
+  const errMsg  = (req.query.error   as string) || null;
+  const key = process.env.PAYSTACK_PUBLIC_KEY || '';
+  if (!ref) return res.render('admin/payments', { registration: null, error: errMsg, success, paystackKey: key });
+
+  const registration = await prisma.registration.findUnique({
+    where: { referenceCode: ref },
+    include: { user: { select: { id: true, name: true, email: true, phone: true } }, child: true, transactions: { orderBy: { createdAt: 'desc' } } },
+  });
+  res.render('admin/payments', {
+    registration: registration || null,
+    error: registration ? errMsg : 'No registration found for that reference code.',
+    success,
+    paystackKey: key,
+    query: ref,
+  });
+});
+
+app.post('/admin/payments/:id/record', requireAdminSession, async (req, res) => {
+  const { amount, method, note, paymentStatus, paystackRef } = req.body;
+  const reg = await prisma.registration.findUnique({ where: { id: req.params.id } });
+  if (!reg) return res.redirect('/admin/payments');
+  await prisma.paymentTransaction.create({
+    data: {
+      registrationId: req.params.id,
+      amount: Math.round(parseFloat(amount) * 100) || 0,
+      method: method || 'CASH',
+      reference: paystackRef || null,
+      note: note || null,
+    },
+  });
+  await prisma.registration.update({ where: { id: req.params.id }, data: { paymentStatus: paymentStatus || 'PAID' } });
+  res.redirect(`/admin/payments?ref=${reg.referenceCode}&success=Payment recorded successfully`);
+});
+
+app.post('/admin/payments/:id/send-receipt', requireAdminSession, async (req, res) => {
+  const reg = await prisma.registration.findUnique({
+    where: { id: req.params.id },
+    include: { user: { select: { name: true, email: true, phone: true } }, child: true, transactions: { orderBy: { createdAt: 'desc' } } },
+  });
+  if (!reg) return res.redirect('/admin/payments');
+  const packingItems: string[] = req.body.packingItems ? String(req.body.packingItems).split(',').filter(Boolean) : [];
+  const html = buildReceiptHtml(reg, packingItems);
+  try {
+    if (!process.env.SMTP_USER) throw new Error('SMTP not configured');
+    await sendReceiptEmail(reg.user.email, `NAGARTA Youth Camp 2026 — Receipt ${reg.referenceCode}`, html);
+    res.redirect(`/admin/payments?ref=${reg.referenceCode}&success=Receipt sent to ${reg.user.email}`);
+  } catch (e: any) {
+    console.error('[send-receipt]', e.message);
+    res.redirect(`/admin/payments?ref=${reg.referenceCode}&error=Email failed: ${e.message}. Set SMTP_USER and SMTP_PASS on Render.`);
+  }
 });
 
 // Root redirect
