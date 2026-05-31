@@ -76,18 +76,31 @@
             <td colspan="8" class="px-6 py-5">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                <!-- Photo + download -->
+                <!-- Photo + view + download -->
                 <div>
                   <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Attendee Photo</p>
                   <% if (reg.child && reg.child.photo) { %>
                     <img src="<%= reg.child.photo %>" alt="Attendee"
-                      class="w-32 h-32 rounded-lg object-cover border border-beige mb-2" />
-                    <br />
-                    <a href="<%= reg.child.photo %>"
-                      download="attendee-<%= (reg.child.name || 'photo').replace(/[^a-z0-9]/gi, '_') %>.jpg"
-                      class="inline-block bg-gold text-maroon px-3 py-1.5 rounded text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
-                      Download Photo
-                    </a>
+                      class="w-32 h-32 rounded-lg object-cover border border-beige mb-3 cursor-pointer hover:opacity-90 transition-opacity"
+                      onclick="openPhotoModal(this.src)" title="Click to enlarge" />
+                    <div class="flex flex-col gap-2">
+                      <button type="button" onclick="openPhotoModal('<%= reg.child.photo %>')"
+                        class="inline-flex items-center gap-1.5 bg-maroon text-gold px-3 py-1.5 rounded text-xs font-semibold tracking-wider uppercase hover:bg-burgundy transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        View Photo
+                      </button>
+                      <a href="<%= reg.child.photo %>"
+                        download="attendee-<%= (reg.child.name || 'photo').replace(/[^a-z0-9]/gi, '_') %>.jpg"
+                        class="inline-flex items-center gap-1.5 bg-gold text-maroon px-3 py-1.5 rounded text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download Photo
+                      </a>
+                    </div>
                   <% } else { %>
                     <p class="text-xs text-burgundy/50 italic">No photo uploaded.</p>
                   <% } %>
@@ -131,11 +144,54 @@
   </div>
 </main>
 
+<!-- Photo lightbox modal -->
+<div id="photo-modal" onclick="closePhotoModal()"
+  style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);cursor:zoom-out"
+  class="flex items-center justify-center p-6">
+  <div onclick="event.stopPropagation()" class="relative max-w-2xl w-full">
+    <img id="photo-modal-img" src="" alt="Attendee Photo"
+      class="w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" />
+    <div class="flex gap-3 mt-4 justify-center">
+      <button id="photo-modal-download"
+        class="inline-flex items-center gap-2 bg-gold text-maroon px-5 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Download
+      </button>
+      <button onclick="closePhotoModal()"
+        class="inline-flex items-center gap-2 border border-white/30 text-white px-5 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase hover:bg-white/10 transition-colors">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   function toggleDetails(id) {
     var row = document.getElementById('details-' + id);
     if (row) row.style.display = (row.style.display === 'none' || !row.style.display) ? 'table-row' : 'none';
   }
+  function openPhotoModal(src) {
+    var modal = document.getElementById('photo-modal');
+    var img   = document.getElementById('photo-modal-img');
+    var dl    = document.getElementById('photo-modal-download');
+    img.src   = src;
+    dl.onclick = function() {
+      var a = document.createElement('a');
+      a.href = src; a.download = 'attendee-photo.jpg'; a.click();
+    };
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closePhotoModal() {
+    document.getElementById('photo-modal').style.display = 'none';
+    document.getElementById('photo-modal-img').src = '';
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closePhotoModal();
+  });
 </script>
 </body>
 </html>
