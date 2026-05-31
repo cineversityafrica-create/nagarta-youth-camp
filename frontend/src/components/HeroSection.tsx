@@ -1,3 +1,5 @@
+'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -12,6 +14,18 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
   const parts = (heading ?? 'Arise & Lead').split(' & ');
   const firstWord = parts[0] || heading;
   const restWords = parts[1] ? `& ${parts[1]}` : '';
+
+  // Bumping this remounts the photo layers, which restarts the CSS slideshow.
+  // Covers: fresh load (0), client navigation back to "/", and browser
+  // back/forward cache restores (pageshow with persisted=true).
+  const [runId, setRunId] = useState(0);
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setRunId((id) => id + 1);
+    };
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
@@ -33,7 +47,7 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
       />
 
       {/* ── LAYER 2a: Photo 1 (drawing) — visible 0–5 s, then fades out ──────── */}
-      <div className="camp-photo-1-animate absolute inset-0 z-10">
+      <div key={`photo1-${runId}`} className="camp-photo-1-animate absolute inset-0 z-10">
         <Image
           src="/camp-drawing.jpg"
           alt=""
@@ -58,7 +72,7 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
       </div>
 
       {/* ── LAYER 2b: Photo 2 (painting) — fades in at 5 s, exits at ~13.5 s ─ */}
-      <div className="camp-photo-2-animate absolute inset-0 z-10">
+      <div key={`photo2-${runId}`} className="camp-photo-2-animate absolute inset-0 z-10">
         <Image
           src="/camp-painting.jpg"
           alt=""
