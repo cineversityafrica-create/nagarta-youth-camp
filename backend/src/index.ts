@@ -30,41 +30,64 @@ import {
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '5000');
+const isProd = process.env.NODE_ENV === 'production';
 
 // Security
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders: true, legacyHeaders: false }));
 
-// CORS — allow frontend origin
+// General rate limit — 1000 requests per 15 min per IP (covers SSR page loads, hot-reload, etc.)
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, standardHeaders: true, legacyHeaders: false }));
+
+// Stricter limit for auth routes — 30 attempts per 15 min (brute-force protection)
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many login attempts. Please try again in 15 minutes.' } });
+app.use('/api/auth', authLimiter);
+
+// CORS
 const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000',
+  process.env.FRONTEND_URL,
   'http://localhost:3000',
   'http://localhost:60001',
-];
+  'https://nagartayouthcamp.netlify.app',
+].filter(Boolean) as string[];
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    callback(null, true); // allow all in development; tighten in production
+    if (!origin) return callback(null, true); // allow server-to-server
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (!isProd) return callback(null, true); // allow all in dev
+    callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
 // Serve shared static assets (logo, etc.)
 app.use(express.static(path.join(__dirname, '..', '..', 'frontend', 'public')));
 
-// Session for admin UI
+// Session — use PostgreSQL store in production, memory in dev
+// connect-pg-simple is only required when actually needed (production) to avoid
+// module-not-found errors during local development if the package is missing.
+const sessionStore = (isProd && process.env.DATABASE_URL)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  ? new (require('connect-pg-simple')(session))({
+      conString: process.env.DATABASE_URL,
+      tableName: 'session',
+      createTableIfMissing: true,
+    })
+  : undefined;
+
 app.use(session({
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || 'dev-session-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 8 * 60 * 60 * 1000 },
+  cookie: { secure: isProd, httpOnly: true, maxAge: 8 * 60 * 60 * 1000 },
 }));
 
-// EJS views — path works for both dev (src/) and prod (dist/)
+// EJS views
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'src', 'views'));
 
@@ -77,7 +100,6 @@ app.use('/api/schedule', scheduleRouter);
 app.use('/api/registrations', registrationsRouter);
 app.use('/api/contact-messages', contactRouter);
 app.use('/api/announcements', announcementsRouter);
-app.use('/api/my-registrations', (req, res) => res.redirect('/api/registrations/my'));
 
 // ── Admin REST API ───────────────────────────────────────────────────────────
 app.use('/api/admin/stats', statsRouter);
@@ -90,7 +112,6 @@ app.use('/api/admin/contact-messages', contactMessagesRouter);
 app.use('/api/admin/announcements', adminAnnouncementsRouter);
 
 // ── Admin UI (server-rendered) ────────────────────────────────────────────────
-
 type SessionData = { adminId?: string; adminEmail?: string; adminName?: string };
 
 function requireAdminSession(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -99,7 +120,6 @@ function requireAdminSession(req: express.Request, res: express.Response, next: 
   next();
 }
 
-// Admin login page
 app.get('/admin/login', (req, res) => {
   const s = req.session as unknown as SessionData;
   if (s.adminId) return res.redirect('/admin');
@@ -107,39 +127,46 @@ app.get('/admin/login', (req, res) => {
 });
 
 app.post('/admin/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || user.role !== 'ADMIN' || !(await bcrypt.compare(password, user.password))) {
-    return res.render('admin/login', { error: 'Invalid credentials' });
+  try {
+    const { email, password } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || user.role !== 'ADMIN' || !(await bcrypt.compare(password, user.password))) {
+      return res.render('admin/login', { error: 'Invalid credentials' });
+    }
+    const s = req.session as unknown as SessionData;
+    s.adminId = user.id;
+    s.adminEmail = user.email;
+    s.adminName = user.name;
+    return res.redirect('/admin');
+  } catch {
+    return res.render('admin/login', { error: 'Something went wrong. Please try again.' });
   }
-  const s = req.session as unknown as SessionData;
-  s.adminId = user.id;
-  s.adminEmail = user.email;
-  s.adminName = user.name;
-  return res.redirect('/admin');
 });
 
 app.get('/admin/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/admin/login'));
 });
 
-// Admin dashboard
 app.get('/admin', requireAdminSession, async (_req, res) => {
-  const [totalRegistrations, pendingRegistrations, confirmedRegistrations, totalMessages, recentRegistrations] =
-    await Promise.all([
-      prisma.registration.count(),
-      prisma.registration.count({ where: { status: 'PENDING' } }),
-      prisma.registration.count({ where: { status: 'CONFIRMED' } }),
-      prisma.contactMessage.count({ where: { resolved: false } }),
-      prisma.registration.findMany({ take: 8, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true, email: true } }, child: { select: { name: true } } } }),
-    ]);
-  const capacity = parseInt((await prisma.siteContent.findUnique({ where: { key: 'camp_capacity' } }))?.value || '200');
-  res.render('admin/dashboard', {
-    stats: { totalRegistrations, pendingRegistrations, confirmedRegistrations, unreadMessages: totalMessages, spotsRemaining: Math.max(0, capacity - totalRegistrations), capacity, recentRegistrations },
-  });
+  try {
+    const [totalRegistrations, pendingRegistrations, confirmedRegistrations, totalMessages, recentRegistrations] =
+      await Promise.all([
+        prisma.registration.count(),
+        prisma.registration.count({ where: { status: 'PENDING' } }),
+        prisma.registration.count({ where: { status: 'CONFIRMED' } }),
+        prisma.contactMessage.count({ where: { resolved: false } }),
+        prisma.registration.findMany({ take: 8, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true, email: true } }, child: { select: { name: true } } } }),
+      ]);
+    const capacity = parseInt((await prisma.siteContent.findUnique({ where: { key: 'camp_capacity' } }))?.value || '200');
+    res.render('admin/dashboard', {
+      stats: { totalRegistrations, pendingRegistrations, confirmedRegistrations, unreadMessages: totalMessages, spotsRemaining: Math.max(0, capacity - totalRegistrations), capacity, recentRegistrations },
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Dashboard error. Check server logs.');
+  }
 });
 
-// Registrations list
 app.get('/admin/registrations', requireAdminSession, async (_req, res) => {
   const registrations = await prisma.registration.findMany({ include: { user: { select: { name: true, email: true, phone: true } }, child: true }, orderBy: { createdAt: 'desc' } });
   res.render('admin/registrations', { registrations });
@@ -176,7 +203,6 @@ app.post('/admin/registrations/:id/payment', requireAdminSession, async (req, re
   res.redirect('/admin/registrations');
 });
 
-// Site Content
 app.get('/admin/site-content', requireAdminSession, async (_req, res) => {
   const items = await prisma.siteContent.findMany({ orderBy: [{ group: 'asc' }, { key: 'asc' }] });
   res.render('admin/site-content', { items, success: null });
@@ -188,7 +214,6 @@ app.post('/admin/site-content/:key', requireAdminSession, async (req, res) => {
   res.render('admin/site-content', { items, success: 'Content updated successfully.' });
 });
 
-// Activities
 app.get('/admin/activities', requireAdminSession, async (_req, res) => {
   const activities = await prisma.activity.findMany({ orderBy: { displayOrder: 'asc' } });
   res.render('admin/activities', { activities });
@@ -207,7 +232,6 @@ app.get('/admin/activities/:id/delete', requireAdminSession, async (req, res) =>
   res.redirect('/admin/activities');
 });
 
-// Schedule
 app.get('/admin/schedule', requireAdminSession, async (_req, res) => {
   const days = await prisma.scheduleDay.findMany({ orderBy: { dayNumber: 'asc' } });
   res.render('admin/schedule', { days });
@@ -218,7 +242,6 @@ app.post('/admin/schedule/:id', requireAdminSession, async (req, res) => {
   res.redirect('/admin/schedule');
 });
 
-// Messages
 app.get('/admin/messages', requireAdminSession, async (_req, res) => {
   const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: 'desc' } });
   res.render('admin/messages', { messages });
@@ -234,7 +257,6 @@ app.get('/admin/messages/:id/delete', requireAdminSession, async (req, res) => {
   res.redirect('/admin/messages');
 });
 
-// Announcements
 app.get('/admin/announcements', requireAdminSession, async (_req, res) => {
   const announcements = await prisma.announcement.findMany({ orderBy: { createdAt: 'desc' } });
   res.render('admin/announcements', { announcements });
@@ -250,7 +272,6 @@ app.get('/admin/announcements/:id/delete', requireAdminSession, async (req, res)
   res.redirect('/admin/announcements');
 });
 
-// Users
 app.get('/admin/users', requireAdminSession, async (_req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, email: true, name: true, phone: true, role: true, suspended: true, createdAt: true }, orderBy: { createdAt: 'desc' } });
   res.render('admin/users', { users });
@@ -276,40 +297,24 @@ app.get('/admin/users/:id/delete', requireAdminSession, async (req, res) => {
   res.redirect('/admin/users');
 });
 
-// Root redirect → admin
+// Root redirect
 app.get('/', (_req, res) => res.redirect('/admin'));
 
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-// Reset admin — call this URL in browser to update admin credentials
+// Reset admin via browser URL (protected)
 app.get('/api/reset-admin', async (req, res) => {
-  if (req.query.secret !== 'nagarta-reset-2026') return res.status(403).json({ error: 'Forbidden' });
+  if (req.query.secret !== process.env.RESET_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
-    const hashed = await bcrypt.hash('Admin@nagarta!', 12);
+    const email = process.env.ADMIN_EMAIL || 'admin@campingnagartayouth.com';
+    const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin@nagarta!', 12);
     const user = await prisma.user.upsert({
-      where: { email: 'admin@campingnagartayouth.com' },
-      update: { password: hashed, role: 'ADMIN', name: 'Camp Administrator' },
-      create: { email: 'admin@campingnagartayouth.com', password: hashed, name: 'Camp Administrator', role: 'ADMIN' },
+      where: { email },
+      update: { password: hashed, role: 'ADMIN', name: process.env.ADMIN_NAME || 'Camp Administrator' },
+      create: { email, password: hashed, name: process.env.ADMIN_NAME || 'Camp Administrator', role: 'ADMIN' },
     });
-    // Remove old admin if email changed
-    await prisma.user.deleteMany({ where: { role: 'ADMIN', NOT: { email: 'admin@campingnagartayouth.com' } } });
-    res.json({ success: true, admin: user.email, message: 'Admin credentials updated!' });
-  } catch (e) { res.status(500).json({ error: String(e) }); }
-});
-
-// One-time seed endpoint — protected by secret key
-app.post('/api/seed', async (req, res) => {
-  const secret = req.headers['x-seed-secret'];
-  if (secret !== process.env.SEED_SECRET) return res.status(403).json({ error: 'Forbidden' });
-  try {
-    const existing = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
-    if (existing) return res.json({ message: 'Already seeded', admin: existing.email });
-    const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin@2026!', 12);
-    const admin = await prisma.user.create({
-      data: { email: process.env.ADMIN_EMAIL || 'admin@nagartacamp.com', password: hashed, name: process.env.ADMIN_NAME || 'Camp Administrator', role: 'ADMIN' },
-    });
-    res.json({ message: 'Seeded successfully', admin: admin.email });
+    res.json({ success: true, admin: user.email });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
@@ -318,7 +323,7 @@ app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
 // Error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err);
+  console.error(err.stack);
   res.status(500).json({ error: 'Internal server error' });
 });
 

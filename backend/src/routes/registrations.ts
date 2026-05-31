@@ -30,45 +30,55 @@ const childSchema = z.object({
 const registrationSchema = z.discriminatedUnion('type', [selfSchema, childSchema]);
 
 router.post('/', authenticate, async (req: AuthRequest, res) => {
-  const result = registrationSchema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: 'Validation failed', details: result.error.flatten() });
-  }
+  try {
+    const result = registrationSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ error: 'Validation failed', details: result.error.flatten() });
+    }
 
-  const userId = req.user!.userId;
-  const data = result.data;
+    const userId = req.user!.userId;
+    const data = result.data;
 
-  if (data.type === 'SELF') {
+    if (data.type === 'SELF') {
+      const reg = await prisma.registration.create({
+        data: { userId, type: 'SELF', notes: data.notes },
+      });
+      return res.status(201).json({ referenceCode: reg.referenceCode, status: reg.status });
+    }
+
+    const child = await prisma.child.create({
+      data: { parentId: userId, ...data.child },
+    });
     const reg = await prisma.registration.create({
-      data: { userId, type: 'SELF', notes: data.notes },
+      data: {
+        userId,
+        childId: child.id,
+        type: 'CHILD',
+        notes: data.notes,
+        parentName: data.parentName,
+        parentAddress: data.parentAddress,
+        parentPhone: data.parentPhone,
+      },
     });
     return res.status(201).json({ referenceCode: reg.referenceCode, status: reg.status });
+  } catch (err) {
+    console.error('[registrations/post]', err);
+    return res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
-
-  const child = await prisma.child.create({
-    data: { parentId: userId, ...data.child },
-  });
-  const reg = await prisma.registration.create({
-    data: {
-      userId,
-      childId: child.id,
-      type: 'CHILD',
-      notes: data.notes,
-      parentName: data.parentName,
-      parentAddress: data.parentAddress,
-      parentPhone: data.parentPhone,
-    },
-  });
-  return res.status(201).json({ referenceCode: reg.referenceCode, status: reg.status });
 });
 
 router.get('/my', authenticate, async (req: AuthRequest, res) => {
-  const regs = await prisma.registration.findMany({
-    where: { userId: req.user!.userId },
-    include: { child: true },
-    orderBy: { createdAt: 'desc' },
-  });
-  return res.json(regs);
+  try {
+    const regs = await prisma.registration.findMany({
+      where: { userId: req.user!.userId },
+      include: { child: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    return res.json(regs);
+  } catch (err) {
+    console.error('[registrations/my]', err);
+    return res.status(500).json({ error: 'Failed to load registrations. Please try again.' });
+  }
 });
 
 export default router;

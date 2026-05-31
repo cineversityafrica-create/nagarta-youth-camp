@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { register } from '@/lib/api';
+import { register, ApiError } from '@/lib/api';
 import { saveAuth } from '@/lib/auth';
 
 type TabMode = 'PARENT' | 'CAMPER';
@@ -14,6 +14,7 @@ export default function SignUpPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowConnection, setSlowConnection] = useState(false);
 
   function handleChange(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -22,6 +23,8 @@ export default function SignUpPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setSlowConnection(false);
+
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -30,7 +33,12 @@ export default function SignUpPage() {
       setError('Password must be at least 8 characters.');
       return;
     }
+
     setLoading(true);
+
+    // After 8 seconds, show a "server may be starting up" hint
+    const slowTimer = setTimeout(() => setSlowConnection(true), 8000);
+
     try {
       const { token, user } = await register({
         email: form.email,
@@ -39,12 +47,27 @@ export default function SignUpPage() {
         phone: form.phone || undefined,
         role: tab,
       });
+      clearTimeout(slowTimer);
       saveAuth(token, user);
       if (user.role === 'PARENT') router.push('/dashboard/parent');
       else router.push('/dashboard/camper');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Registration failed';
-      setError(msg.includes('409') ? 'This email is already registered.' : 'Registration failed. Please try again.');
+      clearTimeout(slowTimer);
+      setSlowConnection(false);
+
+      if (err instanceof ApiError) {
+        if (err.status === 409) {
+          setError('This email is already registered. Please sign in instead.');
+        } else if (err.status === 400) {
+          setError('Please check your details — make sure the email is valid and the password is at least 8 characters.');
+        } else {
+          setError('Something went wrong on the server. Please try again shortly.');
+        }
+      } else if (err instanceof Error && err.name === 'AbortError') {
+        setError('The server took too long to respond. Please try again — it may still be starting up.');
+      } else {
+        setError('Could not connect to the server. Please check your internet connection and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -82,6 +105,12 @@ export default function SignUpPage() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-3 text-sm mb-4">
               {error}
+            </div>
+          )}
+
+          {slowConnection && !error && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded px-4 py-3 text-sm mb-4">
+              ⏳ The server is starting up — this can take up to 60 seconds. Please wait…
             </div>
           )}
 
@@ -147,7 +176,7 @@ export default function SignUpPage() {
               disabled={loading}
               className="w-full bg-gold text-maroon font-semibold py-3 rounded-lg tracking-wider uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50 mt-2"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? 'Creating account…' : 'Create Account'}
             </button>
           </form>
 

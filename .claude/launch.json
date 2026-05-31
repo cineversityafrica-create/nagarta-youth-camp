@@ -4,14 +4,16 @@
     {
       "name": "NAGARTA Frontend (Next.js)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "frontend",
       "port": 3000,
       "autoPort": true
     },
     {
       "name": "NAGARTA Backend (Express + Prisma)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "backend"],
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "backend",
       "port": 5000,
       "autoPort": true
     }

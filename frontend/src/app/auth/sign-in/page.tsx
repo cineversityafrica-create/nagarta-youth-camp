@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api';
+import { login, ApiError } from '@/lib/api';
 import { saveAuth } from '@/lib/auth';
 
 type TabMode = 'PARENT' | 'CAMPER';
@@ -15,19 +15,44 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowConnection, setSlowConnection] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setSlowConnection(false);
     setLoading(true);
+
+    // After 8 seconds, show a "server may be starting up" hint
+    const slowTimer = setTimeout(() => setSlowConnection(true), 8000);
+
     try {
       const { token, user } = await login(email, password);
+      clearTimeout(slowTimer);
       saveAuth(token, user);
       if (user.role === 'PARENT') router.push('/dashboard/parent');
       else if (user.role === 'CAMPER') router.push('/dashboard/camper');
       else router.push('/');
-    } catch {
-      setError('Invalid email or password. Please try again.');
+    } catch (err: unknown) {
+      clearTimeout(slowTimer);
+      setSlowConnection(false);
+
+      if (err instanceof ApiError) {
+        // HTTP error with a real status code from the server
+        if (err.status === 401) {
+          setError('Incorrect email or password. Please try again.');
+        } else if (err.status === 403) {
+          setError('Your account has been suspended. Please contact support.');
+        } else if (err.status === 400) {
+          setError('Please enter a valid email and password.');
+        } else {
+          setError('Something went wrong on the server. Please try again shortly.');
+        }
+      } else if (err instanceof Error && err.name === 'AbortError') {
+        setError('The server took too long to respond. Please try again — it may still be starting up.');
+      } else {
+        setError('Could not connect to the server. Please check your internet connection and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -71,6 +96,12 @@ export default function SignInPage() {
             </div>
           )}
 
+          {slowConnection && !error && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded px-4 py-3 text-sm mb-4">
+              ⏳ The server is starting up — this can take up to 60 seconds. Please wait…
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block label-caps text-burgundy mb-1.5" htmlFor="email">Email</label>
@@ -101,7 +132,7 @@ export default function SignInPage() {
               disabled={loading}
               className="w-full bg-gold text-maroon font-semibold py-3 rounded-lg tracking-wider uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50 mt-2"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
 

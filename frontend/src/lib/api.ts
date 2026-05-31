@@ -42,19 +42,52 @@ const FALLBACK: Record<string, unknown> = {
   ],
 };
 
-async function apiFetch<T>(path: string, options?: RequestInit, fallbackKey?: string): Promise<T> {
+// Custom error class so callers can distinguish HTTP errors from network errors
+export class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+/**
+ * Core fetch wrapper.
+ * @param timeoutMs  How long to wait before aborting (default 5 s for data, pass 60000 for auth)
+ */
+async function apiFetch<T>(
+  path: string,
+  options?: RequestInit,
+  fallbackKey?: string,
+  timeoutMs = 5000,
+): Promise<T> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
-    const res = await fetch(`${BASE_URL}${path}`, {
-      ...options,
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}${path}`, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (!res.ok) {
+      // Try to extract a human-readable error from the JSON body
+      let message = `HTTP ${res.status}`;
+      try {
+        const body = await res.json() as { error?: string };
+        if (body?.error) message = body.error;
+      } catch { /* ignore parse errors */ }
+      throw new ApiError(res.status, message);
+    }
+
     return res.json() as Promise<T>;
   } catch (err) {
+    // Use fallback data for public pages when the backend is unreachable
     if (fallbackKey && FALLBACK[fallbackKey]) {
       console.warn(`[api] Backend unreachable, using fallback for ${fallbackKey}`);
       return FALLBACK[fallbackKey] as T;
@@ -82,35 +115,45 @@ export async function submitRegistration(data: unknown, token: string) {
     method: 'POST',
     body: JSON.stringify(data),
     headers: { Authorization: `Bearer ${token}` },
-  });
+  }, undefined, 30000);
 }
 
 export async function submitContactMessage(data: unknown) {
-  return apiFetch('/api/contact-messages', { method: 'POST', body: JSON.stringify(data) });
+  return apiFetch('/api/contact-messages', { method: 'POST', body: JSON.stringify(data) }, undefined, 30000);
 }
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
+// ── Auth — 60 s timeout so Render has time to wake up ────────────────────────
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  return apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+  return apiFetch(
+    '/api/auth/login',
+    { method: 'POST', body: JSON.stringify({ email, password }) },
+    undefined,
+    60000, // 60 s — Render free tier can take up to ~50 s to wake
+  );
 }
 
 export async function register(data: RegisterPayload): Promise<AuthResponse> {
-  return apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify(data) });
+  return apiFetch(
+    '/api/auth/register',
+    { method: 'POST', body: JSON.stringify(data) },
+    undefined,
+    60000,
+  );
 }
 
 // ── Authenticated endpoints ──────────────────────────────────────────────────
 
 export async function getMe(token: string): Promise<User> {
-  return apiFetch('/api/me', { headers: { Authorization: `Bearer ${token}` } });
+  return apiFetch('/api/me', { headers: { Authorization: `Bearer ${token}` } }, undefined, 30000);
 }
 
 export async function getAnnouncements(token: string): Promise<Announcement[]> {
-  return apiFetch('/api/announcements', { headers: { Authorization: `Bearer ${token}` } });
+  return apiFetch('/api/announcements', { headers: { Authorization: `Bearer ${token}` } }, undefined, 30000);
 }
 
 export async function getMyRegistrations(token: string): Promise<Registration[]> {
-  return apiFetch('/api/registrations/my', { headers: { Authorization: `Bearer ${token}` } });
+  return apiFetch('/api/registrations/my', { headers: { Authorization: `Bearer ${token}` } }, undefined, 30000);
 }
 
 // ── Types ────────────────────────────────────────────────────────────────────

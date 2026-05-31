@@ -5,16 +5,15 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const hash = await bcrypt.hash('Admin@2026!', 12);
+  const email = process.env.ADMIN_EMAIL || 'admin@campingnagartayouth.com';
+  const password = process.env.ADMIN_PASSWORD || 'Admin@nagarta!';
+  const name = process.env.ADMIN_NAME || 'Camp Administrator';
+
+  const hash = await bcrypt.hash(password, 12);
   const user = await prisma.user.upsert({
-    where: { email: 'admin@nagartacamp.com' },
-    update: { password: hash, role: 'ADMIN' },
-    create: {
-      email: 'admin@nagartacamp.com',
-      password: hash,
-      name: 'Camp Administrator',
-      role: 'ADMIN',
-    },
+    where: { email },
+    update: { password: hash, role: 'ADMIN', name },
+    create: { email, password: hash, name, role: 'ADMIN' },
   });
   console.log('✅ Admin ready:', user.email);
   await prisma.$disconnect();

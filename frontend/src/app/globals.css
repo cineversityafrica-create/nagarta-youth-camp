@@ -48,3 +48,32 @@
 .countdown-digit {
   @apply text-4xl md:text-5xl font-serif font-semibold text-gold tabular-nums;
 }
+
+/* ── Hero photo slideshow ────────────────────────────────────────────────── */
+/* Photo 1: visible immediately (0–5 s), then fades out over 1 s             */
+/* Photo 2: fades in at 5 s, holds for 5 s, then rotates + fades out        */
+
+@keyframes photo1FadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.camp-photo-1-animate {
+  opacity: 1;
+  animation: photo1FadeOut 1s ease-out forwards;
+  animation-delay: 5s;
+}
+
+/* Total duration from delay start: 1s fade-in + 5s hold + 2.5s exit = 8.5s */
+@keyframes photo2Lifecycle {
+  0%   { opacity: 0; transform: scale(1.0)  rotate(0deg);   }
+  12%  { opacity: 1; transform: scale(1.0)  rotate(0deg);   }  /* ~1 s in  */
+  70%  { opacity: 1; transform: scale(1.0)  rotate(0deg);   }  /* ~6 s in  */
+  100% { opacity: 0; transform: scale(1.08) rotate(3deg);   }  /* 8.5 s in */
+}
+
+.camp-photo-2-animate {
+  opacity: 0;
+  animation: photo2Lifecycle 8.5s ease-in-out forwards;
+  animation-delay: 5s;               /* starts crossfading in at the 5 s mark */
+}
