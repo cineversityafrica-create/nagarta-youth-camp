@@ -145,6 +145,20 @@ app.whenReady().then(() => {
     }
   );
 
+  // ── Fix: restore Origin header after the redirect ────────────────────────
+  // Cross-scheme redirects (http→https) cause browsers to send Origin: null.
+  // The backend CORS handler rejects that, so we reset it to the app origin.
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: [`${BACKEND_URL}/*`] },
+    (details, callback) => {
+      const headers = { ...details.requestHeaders };
+      if (!headers['Origin'] || headers['Origin'] === 'null') {
+        headers['Origin'] = APP_URL;
+      }
+      callback({ requestHeaders: headers });
+    }
+  );
+
   createSplash();
   createMain();
 

@@ -136,6 +136,18 @@ app.whenReady().then(() => {
     }
   );
 
+  // Restore Origin header after cross-scheme redirect (http→https sets Origin: null)
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: [`${BACKEND_URL}/*`] },
+    (details, callback) => {
+      const headers = { ...details.requestHeaders };
+      if (!headers['Origin'] || headers['Origin'] === 'null') {
+        headers['Origin'] = 'https://nagartayouthcamp.netlify.app';
+      }
+      callback({ requestHeaders: headers });
+    }
+  );
+
   createSplash();
   createMain();
   app.on('activate', () => {
