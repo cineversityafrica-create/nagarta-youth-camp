@@ -14,7 +14,30 @@ const testimonials = [
     name: 'Mrs. Owusu-Darkwah',
     detail: 'Parent of NAGARTA 2025 Camper',
   },
+  {
+    quote: "I came as a shy girl from Tamale with big dreams but no direction. NAGARTA connected me to a community that believed in me before I even believed in myself. I am forever grateful.",
+    name: 'Fatima S.',
+    detail: 'NAGARTA 2025 Alumna · Tamale',
+  },
+  {
+    quote: "The bonds I formed at camp became my first business partnership. Three of us launched a social enterprise just eight months after NAGARTA. The seeds planted there keep growing.",
+    name: 'Emmanuel T.',
+    detail: 'NAGARTA 2025 Alumnus · Tema',
+  },
 ];
+
+function TestimonialCard({ t }: { t: { quote: string; name: string; detail: string } }) {
+  return (
+    <div className="bg-burgundy/30 border border-burgundy rounded-lg p-8 hover:border-gold/40 transition-colors">
+      <div className="font-serif text-6xl text-gold/30 leading-none mb-4 select-none">&ldquo;</div>
+      <p className="font-serif italic text-cream/90 text-lg leading-relaxed mb-6">{t.quote}</p>
+      <div className="border-t border-burgundy pt-4">
+        <p className="font-semibold text-gold text-sm">{t.name}</p>
+        <p className="text-xs text-cream/40 mt-1">{t.detail}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function TestimonialsSection() {
   return (
@@ -29,20 +52,16 @@ export default function TestimonialsSection() {
           <div className="gold-divider mx-auto mt-6" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              className="bg-burgundy/30 border border-burgundy rounded-lg p-8 hover:border-gold/40 transition-colors"
-            >
-              {/* Gold quote mark */}
-              <div className="font-serif text-6xl text-gold/30 leading-none mb-4 select-none">&ldquo;</div>
-              <p className="font-serif italic text-cream/90 text-lg leading-relaxed mb-6">{t.quote}</p>
-              <div className="border-t border-burgundy pt-4">
-                <p className="font-semibold text-gold text-sm">{t.name}</p>
-                <p className="text-xs text-cream/40 mt-1">{t.detail}</p>
-              </div>
-            </div>
+        {/* Top row — 3 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          {testimonials.slice(0, 3).map((t, i) => (
+            <TestimonialCard key={i} t={t} />
+          ))}
+        </div>
+        {/* Bottom row — 2 cards centred */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          {testimonials.slice(3).map((t, i) => (
+            <TestimonialCard key={i + 3} t={t} />
           ))}
         </div>
       </div>
