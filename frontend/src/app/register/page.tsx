@@ -9,7 +9,7 @@ import { getToken, isLoggedIn } from '@/lib/auth';
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
 
-const emptyChild = { name: '', age: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContact: '' };
+const emptyChild = { name: '', age: '', gender: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContact: '' };
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -178,6 +178,15 @@ export default function RegisterPage() {
                   <div>
                     <label className={labelClass}>Age</label>
                     <input type="number" required min="8" max="25" value={child.age} onChange={e => updateChild('age', e.target.value)} placeholder="15" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Gender</label>
+                    <select required value={child.gender} onChange={e => updateChild('gender', e.target.value)} className={inputClass}>
+                      <option value="" disabled>Select gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
                   <div>
                     <label className={labelClass}>School / Institution</label>

@@ -183,6 +183,7 @@ app.get('/admin/registrations/export', requireAdminSession, async (_req, res) =>
     Payment: r.paymentStatus,
     'Attendee Name': r.child?.name || '',
     'Attendee Age': r.child?.age || '',
+    'Gender': r.child?.gender || '',
     School: r.child?.school || '',
     'Dietary Needs': r.child?.dietaryNeeds || '',
     'Medical Notes': r.child?.medicalNotes || '',

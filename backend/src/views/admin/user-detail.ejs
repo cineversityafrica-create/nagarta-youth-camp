@@ -118,6 +118,9 @@
             </div>
 
             <dl class="text-xs text-maroon space-y-1 mt-3">
+              <% if (reg.child && reg.child.gender) { %>
+                <div class="flex gap-1"><span class="text-burgundy/50 w-20 flex-shrink-0">Gender:</span><span><%= reg.child.gender %></span></div>
+              <% } %>
               <% if (reg.child && reg.child.school) { %>
                 <div class="flex gap-1"><span class="text-burgundy/50 w-20 flex-shrink-0">School:</span><span><%= reg.child.school %></span></div>
               <% } %>

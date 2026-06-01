@@ -21,6 +21,7 @@ const childSchema = z.object({
   child: z.object({
     name: z.string().min(2),
     age: z.number().int().min(8).max(25),
+    gender: z.string().optional(),
     school: z.string().optional(),
     dietaryNeeds: z.string().optional(),
     medicalNotes: z.string().optional(),

@@ -28,6 +28,7 @@ model Child {
   parent           User           @relation(fields: [parentId], references: [id], onDelete: Cascade)
   name             String
   age              Int
+  gender           String?  // Male | Female | Other
   school           String?
   dietaryNeeds     String?
   medicalNotes     String?
