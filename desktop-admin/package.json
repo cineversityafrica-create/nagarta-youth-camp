@@ -1,0 +1,61 @@
+{
+  "name": "nagarta-admin",
+  "productName": "NAGARTA Admin",
+  "version": "1.0.0",
+  "description": "NAGARTA Youth Camp — Admin Portal Desktop App",
+  "main": "main.js",
+  "author": "NAGARTA Youth Camp",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder --win --mac"
+  },
+  "build": {
+    "appId": "com.nagarta.admin",
+    "productName": "NAGARTA Admin",
+    "copyright": "Copyright © 2026 NAGARTA Youth Camp",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "splash.html",
+      "build/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.education",
+      "icon": "build/icon.png",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "title": "NAGARTA Admin",
+      "backgroundColor": "#1a0a0e"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "signingHashAlgorithms": [],
+      "sign": null,
+      "target": [
+        { "target": "zip", "arch": ["x64"] }
+      ]
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Education",
+      "target": ["AppImage"]
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
