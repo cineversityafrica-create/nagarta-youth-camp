@@ -1,11 +1,12 @@
 'use strict';
 
-const { app, BrowserWindow, Menu, shell, nativeImage } = require('electron');
+const { app, BrowserWindow, Menu, shell, session } = require('electron');
 const path = require('path');
 
-// ── Live app URL ─────────────────────────────────────────────────────────────
-// Update this to your Hostinger domain once deployed.
-const APP_URL = 'https://nagartayouthcamp.netlify.app';
+// ── Live URLs ─────────────────────────────────────────────────────────────────
+// Update APP_URL to your Hostinger domain once deployed.
+const APP_URL     = 'https://nagartayouthcamp.netlify.app';
+const BACKEND_URL = 'https://nagarta-youth-camp.onrender.com';
 
 let mainWindow = null;
 let splashWindow = null;
@@ -131,6 +132,19 @@ function buildMenu() {
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
+  // ── Fix: redirect localhost:5000 API calls to the live Render backend ──────
+  // Netlify bakes NEXT_PUBLIC_API_URL=http://localhost:5000 at build time.
+  // This intercepts those calls inside Electron and sends them to Render.
+  session.defaultSession.webRequest.onBeforeRequest(
+    { urls: ['http://localhost:5000/*', 'http://127.0.0.1:5000/*'] },
+    (details, callback) => {
+      const redirectURL = details.url
+        .replace('http://localhost:5000', BACKEND_URL)
+        .replace('http://127.0.0.1:5000', BACKEND_URL);
+      callback({ redirectURL });
+    }
+  );
+
   createSplash();
   createMain();
 

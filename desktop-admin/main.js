@@ -1,11 +1,12 @@
 'use strict';
 
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell, session } = require('electron');
 const path = require('path');
 
 // ── Admin portal URL ──────────────────────────────────────────────────────────
 // Update to your Hostinger domain once deployed, e.g. https://nagartacamp.com/admin
-const ADMIN_URL = 'https://nagarta-youth-camp.onrender.com/admin';
+const ADMIN_URL   = 'https://nagarta-youth-camp.onrender.com/admin';
+const BACKEND_URL = 'https://nagarta-youth-camp.onrender.com';
 
 let mainWindow = null;
 let splashWindow = null;
@@ -124,6 +125,17 @@ function buildMenu() {
 }
 
 app.whenReady().then(() => {
+  // Redirect any localhost:5000 API calls to the live backend
+  session.defaultSession.webRequest.onBeforeRequest(
+    { urls: ['http://localhost:5000/*', 'http://127.0.0.1:5000/*'] },
+    (details, callback) => {
+      const redirectURL = details.url
+        .replace('http://localhost:5000', BACKEND_URL)
+        .replace('http://127.0.0.1:5000', BACKEND_URL);
+      callback({ redirectURL });
+    }
+  );
+
   createSplash();
   createMain();
   app.on('activate', () => {
