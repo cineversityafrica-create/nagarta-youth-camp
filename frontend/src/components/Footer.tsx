@@ -20,7 +20,7 @@ export default function Footer({ content }: FooterProps) {
           <div>
             <h3 className="font-serif text-3xl font-semibold text-gold tracking-widest mb-3">NAGARTA</h3>
             <p className="text-beige/70 text-sm leading-relaxed mb-4">
-              A transformative 5-day leadership experience for the next generation of African leaders.
+              A transformative 5-day leadership experience for the next generation of global leaders.
             </p>
             <div className="flex gap-4">
               {socials.map(({ key, label, icon }) => (
