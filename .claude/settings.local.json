@@ -53,7 +53,13 @@
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "Bash(npm run *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\" -Recurse -Name)",
-      "Bash(git commit -m 'feat: Enable all popups and interactive features in Claude Code development mode *)"
+      "Bash(git commit -m 'feat: Enable all popups and interactive features in Claude Code development mode *)",
+      "Bash(curl -s \"https://nagarta-youth-camp.onrender.com/api/reset-admin?email=admin@nagartayouthcamp.com&password=Test1234&name=NAGARTA\")",
+      "Bash(curl -s \"https://nagarta-youth-camp.onrender.com/api/reset-admin?email=admin@nagartayouthcamp.com&password=SimplePass123&name=NAGARTA\")",
+      "Bash(curl -s -I \"https://nagartayouthcamp.netlify.app\")",
+      "Bash(curl -s -I \"https://nagarta-youth-camp.vercel.app\")",
+      "Bash(curl -s -I \"https://nagarta-youth-camp-qmyves9oy-nagarta-s-projects.vercel.app\")",
+      "Bash(git commit -m 'feat: Remove age restrictions \\(8-25 years\\) from registration and dashboard *)"
     ]
   }
 }
