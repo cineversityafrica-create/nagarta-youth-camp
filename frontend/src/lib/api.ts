@@ -31,7 +31,7 @@ const FALLBACK: Record<string, unknown> = {
     { id: '4', title: 'Mentorship & Life Skills', subtitle: 'One-on-one and small-group mentoring from industry leaders.', iconName: 'users', displayOrder: 4 },
     { id: '5', title: 'Faith Sessions', subtitle: 'Morning devotionals and evening reflections to anchor purpose and build inner strength.', iconName: 'heart', displayOrder: 5 },
     { id: '6', title: 'Competitions & Talent Showcase', subtitle: 'Debates, oratory contests and creative arts — every gift celebrated.', iconName: 'trophy', displayOrder: 6 },
-    { id: '7', title: 'Awards Night', subtitle: 'A gala ceremony honoring excellence, growth and outstanding leadership.', iconName: 'star', displayOrder: 7 },
+    { id: '7', title: 'Awards Night', subtitle: 'A gala ceremony honouring excellence, growth and outstanding leadership.', iconName: 'star', displayOrder: 7 },
   ],
   schedule: [
     { id: '1', dayNumber: 1, date: 'Saturday, 19 December', title: 'Arrival & Orientation', summary: 'Welcome ceremony, campus tour, team assignments, icebreakers and opening ceremony with keynote address.' },
