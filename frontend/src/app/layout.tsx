@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
 import { getSiteContent } from '@/lib/api';
+import { ToastProvider } from '@/context/ToastContext';
+import ToastContainer from '@/components/ToastContainer';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -33,7 +35,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        <ToastProvider>
+          {children}
+          <ToastContainer />
+        </ToastProvider>
+      </body>
     </html>
   );
 }
