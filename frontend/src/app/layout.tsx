@@ -4,6 +4,7 @@ import './globals.css';
 import { getSiteContent } from '@/lib/api';
 import { ToastProvider } from '@/context/ToastContext';
 import ToastContainer from '@/components/ToastContainer';
+import DevModeInitializer from '@/components/DevModeInitializer';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body>
         <ToastProvider>
+          <DevModeInitializer />
           {children}
           <ToastContainer />
         </ToastProvider>
