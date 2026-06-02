@@ -2,7 +2,7 @@
 
 /**
  * Development Mode Initializer
- * Enables all popups, modals, and interactive features in Claude Code
+ * Enables all popups, modals and interactive features in Claude Code
  * Runs on client-side only
  */
 
@@ -39,7 +39,7 @@ export default function DevModeInitializer() {
         });
       }
 
-      console.log('🔓 Development Mode: All popups, modals, and features enabled');
+      console.log('🔓 Development Mode: All popups, modals and features enabled');
     }
   }, []);
 

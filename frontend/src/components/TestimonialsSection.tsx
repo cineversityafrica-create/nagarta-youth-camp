@@ -5,7 +5,7 @@ const testimonials = [
     detail: 'NAGARTA 2025 Alumna · Accra',
   },
   {
-    quote: "The mentorship sessions were unlike anything I experienced in school. Industry leaders poured into us with no holding back. I left with a vision, a team, and a plan.",
+    quote: "The mentorship sessions were unlike anything I experienced in school. Industry leaders poured into us with no holding back. I left with a vision, a team and a plan.",
     name: 'Kofi A.',
     detail: 'NAGARTA 2025 Alumnus · Kumasi',
   },

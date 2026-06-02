@@ -43,7 +43,7 @@ export default function CampDrawingPhoto() {
             Where Young Minds Come Alive
           </h2>
           <p className="text-beige/70 text-base leading-relaxed mb-6">
-            At NAGARTA Youth Camp, every camper is encouraged to dream, create, and
+            At NAGARTA Youth Camp, every camper is encouraged to dream, create and
             express themselves. From art and music to leadership drills — there is
             something extraordinary waiting for every young person.
           </p>

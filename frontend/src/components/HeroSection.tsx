@@ -16,7 +16,7 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
   const restWords = parts[1] ? `& ${parts[1]}` : '';
 
   // Bumping this remounts the photo layers, which restarts the CSS slideshow.
-  // Covers: fresh load (0), client navigation back to "/", and browser
+  // Covers: fresh load (0), client navigation back to "/" and browser
   // back/forward cache restores (pageshow with persisted=true).
   const [runId, setRunId] = useState(0);
   useEffect(() => {

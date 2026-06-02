@@ -1,6 +1,6 @@
 /**
  * Development Configuration
- * Allows all popups, modals, and interactive features in Claude Code
+ * Allows all popups, modals and interactive features in Claude Code
  */
 
 export const DEV_CONFIG = {

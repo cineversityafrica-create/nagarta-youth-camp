@@ -21,7 +21,7 @@ const CONTENT_DEFAULTS: Record<string, string> = {
   about_heading: 'Shaping the Leaders of Tomorrow',
   about_para1: 'NAGARTA Youth Camp is a premier leadership development experience for young people aged 13–25.',
   about_para2: 'Founded on the conviction that great leaders are built, not born.',
-  about_para3: 'Every session is intentionally designed to draw out courage, discipline, and vision.',
+  about_para3: 'Every session is intentionally designed to draw out courage, discipline and vision.',
   camp_dates: '19th – 23rd December 2026',
   camp_location: 'Accra, Ghana',
   camp_venue: 'Premium University Campus',
