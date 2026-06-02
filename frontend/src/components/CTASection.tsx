@@ -33,7 +33,6 @@ export default function CTASection({ heading }: CTAProps) {
         >
           Register Now
         </Link>
-        <p className="mt-6 text-xs text-gold/40 tracking-wider">Limited to 200 participants</p>
       </div>
     </section>
   );

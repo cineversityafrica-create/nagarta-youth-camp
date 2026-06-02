@@ -64,7 +64,8 @@
       "Bash(git commit -m 'chore: Add Vercel configuration for Next.js deployment *)",
       "Bash(git commit -m 'fix: Improve frontend images and add interactive map *)",
       "Bash(git commit -m 'docs: Add comprehensive debug report *)",
-      "Bash(git commit -m 'feat: Add infrastructure for dynamic testimonials and schedule *)"
+      "Bash(git commit -m 'feat: Add infrastructure for dynamic testimonials and schedule *)",
+      "Bash(git commit -m 'feat: Remove '\\\\''200 participant'\\\\'' limit text from CTA section *)"
     ]
   }
 }
