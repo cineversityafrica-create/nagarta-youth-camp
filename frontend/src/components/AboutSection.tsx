@@ -1,3 +1,6 @@
+'use client';
+import Image from 'next/image';
+
 interface AboutProps {
   heading: string;
   para1: string;
@@ -28,16 +31,14 @@ export default function AboutSection({ heading, para1, para2, para3 }: AboutProp
           <div className="relative">
             {/* Gold frame */}
             <div className="absolute -top-4 -right-4 w-full h-full border-2 border-gold rounded-lg z-0" />
-            <div className="relative z-10 bg-beige rounded-lg overflow-hidden aspect-[4/5] flex items-center justify-center">
-              <div className="text-center p-12">
-                <div className="w-24 h-24 bg-burgundy/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-12 h-12 text-burgundy/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <p className="text-xs tracking-widest uppercase text-burgundy/50 font-semibold">Camp Photo</p>
-                <p className="text-xs text-burgundy/30 mt-1">NAGARTA 2026</p>
-              </div>
+            <div className="relative z-10 bg-beige rounded-lg overflow-hidden aspect-[4/5]">
+              <Image
+                src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=750&fit=crop"
+                alt="NAGARTA Youth Camp - Young people engaged in camp activities"
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
           </div>
         </div>

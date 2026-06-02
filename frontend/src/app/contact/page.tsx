@@ -143,18 +143,22 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Map placeholder */}
-            <div className="bg-beige rounded-xl p-6 border border-beige text-center">
-              <div className="w-full h-48 bg-maroon/10 rounded-lg flex items-center justify-center mb-3">
-                <div className="text-center">
-                  <svg className="w-10 h-10 text-burgundy/30 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <p className="text-xs text-burgundy/50">Accra, Ghana</p>
-                </div>
+            {/* Map section */}
+            <div className="bg-beige rounded-xl overflow-hidden border border-beige">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.8287408936566!2d-0.20689!3d5.5520!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf9a2a5da5a5a5d%3A0x5a5a5a5a5a5a5a5a!2sAccra%2C%20Ghana!5e0!3m2!1sen!2sgh!4v1234567890"
+                width="100%"
+                height="300"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full"
+              />
+              <div className="p-6 text-center bg-white">
+                <p className="text-sm font-semibold text-maroon mb-2">📍 Accra, Ghana</p>
+                <p className="text-xs text-burgundy/60">Specific venue details will be shared with registered participants</p>
               </div>
-              <p className="text-xs text-burgundy/60">Venue details will be shared with registered participants</p>
             </div>
           </div>
         </div>
