@@ -35,7 +35,23 @@
       "Bash(git fetch *)",
       "Bash(git ls-remote *)",
       "Bash(gh auth *)",
-      "Bash(node -e \"require\\('dotenv'\\).config\\(\\); console.log\\('DB:', process.env.DATABASE_URL?.substring\\(0,40\\)\\)\")"
+      "Bash(node -e \"require\\('dotenv'\\).config\\(\\); console.log\\('DB:', process.env.DATABASE_URL?.substring\\(0,40\\)\\)\")",
+      "Bash(Get-ChildItem -Recurse -Depth 2)",
+      "Bash(Select-Object FullName)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|json\\)$\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":5000\")",
+      "PowerShell(Get-Process -Id 5180 -ErrorAction SilentlyContinue)",
+      "Bash(cp \"/mnt/c/Users/CINEVERSITY AFRICA/Desktop/NARGATA YOUTH CAMP/nagarta photos.jpg\" \"/mnt/c/Users/CINEVERSITY AFRICA/Desktop/NARGATA YOUTH CAMP/frontend/public/camp-painting.jpg\")",
+      "Bash(cat .gitignore)",
+      "Bash(cat frontend/.gitignore)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(npm start *)",
+      "Bash(node install.js)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false WIN_CSC_LINK=\"\" npm run build:win)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:win)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(npm run *)"
     ]
   }
 }

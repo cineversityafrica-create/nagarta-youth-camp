@@ -19,6 +19,7 @@ model User {
   updatedAt     DateTime       @updatedAt
   registrations Registration[]
   children      Child[]
+  notifications Notification[]
   @@map("users")
 }
 
@@ -57,6 +58,7 @@ model Registration {
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
   transactions  PaymentTransaction[]
+  notifications Notification[]
   @@map("registrations")
 }
 
@@ -71,6 +73,26 @@ model PaymentTransaction {
   note           String?
   createdAt      DateTime     @default(now())
   @@map("payment_transactions")
+}
+
+model Notification {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrationId String?
+  registration   Registration? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
+
+  type           String        // REGISTRATION_CONFIRMATION | PAYMENT_CONFIRMATION | STATUS_UPDATE | ANNOUNCEMENT
+  subject        String
+  recipientEmail String
+  template       String        // Template name used
+  status         String        @default("SENT") // SENT | FAILED | BOUNCED
+  sentAt         DateTime      @default(now())
+  error          String?       // Error message if status is FAILED
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  @@map("notifications")
 }
 
 model Activity {

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { authenticate, AuthRequest } from '../middleware/authenticate';
+import { notificationService } from '../services/NotificationService';
 
 const router = Router();
 
@@ -46,10 +47,28 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     const userId = req.user!.userId;
     const data = result.data;
 
+    // Fetch user for email notification
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
     if (data.type === 'SELF') {
       const reg = await prisma.registration.create({
         data: { userId, type: 'SELF', notes: data.notes, referenceCode: generateRefCode() },
       });
+
+      // Send registration confirmation email (async, non-blocking)
+      notificationService.sendRegistrationConfirmation(
+        userId,
+        user.name,
+        user.name,
+        user.email,
+        reg.referenceCode,
+        'SELF',
+        reg.id
+      ).catch(err => console.error('[registrations] Failed to send confirmation email:', err));
+
       return res.status(201).json({ referenceCode: reg.referenceCode, status: reg.status });
     }
 
@@ -68,6 +87,18 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         referenceCode: generateRefCode(),
       },
     });
+
+    // Send registration confirmation email (async, non-blocking)
+    notificationService.sendRegistrationConfirmation(
+      userId,
+      data.child.name,
+      data.parentName || user.name,
+      user.email,
+      reg.referenceCode,
+      'CHILD',
+      reg.id
+    ).catch(err => console.error('[registrations] Failed to send confirmation email:', err));
+
     return res.status(201).json({ referenceCode: reg.referenceCode, status: reg.status });
   } catch (err) {
     console.error('[registrations/post]', err);

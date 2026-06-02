@@ -11,6 +11,7 @@ import nodemailer from 'nodemailer';
 
 import { prisma } from './lib/prisma';
 import { signToken, verifyToken } from './lib/jwt';
+import { notificationService } from './services/NotificationService';
 
 // API routes
 import authRouter from './routes/auth';
@@ -321,6 +322,64 @@ app.get('/admin/users/:id/delete', requireAdminSession, async (req, res) => {
   res.redirect('/admin/users');
 });
 
+// ── Notifications dashboard ───────────────────────────────────────────────────
+
+app.get('/admin/notifications', requireAdminSession, async (req, res) => {
+  const type = (req.query.type as string) || '';
+  const status = (req.query.status as string) || '';
+  const search = (req.query.search as string) || '';
+
+  const where: any = {};
+  if (type) where.type = type;
+  if (status) where.status = status;
+  if (search) {
+    where.OR = [
+      { recipientEmail: { contains: search, mode: 'insensitive' } },
+      { subject: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  const notifications = await prisma.notification.findMany({
+    where,
+    include: { user: { select: { name: true, email: true } } },
+    orderBy: { sentAt: 'desc' },
+    take: 100,
+  });
+
+  res.render('admin/notifications', { notifications, filters: { type, status, search } });
+});
+
+app.get('/api/admin/notifications', async (req, res) => {
+  const limit = Math.min(parseInt((req.query.limit as string) || '50'), 500);
+  const offset = Math.max(parseInt((req.query.offset as string) || '0'), 0);
+  const type = (req.query.type as string) || undefined;
+  const status = (req.query.status as string) || undefined;
+
+  const where: any = {};
+  if (type) where.type = type;
+  if (status) where.status = status;
+
+  const [notifications, total] = await Promise.all([
+    prisma.notification.findMany({
+      where,
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { sentAt: 'desc' },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.notification.count({ where }),
+  ]);
+
+  res.json({ notifications, total, limit, offset });
+});
+
+app.post('/admin/notifications/:id/resend', requireAdminSession, async (req, res) => {
+  const notificationId = req.params.id;
+  const success = await notificationService.resendNotification(notificationId);
+  const referer = req.get('referer') || '/admin/notifications';
+  res.redirect(`${referer}?${success ? 'success=Notification resent' : 'error=Failed to resend notification'}`);
+});
+
 // ── Payment portal ───────────────────────────────────────────────────────────
 
 async function sendReceiptEmail(to: string, subject: string, html: string) {
@@ -416,18 +475,38 @@ app.get('/admin/payments', requireAdminSession, async (req, res) => {
 
 app.post('/admin/payments/:id/record', requireAdminSession, async (req, res) => {
   const { amount, method, note, paymentStatus, paystackRef } = req.body;
-  const reg = await prisma.registration.findUnique({ where: { id: req.params.id } });
+  const reg = await prisma.registration.findUnique({
+    where: { id: req.params.id },
+    include: { user: { select: { id: true, name: true, email: true } }, child: true },
+  });
   if (!reg) return res.redirect('/admin/payments');
+
+  const recordedAmount = Math.round(parseFloat(amount) * 100) || 0;
+
   await prisma.paymentTransaction.create({
     data: {
       registrationId: req.params.id,
-      amount: Math.round(parseFloat(amount) * 100) || 0,
+      amount: recordedAmount,
       method: method || 'CASH',
       reference: paystackRef || null,
       note: note || null,
     },
   });
   await prisma.registration.update({ where: { id: req.params.id }, data: { paymentStatus: paymentStatus || 'PAID' } });
+
+  // Send payment confirmation email (async, non-blocking)
+  notificationService.sendPaymentConfirmation(
+    reg.user.id,
+    reg.child?.name || reg.user.name,
+    reg.user.name,
+    reg.user.email,
+    recordedAmount,
+    method || 'CASH',
+    reg.referenceCode,
+    reg.id,
+    paystackRef
+  ).catch(err => console.error('[payments/record] Failed to send payment confirmation email:', err));
+
   res.redirect(`/admin/payments?ref=${reg.referenceCode}&success=Payment recorded successfully`);
 });
 

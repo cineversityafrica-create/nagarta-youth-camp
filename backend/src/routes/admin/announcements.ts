@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../../lib/prisma';
 import { authenticate } from '../../middleware/authenticate';
 import { requireAdmin } from '../../middleware/requireAdmin';
+import { notificationService } from '../../services/NotificationService';
 
 const router = Router();
 router.use(authenticate, requireAdmin);
@@ -21,7 +22,20 @@ router.get('/', async (_req, res) => {
 router.post('/', async (req, res) => {
   const result = schema.safeParse(req.body);
   if (!result.success) return res.status(400).json({ error: 'Validation failed' });
-  return res.status(201).json(await prisma.announcement.create({ data: result.data }));
+
+  const announcement = await prisma.announcement.create({ data: result.data });
+
+  // Send announcement emails if published (async, non-blocking)
+  if (announcement.published) {
+    notificationService.sendAnnouncement(
+      announcement.id,
+      announcement.title,
+      announcement.body,
+      announcement.targetRole || null
+    ).catch(err => console.error('[announcements/post] Failed to send announcement emails:', err));
+  }
+
+  return res.status(201).json(announcement);
 });
 
 router.put('/:id', async (req, res) => {
