@@ -534,18 +534,25 @@ app.get('/', (_req, res) => res.redirect('/admin'));
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-// Reset admin via browser URL (protected)
+// Reset admin via browser URL (accepts query params or env vars)
 app.get('/api/reset-admin', async (req, res) => {
-  if (req.query.secret !== process.env.RESET_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  // Allow if: (1) secret matches, or (2) running in development
+  const isAuthorized = !isProd || req.query.secret === process.env.RESET_SECRET;
+  if (!isAuthorized) return res.status(403).json({ error: 'Forbidden' });
+
   try {
-    const email = process.env.ADMIN_EMAIL || 'admin@campingnagartayouth.com';
-    const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin@nagarta!', 12);
+    // Accept query parameters or fall back to environment variables
+    const email = (req.query.email as string) || process.env.ADMIN_EMAIL || 'admin@nagartayouthcamp.com';
+    const password = (req.query.password as string) || process.env.ADMIN_PASSWORD || 'Admin@nagarta!';
+    const name = (req.query.name as string) || process.env.ADMIN_NAME || 'Camp Administrator';
+
+    const hashed = await bcrypt.hash(password, 12);
     const user = await prisma.user.upsert({
       where: { email },
-      update: { password: hashed, role: 'ADMIN', name: process.env.ADMIN_NAME || 'Camp Administrator' },
-      create: { email, password: hashed, name: process.env.ADMIN_NAME || 'Camp Administrator', role: 'ADMIN' },
+      update: { password: hashed, role: 'ADMIN', name },
+      create: { email, password: hashed, name, role: 'ADMIN' },
     });
-    res.json({ success: true, admin: user.email });
+    res.json({ success: true, admin: user.email, message: 'Admin account created/updated successfully' });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
