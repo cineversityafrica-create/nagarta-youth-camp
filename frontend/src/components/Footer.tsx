@@ -85,8 +85,8 @@ export default function Footer({ content }: FooterProps) {
                     <a href="tel:0550171717" className="hover:text-gold transition-colors block">
                       0550 17 17 17
                     </a>
-                    <a href="tel:024608872" className="hover:text-gold transition-colors block">
-                      024608872
+                    <a href="tel:0243 60 88 72" className="hover:text-gold transition-colors block">
+                      0243 60 88 72
                     </a>
                   </>
                 )}

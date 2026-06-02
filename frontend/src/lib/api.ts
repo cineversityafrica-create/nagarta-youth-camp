@@ -17,7 +17,7 @@ const FALLBACK: Record<string, unknown> = {
     camp_duration: '5 Days',
     cta_heading: 'Your spot is waiting.',
     contact_email: 'info@nagartayouthcamp.com',
-    contact_phone: '0550 17 17 17 / 024608872',
+    contact_phone: '0550 17 17 17 / 0243 60 88 72',
     contact_address: 'Accra, Ghana',
     social_instagram: 'https://instagram.com/nagartacamp',
     social_facebook: 'https://facebook.com/nagartacamp',

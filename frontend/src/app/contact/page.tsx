@@ -130,7 +130,7 @@ export default function ContactPage() {
                   <p className="label-caps text-gold/50 mb-1">Phone</p>
                   <div className="text-beige text-sm space-y-1">
                     <p>0550 17 17 17</p>
-                    <p>024608872</p>
+                    <p>0243 60 88 72</p>
                   </div>
                 </div>
                 <div>
