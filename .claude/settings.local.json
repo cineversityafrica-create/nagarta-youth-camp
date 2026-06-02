@@ -62,7 +62,9 @@
       "Bash(git commit -m 'feat: Remove age restrictions \\(8-25 years\\) from registration and dashboard *)",
       "Bash(git commit -m 'fix: Set camper age restriction to 12-18 years only *)",
       "Bash(git commit -m 'chore: Add Vercel configuration for Next.js deployment *)",
-      "Bash(git commit -m 'fix: Improve frontend images and add interactive map *)"
+      "Bash(git commit -m 'fix: Improve frontend images and add interactive map *)",
+      "Bash(git commit -m 'docs: Add comprehensive debug report *)",
+      "Bash(git commit -m 'feat: Add infrastructure for dynamic testimonials and schedule *)"
     ]
   }
 }

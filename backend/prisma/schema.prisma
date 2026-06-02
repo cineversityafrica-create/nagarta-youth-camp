@@ -129,6 +129,18 @@ model SiteContent {
   @@map("site_content")
 }
 
+model Testimonial {
+  id           String   @id @default(cuid())
+  name         String   // Testimonial author
+  role         String?  // e.g., "Camper", "Parent", "Alumni"
+  quote        String   // The testimonial text
+  published    Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@map("testimonials")
+}
+
 model ContactMessage {
   id        String   @id @default(cuid())
   name      String
