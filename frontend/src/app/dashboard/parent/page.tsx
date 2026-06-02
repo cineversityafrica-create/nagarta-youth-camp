@@ -285,7 +285,7 @@ export default function ParentDashboard() {
                       </div>
                       <div>
                         <label className={labelClass}>Age</label>
-                        <input type="number" required value={newChild.age} onChange={e => updateNewChild('age', e.target.value)} placeholder="15" className={inputClass} />
+                        <input type="number" required min="12" max="18" value={newChild.age} onChange={e => updateNewChild('age', e.target.value)} placeholder="15" className={inputClass} />
                       </div>
                       <div>
                         <label className={labelClass}>School / Institution</label>

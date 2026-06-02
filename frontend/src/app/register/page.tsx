@@ -177,7 +177,7 @@ export default function RegisterPage() {
                   </div>
                   <div>
                     <label className={labelClass}>Age</label>
-                    <input type="number" required value={child.age} onChange={e => updateChild('age', e.target.value)} placeholder="15" className={inputClass} />
+                    <input type="number" required min="12" max="18" value={child.age} onChange={e => updateChild('age', e.target.value)} placeholder="15" className={inputClass} />
                   </div>
                   <div>
                     <label className={labelClass}>Gender</label>
