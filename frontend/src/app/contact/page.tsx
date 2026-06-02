@@ -122,15 +122,16 @@ export default function ContactPage() {
               <div className="space-y-4">
                 <div>
                   <p className="label-caps text-gold/50 mb-1">Email</p>
-                  <a href="mailto:info@nagartacamp.com" className="text-beige hover:text-gold transition-colors text-sm">
-                    info@nagartacamp.com
+                  <a href="mailto:info@nagartayouthcamp.com" className="text-beige hover:text-gold transition-colors text-sm">
+                    info@nagartayouthcamp.com
                   </a>
                 </div>
                 <div>
                   <p className="label-caps text-gold/50 mb-1">Phone</p>
-                  <a href="tel:+233200000000" className="text-beige hover:text-gold transition-colors text-sm">
-                    +233 20 000 0000
-                  </a>
+                  <div className="text-beige text-sm space-y-1">
+                    <p>0550 17 17 17</p>
+                    <p>024608872</p>
+                  </div>
                 </div>
                 <div>
                   <p className="label-caps text-gold/50 mb-1">Location</p>

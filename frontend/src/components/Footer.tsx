@@ -66,13 +66,30 @@ export default function Footer({ content }: FooterProps) {
             <div className="space-y-2 text-sm text-beige/70">
               <p>
                 <a href={`mailto:${content.contact_email}`} className="hover:text-gold transition-colors">
-                  {content.contact_email || 'info@nagartacamp.com'}
+                  {content.contact_email || 'info@nagartayouthcamp.com'}
                 </a>
               </p>
-              <p>
-                <a href={`tel:${content.contact_phone}`} className="hover:text-gold transition-colors">
-                  {content.contact_phone || '+233 20 000 0000'}
-                </a>
+              <p className="space-y-1">
+                {content.contact_phone ? (
+                  <div className="space-y-1">
+                    {content.contact_phone.split(' / ').map((phone, i) => (
+                      <div key={i}>
+                        <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-gold transition-colors block">
+                          {phone}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <a href="tel:0550171717" className="hover:text-gold transition-colors block">
+                      0550 17 17 17
+                    </a>
+                    <a href="tel:024608872" className="hover:text-gold transition-colors block">
+                      024608872
+                    </a>
+                  </>
+                )}
               </p>
               <p>{content.contact_address || 'Accra, Ghana'}</p>
               <p className="pt-2 text-beige/40 text-xs">
