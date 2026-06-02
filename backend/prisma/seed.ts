@@ -36,7 +36,7 @@ async function main() {
     // About
     { key: 'about_heading', value: 'Shaping the Leaders of Tomorrow', label: 'About Section Heading', group: 'about' },
     { key: 'about_para1', value: 'NAGARTA Youth Camp is a premier leadership development experience designed for young people aged 13–25. Set against the vibrant backdrop of Accra, Ghana, our five-day immersive programme combines rigorous leadership training, outdoor adventures, and spiritual formation to forge the next generation of African leaders.', label: 'About Paragraph 1', group: 'about' },
-    { key: 'about_para2', value: 'Founded on the conviction that great leaders are built, not born, NAGARTA brings together coaches, mentors, and experienced facilitators from across the continent. Participants leave not just with new skills, but with a transformed mindset and a lifelong network of peers who share their values.', label: 'About Paragraph 2', group: 'about' },
+    { key: 'about_para2', value: 'Founded on the conviction that great leaders are built, and not just born, NAGARTA brings together coaches, mentors, and experienced facilitators from across the continent. Participants leave not just with new skills, but with a transformed mindset and a lifelong network of peers who share their values.', label: 'About Paragraph 2', group: 'about' },
     { key: 'about_para3', value: 'Every session, every drill, every evening campfire is intentionally designed to draw out courage, discipline, and vision. This is not a holiday — it is a launchpad.', label: 'About Paragraph 3', group: 'about' },
     // Camp Details
     { key: 'camp_dates', value: '19th – 23rd December 2026', label: 'Camp Dates', group: 'details' },
