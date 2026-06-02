@@ -52,7 +52,8 @@
       "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:win)",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "Bash(npm run *)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\" -Recurse -Name)"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CINEVERSITY AFRICA\\\\Desktop\\\\NARGATA YOUTH CAMP\" -Recurse -Name)",
+      "Bash(git commit -m 'feat: Enable all popups and interactive features in Claude Code development mode *)"
     ]
   }
 }
