@@ -8,7 +8,7 @@ const FALLBACK: Record<string, unknown> = {
     hero_subheading: 'A transformative 5-day experience',
     hero_urgency: 'Limited Spots Available — Register Now, Before You Lose the Spot!',
     about_heading: 'Shaping the Leaders of Tomorrow',
-    about_para1: 'NAGARTA Youth Camp is a premier leadership development experience for young people aged 13–25.',
+    about_para1: 'NAGARTA Youth Camp is a premier leadership development experience for young people aged 12–18.',
     about_para2: 'Founded on the conviction that great leaders are built, and not just born.',
     about_para3: 'Every session is intentionally designed to draw out courage, discipline and vision.',
     camp_dates: '19th – 23rd December 2026',

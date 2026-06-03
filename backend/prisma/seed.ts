@@ -35,7 +35,7 @@ async function main() {
     { key: 'hero_urgency', value: 'Limited Spots Available — Register Now, Before You Lose the Spot!', label: 'Hero Urgency Line', group: 'hero' },
     // About
     { key: 'about_heading', value: 'Shaping the Leaders of Tomorrow', label: 'About Section Heading', group: 'about' },
-    { key: 'about_para1', value: 'NAGARTA Youth Camp is a premier leadership development experience designed for young people aged 13–25. Set against the vibrant backdrop of Accra, Ghana, our five-day immersive programme combines rigorous leadership training, outdoor adventures, and spiritual formation to forge the next generation of African leaders.', label: 'About Paragraph 1', group: 'about' },
+    { key: 'about_para1', value: 'NAGARTA Youth Camp is a premier leadership development experience designed for young people aged 12–18. Set against the vibrant backdrop of Accra, Ghana, our five-day immersive programme combines rigorous leadership training, outdoor adventures, and spiritual formation to forge the next generation of African leaders.', label: 'About Paragraph 1', group: 'about' },
     { key: 'about_para2', value: 'Founded on the conviction that great leaders are built, and not just born, NAGARTA brings together coaches, mentors, and experienced facilitators from across the continent. Participants leave not just with new skills, but with a transformed mindset and a lifelong network of peers who share their values.', label: 'About Paragraph 2', group: 'about' },
     { key: 'about_para3', value: 'Every session, every drill, every evening campfire is intentionally designed to draw out courage, discipline, and vision. This is not a holiday — it is a launchpad.', label: 'About Paragraph 3', group: 'about' },
     // Camp Details
@@ -57,7 +57,7 @@ async function main() {
     { key: 'social_tiktok', value: 'https://tiktok.com/@nagartacamp', label: 'TikTok URL', group: 'social' },
     // SEO
     { key: 'meta_title', value: 'NAGARTA Youth Camp 2026 — Arise & Lead', label: 'Meta Title', group: 'seo' },
-    { key: 'meta_description', value: 'A transformative 5-day leadership camp for youth aged 13–25. 19–23 December 2026, Accra, Ghana. Limited spots available.', label: 'Meta Description', group: 'seo' },
+    { key: 'meta_description', value: 'A transformative 5-day leadership camp for youth aged 12–18. 19–23 December 2026, Accra, Ghana. Limited spots available.', label: 'Meta Description', group: 'seo' },
   ];
 
   for (const item of siteContentData) {
