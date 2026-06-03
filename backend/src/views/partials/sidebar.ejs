@@ -1,9 +1,20 @@
-<aside class="w-64 min-h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 shadow-sm">
-  <div class="px-5 py-4 border-b border-gray-100 flex flex-col items-center gap-1">
+<div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-40">
+  <img src="/logo-full.png" alt="NAGARTA" class="h-10 object-contain" />
+  <button class="mobile-menu-btn text-maroon" onclick="document.getElementById('sidebar-toggle').checked = !document.getElementById('sidebar-toggle').checked">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+</div>
+
+<input type="checkbox" id="sidebar-toggle" class="sidebar-mobile-hidden hidden" />
+
+<aside class="sidebar w-64 min-h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 md:relative md:top-auto shadow-sm md:shadow-none md:flex md:h-screen pt-16 md:pt-0">
+  <div class="px-5 py-4 border-b border-gray-100 flex flex-col items-center gap-1 hidden md:flex">
     <img src="/logo-full.png" alt="NAGARTA Youth Camp" class="h-20 object-contain" />
     <p class="text-xs text-maroon/40 tracking-wider uppercase">Admin Dashboard</p>
   </div>
-  <nav class="flex-1 px-3 py-5 space-y-0.5">
+  <nav class="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
     <a href="/admin" class="nav-dashboard sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors <%= page === 'dashboard' ? 'active' : 'text-maroon/60 hover:text-burgundy' %>">
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
       Dashboard

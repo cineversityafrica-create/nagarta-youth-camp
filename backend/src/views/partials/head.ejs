@@ -37,6 +37,19 @@
     .nav-users.active       { background: rgba(234,179,8,0.12);   color: #92660a; }
     .nav-payments.active    { background: rgba(59,130,246,0.12);  color: #1d6fce; }
     .nav-notifications.active { background: rgba(83,28,34,0.12);  color: #531c22; }
+
+    /* Mobile responsive fixes */
+    .sidebar-mobile-hidden:checked ~ .sidebar { display: block; }
+    @media (max-width: 768px) {
+      .sidebar { display: none; position: fixed; z-index: 50; height: 100vh; }
+      .sidebar-mobile-hidden:checked ~ .sidebar { display: flex; }
+      .main-content { margin-left: 0 !important; }
+      .table-container { overflow-x: auto; }
+      .table { font-size: 0.875rem; }
+    }
+    @media (min-width: 769px) {
+      .mobile-menu-btn { display: none; }
+    }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">

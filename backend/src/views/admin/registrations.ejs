@@ -1,7 +1,7 @@
 <%- include('../partials/head', { title: 'Registrations' }) %>
 <%- include('../partials/sidebar', { page: 'registrations' }) %>
 
-<main class="ml-64 p-8">
+<main class="main-content md:ml-64 p-4 md:p-8 pt-20 md:pt-8">
   <div class="flex items-center justify-between mb-8">
     <div>
       <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Manage</p>
@@ -14,7 +14,8 @@
   </div>
 
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <table class="w-full text-sm">
+    <div class="table-container">
+    <table class="w-full text-xs md:text-sm whitespace-nowrap md:whitespace-normal">
       <thead class="bg-gray-50 border-b border-gray-100">
         <tr>
           <th class="text-left text-xs tracking-wider uppercase px-4 py-3 font-semibold text-gray-400">Photo</th>
@@ -139,6 +140,7 @@
         <% }) %>
       </tbody>
     </table>
+    </div>
     <% if (registrations.length === 0) { %>
       <p class="text-center py-12 text-burgundy text-sm italic">No registrations yet.</p>
     <% } %>
