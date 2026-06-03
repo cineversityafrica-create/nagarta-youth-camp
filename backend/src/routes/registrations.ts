@@ -33,6 +33,18 @@ const childSchema = z.object({
   parentName: z.string().optional(),
   parentAddress: z.string().optional(),
   parentPhone: z.string().optional(),
+  // Mother's information
+  motherName: z.string().optional(),
+  motherAddress: z.string().optional(),
+  motherPhone: z.string().optional(),
+  motherEmail: z.string().optional(),
+  motherEmergencyContact: z.string().optional(),
+  // Father's information
+  fatherName: z.string().optional(),
+  fatherAddress: z.string().optional(),
+  fatherPhone: z.string().optional(),
+  fatherEmail: z.string().optional(),
+  fatherEmergencyContact: z.string().optional(),
 });
 
 const registrationSchema = z.discriminatedUnion('type', [selfSchema, childSchema]);
@@ -84,6 +96,18 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         parentName: data.parentName,
         parentAddress: data.parentAddress,
         parentPhone: data.parentPhone,
+        // Mother's information
+        motherName: data.motherName,
+        motherAddress: data.motherAddress,
+        motherPhone: data.motherPhone,
+        motherEmail: data.motherEmail,
+        motherEmergencyContact: data.motherEmergencyContact,
+        // Father's information
+        fatherName: data.fatherName,
+        fatherAddress: data.fatherAddress,
+        fatherPhone: data.fatherPhone,
+        fatherEmail: data.fatherEmail,
+        fatherEmergencyContact: data.fatherEmergencyContact,
         referenceCode: generateRefCode(),
       },
     });
