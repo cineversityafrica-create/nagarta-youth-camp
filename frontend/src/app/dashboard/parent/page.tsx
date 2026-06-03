@@ -350,7 +350,25 @@ export default function ParentDashboard() {
                       <div className="mb-6 p-4 bg-gold/5 rounded-lg border border-gold/20">
                         <p className="text-xs label-caps text-burgundy mb-3">Who will provide information?</p>
                         <div className="flex flex-wrap gap-3">
-                          <label className="flex items-center gap-2 cursor-pointer">
+                          <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-lg transition-colors ${
+                            parentType === 'both' ? 'bg-gold/10 border border-gold/30' : 'hover:bg-gold/5'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="parentType"
+                              value="both"
+                              checked={parentType === 'both'}
+                              onChange={() => setParentType('both')}
+                              className="w-4 h-4 accent-gold"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm text-maroon font-semibold">Both Parents</span>
+                              <span className="text-xs text-gold font-medium">Recommended</span>
+                            </div>
+                          </label>
+                          <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-lg transition-colors ${
+                            parentType === 'mother' ? 'bg-gold/10 border border-gold/30' : 'hover:bg-gold/5'
+                          }`}>
                             <input
                               type="radio"
                               name="parentType"
@@ -361,7 +379,9 @@ export default function ParentDashboard() {
                             />
                             <span className="text-sm text-maroon font-medium">Mother Only</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
+                          <label className={`flex items-center gap-2 cursor-pointer p-3 rounded-lg transition-colors ${
+                            parentType === 'father' ? 'bg-gold/10 border border-gold/30' : 'hover:bg-gold/5'
+                          }`}>
                             <input
                               type="radio"
                               name="parentType"
@@ -371,17 +391,6 @@ export default function ParentDashboard() {
                               className="w-4 h-4 accent-gold"
                             />
                             <span className="text-sm text-maroon font-medium">Father Only</span>
-                          </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="parentType"
-                              value="both"
-                              checked={parentType === 'both'}
-                              onChange={() => setParentType('both')}
-                              className="w-4 h-4 accent-gold"
-                            />
-                            <span className="text-sm text-maroon font-medium">Both Parents</span>
                           </label>
                         </div>
                       </div>
