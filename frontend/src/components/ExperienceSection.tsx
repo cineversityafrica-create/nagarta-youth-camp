@@ -47,8 +47,8 @@ export default function ExperienceSection({ activities }: ExperienceSectionProps
     <section id="experience" className="py-24 bg-cream">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <p className="label-caps text-burgundy tracking-widest2 mb-4">The Experience</p>
+        <div className="text-center mb-16" suppressHydrationWarning>
+          <p className="label-caps text-burgundy tracking-widest2 mb-4" suppressHydrationWarning>The Experience</p>
           <h2 className="font-serif text-4xl md:text-5xl font-semibold text-maroon italic">
             What awaits you
           </h2>

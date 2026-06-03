@@ -10,7 +10,7 @@ export default function ScheduleSection({ days }: ScheduleProps) {
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="label-caps text-burgundy tracking-widest2 mb-4">Programme</p>
+          <p className="label-caps text-burgundy tracking-widest2 mb-4" suppressHydrationWarning>Programme</p>
           <h2 className="font-serif text-4xl md:text-5xl font-semibold text-maroon italic">
             Five Days of Transformation
           </h2>

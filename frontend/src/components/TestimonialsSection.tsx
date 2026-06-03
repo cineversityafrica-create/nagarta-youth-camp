@@ -45,7 +45,7 @@ export default function TestimonialsSection() {
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="label-caps text-gold/60 tracking-widest2 mb-4">Voices</p>
+          <p className="label-caps text-gold/60 tracking-widest2 mb-4" suppressHydrationWarning>Voices</p>
           <h2 className="font-serif text-4xl md:text-5xl font-semibold text-cream italic">
             Transformed Lives
           </h2>

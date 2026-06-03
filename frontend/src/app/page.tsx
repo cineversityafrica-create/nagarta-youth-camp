@@ -36,12 +36,44 @@ const CONTENT_DEFAULTS: Record<string, string> = {
   social_tiktok: 'https://tiktok.com/@nagartacamp',
 };
 
+// Default empty arrays for when API fails
+const DEFAULT_ACTIVITIES = [
+  { id: '1', title: 'Leadership Training', subtitle: 'Master the skills of influential leaders', iconName: 'presentation', displayOrder: 0, createdAt: new Date(), updatedAt: new Date() },
+  { id: '2', title: 'Team Building', subtitle: 'Build strong connections and teamwork', iconName: 'users', displayOrder: 1, createdAt: new Date(), updatedAt: new Date() },
+  { id: '3', title: 'Personal Growth', subtitle: 'Develop character and confidence', iconName: 'shield', displayOrder: 2, createdAt: new Date(), updatedAt: new Date() },
+  { id: '4', title: 'Mentorship', subtitle: 'Learn from industry leaders', iconName: 'heart', displayOrder: 3, createdAt: new Date(), updatedAt: new Date() },
+];
+
+const DEFAULT_SCHEDULE = [
+  { id: '1', dayNumber: 1, date: 'Monday, 19 December', title: 'Orientation & Welcome', summary: 'Arrival, registration, orientation, icebreakers', details: '', createdAt: new Date(), updatedAt: new Date() },
+  { id: '2', dayNumber: 2, date: 'Tuesday, 20 December', title: 'Vision & Purpose', summary: 'Opening ceremony, keynote, vision workshop, talent auditions', details: '', createdAt: new Date(), updatedAt: new Date() },
+  { id: '3', dayNumber: 3, date: 'Wednesday, 21 December', title: 'Character & Courage', summary: 'Discipline drills, character seminar, mentorship, talent showcase', details: '', createdAt: new Date(), updatedAt: new Date() },
+  { id: '4', dayNumber: 4, date: 'Thursday, 22 December', title: 'Service & Influence', summary: 'Community service, leadership workshop, debates, campfire', details: '', createdAt: new Date(), updatedAt: new Date() },
+  { id: '5', dayNumber: 5, date: 'Friday, 23 December', title: 'Commissioning & Awards', summary: 'Leadership challenge, testimonies, Awards Night, departure', details: '', createdAt: new Date(), updatedAt: new Date() },
+];
+
 export default async function HomePage() {
-  const [rawContent, activities, schedule] = await Promise.all([
-    getSiteContent(),
-    getActivities(),
-    getSchedule(),
-  ]);
+  let rawContent = {};
+  let activities = DEFAULT_ACTIVITIES;
+  let schedule = DEFAULT_SCHEDULE;
+
+  try {
+    rawContent = await getSiteContent();
+  } catch (error) {
+    console.warn('Failed to fetch site content, using defaults:', error);
+  }
+
+  try {
+    activities = await getActivities();
+  } catch (error) {
+    console.warn('Failed to fetch activities, using defaults:', error);
+  }
+
+  try {
+    schedule = await getSchedule();
+  } catch (error) {
+    console.warn('Failed to fetch schedule, using defaults:', error);
+  }
 
   // Merge: API data wins, but defaults fill in any missing keys
   const content = { ...CONTENT_DEFAULTS, ...rawContent };

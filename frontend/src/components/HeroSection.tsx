@@ -46,10 +46,10 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
         }}
       />
 
-      {/* ── LAYER 2a: Photo 1 (drawing) — visible 0–5 s, then fades out ──────── */}
+      {/* ── LAYER 2a: Photo 1 (camp-hero-1) — visible 0–5 s, then fades out ──────── */}
       <div key={`photo1-${runId}`} className="camp-photo-1-animate absolute inset-0 z-10">
         <Image
-          src="/camp-drawing.jpg"
+          src="/camp-hero-1.jpg"
           alt=""
           fill
           priority
@@ -71,10 +71,10 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
         />
       </div>
 
-      {/* ── LAYER 2b: Photo 2 (painting) — fades in at 5 s, exits at ~13.5 s ─ */}
+      {/* ── LAYER 2b: Photo 2 (camp-hero-4) — fades in at 5 s, exits at ~13.5 s ─ */}
       <div key={`photo2-${runId}`} className="camp-photo-2-animate absolute inset-0 z-10">
         <Image
-          src="/camp-painting.jpg"
+          src="/camp-hero-4.jpg"
           alt=""
           fill
           style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
@@ -108,8 +108,8 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
       <div className="absolute top-0 left-0 right-0 h-px z-30 bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
       {/* ── LAYER 4 (top): hero text ─────────────────────────────────────────── */}
-      <div className="relative z-30 px-6 max-w-5xl mx-auto">
-        <p className="label-caps text-gold tracking-widest mb-8 opacity-90">{eyebrow}</p>
+      <div className="relative z-30 px-6 max-w-5xl mx-auto" suppressHydrationWarning>
+        <div className="label-caps text-gold tracking-widest mb-8 opacity-90" suppressHydrationWarning>{eyebrow}</div>
 
         <h1 className="font-serif font-semibold leading-none mb-6 text-balance">
           <span
@@ -132,9 +132,9 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
           <div className="w-24 h-px bg-gold/60" />
         </div>
 
-        <p className="text-beige/80 text-lg md:text-xl font-sans mb-10 tracking-wide">
+        <div className="text-beige/80 text-lg md:text-xl font-sans mb-10 tracking-wide" suppressHydrationWarning>
           {subheading}
-        </p>
+        </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <Link
@@ -151,7 +151,7 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
           </Link>
         </div>
 
-        <p className="label-caps text-gold/60 tracking-widest text-xs">{urgency}</p>
+        <div className="label-caps text-gold/60 tracking-widest text-xs" suppressHydrationWarning>{urgency}</div>
       </div>
 
       {/* Scroll indicator */}

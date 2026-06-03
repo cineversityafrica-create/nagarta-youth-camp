@@ -15,7 +15,7 @@ export default function AboutSection({ heading, para1, para2, para3 }: AboutProp
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Text column */}
           <div>
-            <p className="label-caps text-gold tracking-widest2 mb-4">About NAGARTA</p>
+            <p className="label-caps text-gold tracking-widest2 mb-4" suppressHydrationWarning>About NAGARTA</p>
             <h2 className="font-serif text-4xl md:text-5xl font-semibold text-maroon italic leading-tight mb-6">
               {heading}
             </h2>
@@ -33,7 +33,7 @@ export default function AboutSection({ heading, para1, para2, para3 }: AboutProp
             <div className="absolute -top-4 -right-4 w-full h-full border-2 border-gold rounded-lg z-0" />
             <div className="relative z-10 bg-beige rounded-lg overflow-hidden aspect-[4/5]">
               <Image
-                src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=750&fit=crop"
+                src="/camp-hero-4.jpg"
                 alt="NAGARTA Youth Camp - Young people engaged in camp activities"
                 fill
                 className="object-cover"

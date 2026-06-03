@@ -17,7 +17,7 @@ export default function QuickFacts({ location, duration, venue }: QuickFactsProp
         <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-maroon/40">
           {facts.map((fact) => (
             <div key={fact.label} className="py-8 px-8 text-center">
-              <p className="label-caps text-gold/60 mb-2">{fact.label}</p>
+              <p className="label-caps text-gold/60 mb-2" suppressHydrationWarning>{fact.label}</p>
               <p className="font-serif text-xl text-cream font-semibold">{fact.value}</p>
             </div>
           ))}

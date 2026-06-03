@@ -15,7 +15,7 @@ export default function CTASection({ heading }: CTAProps) {
       />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-        <p className="label-caps text-gold/60 tracking-widest2 mb-6">Registration Open</p>
+        <p className="label-caps text-gold/60 tracking-widest2 mb-6" suppressHydrationWarning>Registration Open</p>
         <h2 className="font-serif text-5xl md:text-7xl font-semibold text-cream italic leading-tight mb-4">
           {heading}
         </h2>

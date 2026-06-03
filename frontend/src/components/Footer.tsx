@@ -64,22 +64,20 @@ export default function Footer({ content }: FooterProps) {
           <div>
             <p className="label-caps text-gold mb-4">Contact</p>
             <div className="space-y-2 text-sm text-beige/70">
-              <p>
+              <div>
                 <a href={`mailto:${content.contact_email}`} className="hover:text-gold transition-colors">
                   {content.contact_email || 'info@nagartayouthcamp.com'}
                 </a>
-              </p>
-              <p className="space-y-1">
+              </div>
+              <div className="space-y-1">
                 {content.contact_phone ? (
-                  <div className="space-y-1">
-                    {content.contact_phone.split(' / ').map((phone, i) => (
-                      <div key={i}>
-                        <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-gold transition-colors block">
-                          {phone}
-                        </a>
-                      </div>
-                    ))}
-                  </div>
+                  content.contact_phone.split(' / ').map((phone, i) => (
+                    <div key={i}>
+                      <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-gold transition-colors block">
+                        {phone}
+                      </a>
+                    </div>
+                  ))
                 ) : (
                   <>
                     <a href="tel:0550171717" className="hover:text-gold transition-colors block">
@@ -90,11 +88,11 @@ export default function Footer({ content }: FooterProps) {
                     </a>
                   </>
                 )}
-              </p>
-              <p>{content.contact_address || 'Accra, Ghana'}</p>
-              <p className="pt-2 text-beige/40 text-xs">
+              </div>
+              <div>{content.contact_address || 'Accra, Ghana'}</div>
+              <div className="pt-2 text-beige/40 text-xs">
                 {content.camp_dates || '19–23 December 2026'}
-              </p>
+              </div>
             </div>
           </div>
         </div>
