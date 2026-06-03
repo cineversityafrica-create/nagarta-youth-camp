@@ -67,7 +67,8 @@
       "Bash(git commit -m 'feat: Add infrastructure for dynamic testimonials and schedule *)",
       "Bash(git commit -m 'feat: Remove '\\\\''200 participant'\\\\'' limit text from CTA section *)",
       "Bash(git commit -m 'style: Format second phone number as 0243 60 88 72 *)",
-      "Bash(git commit -m 'feat: Change tagline from African to global leaders *)"
+      "Bash(git commit -m 'feat: Change tagline from African to global leaders *)",
+      "Bash(curl -s \"http://localhost:5000/api/reset-admin?email=admin@nagartayouthcamp.com&password=Admin123!&name=Administrator\")"
     ]
   }
 }
