@@ -214,5 +214,18 @@ export interface Registration {
     age: number;
     school?: string;
   };
+  parentName?: string;
+  parentAddress?: string;
+  parentPhone?: string;
+  motherName?: string;
+  motherAddress?: string;
+  motherPhone?: string;
+  motherEmail?: string;
+  motherEmergencyContact?: string;
+  fatherName?: string;
+  fatherAddress?: string;
+  fatherPhone?: string;
+  fatherEmail?: string;
+  fatherEmergencyContact?: string;
   createdAt: string;
 }

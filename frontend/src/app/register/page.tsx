@@ -21,6 +21,7 @@ export default function RegisterPage() {
   const [childNotes, setChildNotes] = useState('');
   const [childPhoto, setChildPhoto] = useState('');
   const [photoPreview, setPhotoPreview] = useState('');
+  const [photoError, setPhotoError] = useState('');
   const [parent, setParent] = useState({ name: '', address: '', phone: '' });
   const [parentType, setParentType] = useState<'mother' | 'father' | 'both'>('both');
   const [mother, setMother] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
@@ -45,9 +46,26 @@ export default function RegisterPage() {
   function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setPhotoError('Please upload a JPG, PNG, or WEBP image');
+      return;
+    }
+
+    // Validate file size (5MB = 5242880 bytes)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setPhotoError('File size must be less than 5MB');
+      return;
+    }
+
+    setPhotoError('');
     setPhotoPreview(URL.createObjectURL(file));
     const reader = new FileReader();
     reader.onloadend = () => setChildPhoto(reader.result as string);
+    reader.onerror = () => setPhotoError('Failed to read file');
     reader.readAsDataURL(file);
   }
 
@@ -57,6 +75,7 @@ export default function RegisterPage() {
     setChildNotes('');
     setChildPhoto('');
     setPhotoPreview('');
+    setPhotoError('');
     setParent({ name: '', address: '', phone: '' });
     setParentType('both');
     setMother({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
@@ -200,6 +219,7 @@ export default function RegisterPage() {
                           <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                         </label>
                         <p className="text-xs text-burgundy/50 mt-1.5">Used by camp staff to identify the attendee on arrival. JPG, PNG or WEBP · Max 5MB</p>
+                        {photoError && <p className="text-xs text-red-600 font-medium mt-1.5">⚠️ {photoError}</p>}
                       </div>
                     </div>
                   </div>

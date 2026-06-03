@@ -36,6 +36,7 @@ export default function ParentDashboard() {
   const [newChild, setNewChild] = useState(emptyChild);
   const [newChildPhoto, setNewChildPhoto] = useState('');
   const [newChildPhotoPreview, setNewChildPhotoPreview] = useState('');
+  const [photoError, setPhotoError] = useState('');
   const [addingChild, setAddingChild] = useState(false);
   const [addChildError, setAddChildError] = useState('');
   const [addChildRef, setAddChildRef] = useState<string | null>(null);
@@ -87,9 +88,26 @@ export default function ParentDashboard() {
   function handleNewChildPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setPhotoError('Please upload a JPG, PNG, or WEBP image');
+      return;
+    }
+
+    // Validate file size (5MB = 5242880 bytes)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setPhotoError('File size must be less than 5MB');
+      return;
+    }
+
+    setPhotoError('');
     setNewChildPhotoPreview(URL.createObjectURL(file));
     const reader = new FileReader();
     reader.onloadend = () => setNewChildPhoto(reader.result as string);
+    reader.onerror = () => setPhotoError('Failed to read file');
     reader.readAsDataURL(file);
   }
 
@@ -139,6 +157,7 @@ export default function ParentDashboard() {
     setNewChild(emptyChild);
     setNewChildPhoto('');
     setNewChildPhotoPreview('');
+    setPhotoError('');
     setAddChildError('');
     setAddChildRef(null);
     setParentType('both');
@@ -150,6 +169,7 @@ export default function ParentDashboard() {
     setNewChild(emptyChild);
     setNewChildPhoto('');
     setNewChildPhotoPreview('');
+    setPhotoError('');
     setAddChildError('');
     setAddChildRef(null);
     setParentType('both');
@@ -312,6 +332,7 @@ export default function ParentDashboard() {
                           {newChildPhotoPreview ? 'Change Photo' : 'Upload Photo'}
                           <input type="file" accept="image/*" className="hidden" onChange={handleNewChildPhoto} />
                         </label>
+                        {photoError && <p className="text-xs text-red-600 font-medium mt-1">⚠️ {photoError}</p>}
                       </div>
                     </div>
 
