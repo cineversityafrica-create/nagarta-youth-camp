@@ -22,6 +22,7 @@ export default function RegisterPage() {
   const [childPhoto, setChildPhoto] = useState('');
   const [photoPreview, setPhotoPreview] = useState('');
   const [parent, setParent] = useState({ name: '', address: '', phone: '' });
+  const [parentType, setParentType] = useState<'mother' | 'father' | 'both'>('both');
   const [mother, setMother] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
   const [father, setFather] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
 
@@ -57,6 +58,7 @@ export default function RegisterPage() {
     setChildPhoto('');
     setPhotoPreview('');
     setParent({ name: '', address: '', phone: '' });
+    setParentType('both');
     setMother({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
     setFather({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
     setError('');
@@ -72,26 +74,33 @@ export default function RegisterPage() {
     setLoading(true);
     const token = getToken()!;
     try {
-      const payload = {
+      const payload: any = {
         type: 'CHILD',
         notes: childNotes,
         child: { ...child, age: parseInt(child.age) || 0, photo: childPhoto || undefined },
         parentName: parent.name || undefined,
         parentAddress: parent.address || undefined,
         parentPhone: parent.phone || undefined,
-        // Mother's information
-        motherName: mother.name || undefined,
-        motherAddress: mother.address || undefined,
-        motherPhone: mother.phone || undefined,
-        motherEmail: mother.email || undefined,
-        motherEmergencyContact: mother.emergencyContact || undefined,
-        // Father's information
-        fatherName: father.name || undefined,
-        fatherAddress: father.address || undefined,
-        fatherPhone: father.phone || undefined,
-        fatherEmail: father.email || undefined,
-        fatherEmergencyContact: father.emergencyContact || undefined,
       };
+
+      // Add mother's information if selected
+      if (parentType === 'mother' || parentType === 'both') {
+        payload.motherName = mother.name || undefined;
+        payload.motherAddress = mother.address || undefined;
+        payload.motherPhone = mother.phone || undefined;
+        payload.motherEmail = mother.email || undefined;
+        payload.motherEmergencyContact = mother.emergencyContact || undefined;
+      }
+
+      // Add father's information if selected
+      if (parentType === 'father' || parentType === 'both') {
+        payload.fatherName = father.name || undefined;
+        payload.fatherAddress = father.address || undefined;
+        payload.fatherPhone = father.phone || undefined;
+        payload.fatherEmail = father.email || undefined;
+        payload.fatherEmergencyContact = father.emergencyContact || undefined;
+      }
+
       const result = await submitRegistration(payload, token) as { referenceCode: string };
       setSuccess({ referenceCode: result.referenceCode, name: child.name });
     } catch {
@@ -237,61 +246,104 @@ export default function RegisterPage() {
                 {/* Parent Info */}
                 <div className="border-t border-beige mt-6 pt-6">
                   <p className="text-sm text-burgundy font-semibold mb-4">Parent / Guardian Information</p>
-                  <p className="text-xs text-burgundy/60 mb-4">Please fill in at least one parent's information (Mother or Father). If only one parent is providing information, the other fields are optional.</p>
+
+                  {/* Parent Type Selector */}
+                  <div className="mb-6 p-4 bg-gold/5 rounded-lg border border-gold/20">
+                    <p className="text-xs label-caps text-burgundy mb-3">Who will provide information?</p>
+                    <div className="flex flex-wrap gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="parentType"
+                          value="mother"
+                          checked={parentType === 'mother'}
+                          onChange={() => setParentType('mother')}
+                          className="w-4 h-4 accent-gold"
+                        />
+                        <span className="text-sm text-maroon font-medium">Mother Only</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="parentType"
+                          value="father"
+                          checked={parentType === 'father'}
+                          onChange={() => setParentType('father')}
+                          className="w-4 h-4 accent-gold"
+                        />
+                        <span className="text-sm text-maroon font-medium">Father Only</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="parentType"
+                          value="both"
+                          checked={parentType === 'both'}
+                          onChange={() => setParentType('both')}
+                          className="w-4 h-4 accent-gold"
+                        />
+                        <span className="text-sm text-maroon font-medium">Both Parents</span>
+                      </label>
+                    </div>
+                  </div>
 
                   {/* Mother's Information */}
-                  <div className="mb-6">
-                    <p className="text-sm font-semibold text-maroon mb-3">Mother's Information</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Mother's Full Name</label>
-                        <input type="text" value={mother.name} onChange={e => updateMother('name', e.target.value)} placeholder="Ama Mensah" className={inputClass} />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Mother's Address</label>
-                        <input type="text" value={mother.address} onChange={e => updateMother('address', e.target.value)} placeholder="123 Ring Road, Accra" className={inputClass} />
-                      </div>
-                      <div>
-                        <label className={labelClass}>Mother's Contact Number</label>
-                        <input type="tel" value={mother.phone} onChange={e => updateMother('phone', e.target.value)} placeholder="+233 20 000 0000" className={inputClass} />
-                      </div>
-                      <div>
-                        <label className={labelClass}>Mother's Email</label>
-                        <input type="email" value={mother.email} onChange={e => updateMother('email', e.target.value)} placeholder="ama@example.com" className={inputClass} />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Mother's Emergency Contact</label>
-                        <input type="text" value={mother.emergencyContact} onChange={e => updateMother('emergencyContact', e.target.value)} placeholder="Alternative phone or person to contact" className={inputClass} />
+                  {(parentType === 'mother' || parentType === 'both') && (
+                    <div className="mb-6">
+                      <p className="text-sm font-semibold text-maroon mb-3">Mother's Information</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
+                          <label className={labelClass}>Mother's Full Name</label>
+                          <input type="text" value={mother.name} onChange={e => updateMother('name', e.target.value)} placeholder="Ama Mensah" className={inputClass} />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelClass}>Mother's Address</label>
+                          <input type="text" value={mother.address} onChange={e => updateMother('address', e.target.value)} placeholder="123 Ring Road, Accra" className={inputClass} />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Mother's Contact Number</label>
+                          <input type="tel" value={mother.phone} onChange={e => updateMother('phone', e.target.value)} placeholder="+233 20 000 0000" className={inputClass} />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Mother's Email</label>
+                          <input type="email" value={mother.email} onChange={e => updateMother('email', e.target.value)} placeholder="ama@example.com" className={inputClass} />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelClass}>Mother's Emergency Contact</label>
+                          <input type="text" value={mother.emergencyContact} onChange={e => updateMother('emergencyContact', e.target.value)} placeholder="Alternative phone or person to contact" className={inputClass} />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Father's Information */}
-                  <div>
-                    <p className="text-sm font-semibold text-maroon mb-3">Father's Information</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Father's Full Name</label>
-                        <input type="text" value={father.name} onChange={e => updateFather('name', e.target.value)} placeholder="Kwame Mensah" className={inputClass} />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Father's Address</label>
-                        <input type="text" value={father.address} onChange={e => updateFather('address', e.target.value)} placeholder="123 Ring Road, Accra" className={inputClass} />
-                      </div>
-                      <div>
-                        <label className={labelClass}>Father's Contact Number</label>
-                        <input type="tel" value={father.phone} onChange={e => updateFather('phone', e.target.value)} placeholder="+233 20 000 0000" className={inputClass} />
-                      </div>
-                      <div>
-                        <label className={labelClass}>Father's Email</label>
-                        <input type="email" value={father.email} onChange={e => updateFather('email', e.target.value)} placeholder="kwame@example.com" className={inputClass} />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Father's Emergency Contact</label>
-                        <input type="text" value={father.emergencyContact} onChange={e => updateFather('emergencyContact', e.target.value)} placeholder="Alternative phone or person to contact" className={inputClass} />
+                  {(parentType === 'father' || parentType === 'both') && (
+                    <div>
+                      <p className="text-sm font-semibold text-maroon mb-3">Father's Information</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
+                          <label className={labelClass}>Father's Full Name</label>
+                          <input type="text" value={father.name} onChange={e => updateFather('name', e.target.value)} placeholder="Kwame Mensah" className={inputClass} />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelClass}>Father's Address</label>
+                          <input type="text" value={father.address} onChange={e => updateFather('address', e.target.value)} placeholder="123 Ring Road, Accra" className={inputClass} />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Father's Contact Number</label>
+                          <input type="tel" value={father.phone} onChange={e => updateFather('phone', e.target.value)} placeholder="+233 20 000 0000" className={inputClass} />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Father's Email</label>
+                          <input type="email" value={father.email} onChange={e => updateFather('email', e.target.value)} placeholder="kwame@example.com" className={inputClass} />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelClass}>Father's Emergency Contact</label>
+                          <input type="text" value={father.emergencyContact} onChange={e => updateFather('emergencyContact', e.target.value)} placeholder="Alternative phone or person to contact" className={inputClass} />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
             <div className="pt-2">
