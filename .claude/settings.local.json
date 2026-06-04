@@ -81,7 +81,8 @@
       "Bash(curl -s http://localhost:3001/register)",
       "Bash(curl -s http://localhost:3001/contact)",
       "Bash(cat > *)",
-      "Bash(curl -s http://localhost:49389 -o /dev/null -w \"HTTP %{http_code}\\\\n\")"
+      "Bash(curl -s http://localhost:49389 -o /dev/null -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:5000/admin/login -o /dev/null -w \"HTTP %{http_code}\\\\n\")"
     ]
   }
 }

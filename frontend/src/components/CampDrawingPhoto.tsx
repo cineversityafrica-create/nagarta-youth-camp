@@ -18,8 +18,8 @@ export default function CampDrawingPhoto() {
         <div className="camp-photo-animate w-full md:w-1/2 flex-shrink-0">
           <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/60 ring-4 ring-gold/20">
             <Image
-              src="/camp-drawing.jpg"
-              alt="Young camper drawing colorful artwork"
+              src="/camp-hero-4.jpg"
+              alt="NAGARTA camp activity"
               width={720}
               height={480}
               className="w-full h-auto object-cover"

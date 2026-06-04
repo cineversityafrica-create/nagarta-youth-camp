@@ -37,12 +37,14 @@ const isProd = process.env.NODE_ENV === 'production';
 // Security
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// General rate limit — 1000 requests per 15 min per IP (covers SSR page loads, hot-reload, etc.)
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, standardHeaders: true, legacyHeaders: false }));
+// General rate limit — only enabled in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 5000, standardHeaders: true, legacyHeaders: false }));
 
-// Stricter limit for auth routes — 30 attempts per 15 min (brute-force protection)
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many login attempts. Please try again in 15 minutes.' } });
-app.use('/api/auth', authLimiter);
+  // Stricter limit for auth routes — 100 attempts per 15 min (brute-force protection)
+  const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many login attempts. Please try again in 15 minutes.' } });
+  app.use('/api/auth', authLimiter);
+}
 
 // CORS
 const allowedOrigins = [

@@ -24,7 +24,7 @@
     }
   </script>
   <style>
-    body { background-color: #ffffff; }
+    body { background-color: #ffffff; margin: 0; padding: 0; }
     .sidebar-link:hover { background: rgba(83,28,34,0.06); }
     .sidebar-link.active { border-left: 3px solid currentColor; font-weight: 600; }
     .nav-dashboard.active   { background: rgba(59,130,246,0.12);  color: #1d6fce; }
@@ -38,17 +38,49 @@
     .nav-payments.active    { background: rgba(59,130,246,0.12);  color: #1d6fce; }
     .nav-notifications.active { background: rgba(83,28,34,0.12);  color: #531c22; }
 
-    /* Mobile responsive fixes */
-    .sidebar-mobile-hidden:checked ~ .sidebar { display: block; }
-    @media (max-width: 768px) {
-      .sidebar { display: none; position: fixed; z-index: 50; height: 100vh; }
-      .sidebar-mobile-hidden:checked ~ .sidebar { display: flex; }
-      .main-content { margin-left: 0 !important; }
-      .table-container { overflow-x: auto; }
-      .table { font-size: 0.875rem; }
+    /* DESKTOP LAYOUT (>= 768px) */
+    @media (min-width: 768px) {
+      .mobile-header { display: none !important; }
+      .sidebar {
+        display: flex !important;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 16rem;
+        height: 100vh;
+        z-index: 30;
+      }
+      .main-content {
+        margin-left: 16rem !important;
+        padding-top: 2rem !important;
+      }
     }
-    @media (min-width: 769px) {
-      .mobile-menu-btn { display: none; }
+
+    /* MOBILE LAYOUT (< 768px) */
+    @media (max-width: 767px) {
+      .sidebar {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 16rem;
+        height: 100vh;
+        z-index: 50;
+      }
+      #sidebar-toggle:checked ~ .sidebar { display: flex; }
+      #sidebar-toggle:checked ~ .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 40;
+      }
+      .sidebar-overlay { display: none; }
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 4rem !important;
+      }
+      .table-container { overflow-x: auto; }
     }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
