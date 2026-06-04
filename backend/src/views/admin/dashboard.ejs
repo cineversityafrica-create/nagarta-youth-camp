@@ -1,67 +1,415 @@
 <%- include('../partials/head', { title: 'Dashboard' }) %>
 <%- include('../partials/sidebar', { page: 'dashboard' }) %>
 
-<main class="main-content p-4 md:p-8 min-h-screen bg-white">
-  <div class="mb-8">
-    <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Overview</p>
+<style>
+  /* ─── COLOR THEMES PER SECTION ─── */
+  :root {
+    /* Stats: Emerald Green */
+    --stat-1-from: #10b981; --stat-1-to: #059669; --stat-1-shadow: rgba(16, 185, 129, 0.4);
+    --stat-2-from: #3b82f6; --stat-2-to: #1d4ed8; --stat-2-shadow: rgba(59, 130, 246, 0.4);
+    --stat-3-from: #f59e0b; --stat-3-to: #d97706; --stat-3-shadow: rgba(245, 158, 11, 0.4);
+    --stat-4-from: #ec4899; --stat-4-to: #be185d; --stat-4-shadow: rgba(236, 72, 153, 0.4);
+
+    /* Age section: Indigo / Purple */
+    --age-from: #8b5cf6; --age-mid: #7c3aed; --age-to: #6d28d9;
+    --age-light: #ede9fe; --age-shadow: rgba(139, 92, 246, 0.35);
+
+    /* Gender section: Pink / Rose */
+    --gender-from: #ec4899; --gender-mid: #db2777; --gender-to: #be185d;
+    --gender-light: #fce7f3; --gender-shadow: rgba(236, 72, 153, 0.35);
+
+    /* Schools section: Orange / Amber */
+    --school-from: #f97316; --school-mid: #ea580c; --school-to: #c2410c;
+    --school-light: #fff7ed; --school-shadow: rgba(249, 115, 22, 0.35);
+
+    /* Recent: Teal / Cyan */
+    --recent-from: #06b6d4; --recent-mid: #0891b2; --recent-to: #0e7490;
+    --recent-light: #ecfeff; --recent-shadow: rgba(6, 182, 212, 0.35);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes growBar {
+    from { width: 0; opacity: 0; }
+    to { width: var(--bar-width); opacity: 1; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animated-bar { animation: growBar 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .fade-up { animation: fadeUp 0.6s ease-out forwards; }
+
+  /* ─── STAT CARDS — Each different color ─── */
+  .stat-card {
+    background: white;
+    border-radius: 1rem;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--stat-from), var(--stat-to));
+  }
+  .stat-card:hover {
+    transform: translateY(-5px) scale(1.02);
+  }
+
+  /* ─── AGE Card — Purple Theme ─── */
+  .age-card {
+    background: linear-gradient(145deg, #ffffff, #f5f3ff);
+    box-shadow:
+      0 20px 50px -15px var(--age-shadow),
+      0 10px 25px -10px rgba(124, 58, 237, 0.2),
+      0 5px 15px -5px rgba(0, 0, 0, 0.05),
+      inset 0 2px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .age-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 30px 70px -15px rgba(139, 92, 246, 0.5),
+      0 15px 40px -10px rgba(124, 58, 237, 0.3);
+  }
+  .age-bar {
+    box-shadow:
+      0 4px 15px var(--age-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  .age-bar:hover { transform: scaleY(1.15); }
+
+  /* ─── GENDER Card — Pink Theme ─── */
+  .gender-card {
+    background: linear-gradient(145deg, #ffffff, #fdf2f8);
+    box-shadow:
+      0 20px 50px -15px var(--gender-shadow),
+      0 10px 25px -10px rgba(219, 39, 119, 0.2),
+      0 5px 15px -5px rgba(0, 0, 0, 0.05),
+      inset 0 2px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(236, 72, 153, 0.15);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .gender-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 30px 70px -15px rgba(236, 72, 153, 0.5),
+      0 15px 40px -10px rgba(219, 39, 119, 0.3);
+  }
+  .gender-bar {
+    box-shadow:
+      0 4px 15px var(--gender-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  .gender-bar:hover { transform: scaleY(1.15); }
+
+  /* ─── SCHOOL Card — Orange Theme ─── */
+  .school-card {
+    background: linear-gradient(145deg, #ffffff, #fff7ed);
+    box-shadow:
+      0 20px 50px -15px var(--school-shadow),
+      0 10px 25px -10px rgba(234, 88, 12, 0.2),
+      0 5px 15px -5px rgba(0, 0, 0, 0.05),
+      inset 0 2px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(249, 115, 22, 0.15);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .school-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 30px 70px -15px rgba(249, 115, 22, 0.5),
+      0 15px 40px -10px rgba(234, 88, 12, 0.3);
+  }
+  .school-bar {
+    box-shadow:
+      0 4px 15px var(--school-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  .school-bar:hover { transform: scaleY(1.15); }
+
+  /* ─── RECENT Card — Teal Theme ─── */
+  .recent-card {
+    background: linear-gradient(145deg, #ffffff, #ecfeff);
+    box-shadow:
+      0 20px 50px -15px var(--recent-shadow),
+      0 10px 25px -10px rgba(8, 145, 178, 0.2),
+      0 5px 15px -5px rgba(0, 0, 0, 0.05),
+      inset 0 2px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .recent-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 30px 70px -15px rgba(6, 182, 212, 0.5);
+  }
+
+  /* ─── Generic helpers ─── */
+  .icon-badge { box-shadow: 0 8px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4); }
+  .rank-badge { box-shadow: 0 6px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5); }
+  .badge-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3); }
+
+  /* ─── BUTTON ─── */
+  .recent-button {
+    background: linear-gradient(135deg, var(--recent-from), var(--recent-to));
+    box-shadow: 0 8px 20px var(--recent-shadow), inset 0 1px 0 rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+  }
+  .recent-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(6, 182, 212, 0.55);
+  }
+
+  /* ─── Page bg ─── */
+  .dashboard-bg {
+    background:
+      radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.08), transparent 40%),
+      radial-gradient(circle at 90% 30%, rgba(236, 72, 153, 0.08), transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(249, 115, 22, 0.08), transparent 40%),
+      radial-gradient(circle at 20% 90%, rgba(6, 182, 212, 0.08), transparent 40%),
+      #fafafa;
+  }
+</style>
+
+<main class="main-content dashboard-bg p-4 md:p-8 min-h-screen">
+  <div class="mb-8 fade-up">
+    <p class="text-xs tracking-widest uppercase font-bold mb-1" style="background: linear-gradient(135deg, #10b981, #8b5cf6, #ec4899, #f97316, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">📊 Overview</p>
     <h2 class="font-serif text-3xl font-semibold text-maroon italic">Camp Dashboard</h2>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- ═══ STAT CARDS — Each different color ═══ -->
   <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-8 md:mb-10">
-    <div class="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
-      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2 line-clamp-2">Total Registrations</p>
-      <p class="text-2xl md:text-4xl font-serif font-semibold text-maroon"><%= stats.totalRegistrations %></p>
+    <!-- GREEN -->
+    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #10b981; --stat-to: #059669; box-shadow: 0 15px 35px -10px rgba(16, 185, 129, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(16, 185, 129, 0.15);">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Total Registrations</p>
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+      </div>
+      <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.totalRegistrations %></p>
     </div>
-    <div class="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
-      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2 line-clamp-2">Spots Remaining</p>
-      <p class="text-2xl md:text-4xl font-serif font-semibold text-maroon"><%= stats.spotsRemaining %><span class="text-sm md:text-lg text-gray-300"> / <%= stats.capacity %></span></p>
+
+    <!-- BLUE -->
+    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #3b82f6; --stat-to: #1d4ed8; animation-delay: 0.1s; box-shadow: 0 15px 35px -10px rgba(59, 130, 246, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(59, 130, 246, 0.15);">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Spots Remaining</p>
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </div>
+      </div>
+      <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.spotsRemaining %><span class="text-sm md:text-lg text-gray-400"> / <%= stats.capacity %></span></p>
     </div>
-    <div class="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
-      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2 line-clamp-2">Confirmed</p>
-      <p class="text-2xl md:text-4xl font-serif font-semibold text-maroon"><%= stats.confirmedRegistrations %></p>
+
+    <!-- AMBER -->
+    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #f59e0b; --stat-to: #d97706; animation-delay: 0.2s; box-shadow: 0 15px 35px -10px rgba(245, 158, 11, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(245, 158, 11, 0.15);">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Confirmed</p>
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.confirmedRegistrations %></p>
     </div>
-    <div class="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 border-t-2 border-t-gold">
-      <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2 line-clamp-2">Unread Messages</p>
-      <p class="text-2xl md:text-4xl font-serif font-semibold text-maroon"><%= stats.unreadMessages %></p>
+
+    <!-- PINK -->
+    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #ec4899; --stat-to: #be185d; animation-delay: 0.3s; box-shadow: 0 15px 35px -10px rgba(236, 72, 153, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(236, 72, 153, 0.15);">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Unread Messages</p>
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+      </div>
+      <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.unreadMessages %></p>
     </div>
   </div>
 
-  <!-- Recent Registrations -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+  <!-- ═══ AGE + GENDER ROW ═══ -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
+
+    <!-- AGE — PURPLE THEME -->
+    <div class="age-card rounded-2xl p-5 md:p-7 fade-up" style="animation-delay: 0.4s;">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-xs tracking-widest uppercase font-bold mb-1" style="background: linear-gradient(135deg, var(--age-from), var(--age-to)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">👥 Demographics</p>
+          <h3 class="font-serif text-xl md:text-2xl font-bold" style="color: var(--age-to);">Age Distribution</h3>
+        </div>
+        <div class="text-right">
+          <p class="text-3xl font-bold" style="background: linear-gradient(135deg, var(--age-from), var(--age-to)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><%= stats.totalAttendees %></p>
+          <p class="text-xs text-gray-400 uppercase tracking-wide font-bold">Total</p>
+        </div>
+      </div>
+      <% const ageEntries = Object.entries(stats.ageStats); %>
+      <% const maxAge = Math.max(...Object.values(stats.ageStats), 1); %>
+      <% const ageGradients = [
+        'linear-gradient(90deg, #c4b5fd, #a78bfa, #8b5cf6)',
+        'linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed)',
+        'linear-gradient(90deg, #8b5cf6, #7c3aed, #6d28d9)',
+        'linear-gradient(90deg, #7c3aed, #6d28d9, #5b21b6)',
+        'linear-gradient(90deg, #6d28d9, #5b21b6, #4c1d95)',
+        'linear-gradient(90deg, #a855f7, #9333ea, #7e22ce)',
+        'linear-gradient(90deg, #d946ef, #c026d3, #a21caf)',
+      ]; %>
+      <div class="space-y-3">
+        <% ageEntries.forEach(([age, count], idx) => { %>
+          <div class="flex items-center gap-3">
+            <div class="w-14 text-xs font-bold" style="color: var(--age-to);"><%= age %> yrs</div>
+            <div class="flex-1 bg-gray-100 rounded-full h-7 overflow-hidden relative" style="box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);">
+              <div class="animated-bar age-bar h-full rounded-full flex items-center justify-end pr-3"
+                   style="background: <%= ageGradients[idx % ageGradients.length] %>; --bar-width: <%= Math.max(8, (count / maxAge) * 100) %>%; animation-delay: <%= idx * 0.1 %>s;">
+                <span class="text-xs font-bold text-white" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3);"><%= count %></span>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- GENDER — PINK THEME -->
+    <div class="gender-card rounded-2xl p-5 md:p-7 fade-up" style="animation-delay: 0.5s;">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-xs tracking-widest uppercase font-bold mb-1" style="background: linear-gradient(135deg, var(--gender-from), var(--gender-to)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">⚥ Demographics</p>
+          <h3 class="font-serif text-xl md:text-2xl font-bold" style="color: var(--gender-to);">Gender Breakdown</h3>
+        </div>
+        <div class="text-right">
+          <p class="text-3xl font-bold" style="background: linear-gradient(135deg, var(--gender-from), var(--gender-to)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><%= stats.totalAttendees %></p>
+          <p class="text-xs text-gray-400 uppercase tracking-wide font-bold">Total</p>
+        </div>
+      </div>
+      <% const totalGender = Object.values(stats.genderStats).reduce((a, b) => a + b, 0) || 1; %>
+      <% const genderGradients = {
+        Male: 'linear-gradient(90deg, #60a5fa, #3b82f6, #1d4ed8)',
+        Female: 'linear-gradient(90deg, #f472b6, #ec4899, #be185d)',
+        Other: 'linear-gradient(90deg, #c084fc, #a855f7, #7e22ce)'
+      }; %>
+      <% const genderIcons = { Male: '♂', Female: '♀', Other: '⚧' }; %>
+      <% const genderColors = { Male: '#1d4ed8', Female: '#be185d', Other: '#7e22ce' }; %>
+      <div class="space-y-4">
+        <% Object.entries(stats.genderStats).forEach(([gender, count], idx) => { %>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold" style="color: <%= genderColors[gender] || '#666' %>;"><%= genderIcons[gender] %></span>
+                <span class="text-sm font-bold" style="color: <%= genderColors[gender] || '#666' %>;"><%= gender %></span>
+              </div>
+              <span class="text-xs text-gray-600 font-bold"><%= count %> · <%= Math.round((count / totalGender) * 100) %>%</span>
+            </div>
+            <div class="bg-gray-100 rounded-full h-6 overflow-hidden" style="box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);">
+              <div class="animated-bar gender-bar h-full rounded-full"
+                   style="background: <%= genderGradients[gender] || 'linear-gradient(90deg, #d1d5db, #9ca3af)' %>; --bar-width: <%= (count / totalGender) * 100 %>%; animation-delay: <%= idx * 0.15 %>s;"></div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+      <!-- Donut summary cards (each gender different color) -->
+      <div class="grid grid-cols-3 gap-3 mt-6 pt-5 border-t border-pink-100">
+        <% Object.entries(stats.genderStats).forEach(([gender, count]) => { %>
+          <div class="text-center py-3 rounded-2xl" style="background: linear-gradient(135deg, <%= gender === 'Male' ? '#dbeafe, #93c5fd' : gender === 'Female' ? '#fce7f3, #f9a8d4' : '#f3e8ff, #d8b4fe' %>); box-shadow: 0 8px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8);">
+            <p class="text-2xl font-serif font-bold" style="color: <%= genderColors[gender] || '#666' %>;"><%= count %></p>
+            <p class="text-xs text-gray-700 uppercase tracking-wide font-bold"><%= gender %></p>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ SCHOOL — ORANGE THEME (full width) ═══ -->
+  <div class="school-card rounded-2xl p-5 md:p-7 mb-8 fade-up" style="animation-delay: 0.6s;">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <p class="text-xs tracking-widest uppercase font-bold mb-1" style="background: linear-gradient(135deg, var(--school-from), var(--school-to)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🏫 Top Schools</p>
+        <h3 class="font-serif text-xl md:text-2xl font-bold" style="color: var(--school-to);">Schools Represented</h3>
+      </div>
+      <div class="text-right">
+        <p class="text-3xl font-bold" style="background: linear-gradient(135deg, var(--school-from), var(--school-to)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><%= Object.keys(stats.schoolStats).length %></p>
+        <p class="text-xs text-gray-400 uppercase tracking-wide font-bold">Schools</p>
+      </div>
+    </div>
+
+    <% const schoolEntries = Object.entries(stats.schoolStats); %>
+    <% if (schoolEntries.length > 0) { %>
+      <% const maxSchool = Math.max(...Object.values(stats.schoolStats), 1); %>
+      <% const schoolGradients = [
+        'linear-gradient(90deg, #fde047, #facc15, #ca8a04)',
+        'linear-gradient(90deg, #fbbf24, #f59e0b, #d97706)',
+        'linear-gradient(90deg, #fb923c, #f97316, #ea580c)',
+        'linear-gradient(90deg, #fb7185, #f43f5e, #e11d48)',
+        'linear-gradient(90deg, #f472b6, #ec4899, #be185d)',
+        'linear-gradient(90deg, #ef4444, #dc2626, #b91c1c)',
+        'linear-gradient(90deg, #f59e0b, #d97706, #b45309)',
+        'linear-gradient(90deg, #fb923c, #ea580c, #c2410c)',
+        'linear-gradient(90deg, #fbbf24, #ca8a04, #a16207)',
+        'linear-gradient(90deg, #f97316, #c2410c, #9a3412)',
+      ]; %>
+      <div class="space-y-3">
+        <% schoolEntries.forEach(([school, count], idx) => { %>
+          <div class="flex items-center gap-3">
+            <div class="rank-badge w-9 text-xs font-bold rounded-full flex items-center justify-center h-9" style="background: <%= schoolGradients[idx % schoolGradients.length] %>; color: white;">#<%= idx + 1 %></div>
+            <div class="w-48 md:w-64 text-xs md:text-sm font-bold truncate" style="color: var(--school-to);" title="<%= school %>"><%= school %></div>
+            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative" style="box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);">
+              <div class="animated-bar school-bar h-full rounded-full flex items-center justify-end pr-3"
+                   style="background: <%= schoolGradients[idx % schoolGradients.length] %>; --bar-width: <%= Math.max(10, (count / maxSchool) * 100) %>%; animation-delay: <%= idx * 0.07 %>s;">
+                <span class="text-xs font-bold text-white" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3);"><%= count %></span>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="text-center py-12">
+        <div class="w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center icon-badge" style="background: linear-gradient(135deg, var(--school-from), var(--school-to));">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+        </div>
+        <p class="text-gray-500 text-sm italic font-medium">No school data yet</p>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- ═══ RECENT REGISTRATIONS — TEAL/CYAN THEME ═══ -->
+  <div class="recent-card rounded-2xl p-5 md:p-7 fade-up" style="animation-delay: 0.7s;">
     <div class="flex items-center justify-between mb-5">
-      <h3 class="font-serif text-lg md:text-xl font-semibold text-maroon">Recent Registrations</h3>
-      <a href="/admin/registrations" class="text-xs text-gold hover:underline tracking-wider font-medium">View All</a>
+      <div>
+        <p class="text-xs tracking-widest uppercase font-bold mb-1" style="background: linear-gradient(135deg, var(--recent-from), var(--recent-to)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">📋 Latest</p>
+        <h3 class="font-serif text-xl md:text-2xl font-bold" style="color: var(--recent-to);">Recent Registrations</h3>
+      </div>
+      <a href="/admin/registrations" class="recent-button text-xs font-bold tracking-wider uppercase px-5 py-2.5 rounded-full text-white">View All →</a>
     </div>
     <div class="table-container">
     <table class="w-full text-xs md:text-sm">
       <thead>
-        <tr class="border-b border-gray-100">
-          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Camper</th>
-          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Parent Email</th>
-          <th class="text-left text-xs tracking-wider uppercase text-gray-400 pb-3 font-semibold">Status</th>
+        <tr class="border-b-2" style="border-color: var(--recent-light);">
+          <th class="text-left text-xs tracking-wider uppercase pb-3 font-bold" style="color: var(--recent-to);">Camper</th>
+          <th class="text-left text-xs tracking-wider uppercase pb-3 font-bold" style="color: var(--recent-to);">Parent Email</th>
+          <th class="text-left text-xs tracking-wider uppercase pb-3 font-bold" style="color: var(--recent-to);">Status</th>
           <th class="pb-3"></th>
         </tr>
       </thead>
       <tbody>
         <% stats.recentRegistrations.forEach(reg => { %>
-          <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+          <tr class="border-b border-gray-100 transition-all" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='transparent'">
             <td class="py-3">
-              <p class="text-maroon font-medium text-sm"><%= reg.child ? reg.child.name : reg.user.name %></p>
-              <p class="text-xs text-gray-400"><%= reg.type %></p>
+              <p class="text-maroon font-bold text-sm"><%= reg.child ? reg.child.name : reg.user.name %></p>
+              <p class="text-xs text-gray-500"><%= reg.type %></p>
             </td>
-            <td class="py-3 text-gray-500 text-sm"><%= reg.user.email %></td>
+            <td class="py-3 text-gray-600 text-sm"><%= reg.user.email %></td>
             <td class="py-3">
-              <span class="text-xs px-2 py-1 rounded-full
-                <%= reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
-                    reg.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                    reg.status === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' %>">
+              <span class="badge-shadow text-xs px-3 py-1 rounded-full font-bold text-white"
+                style="<%= reg.status === 'CONFIRMED' ? 'background: linear-gradient(135deg, #10b981, #059669, #047857);' :
+                       reg.status === 'PENDING' ? 'background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);' :
+                       reg.status === 'CANCELLED' ? 'background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c);' :
+                       'background: linear-gradient(135deg, #60a5fa, #3b82f6, #2563eb);' %>">
                 <%= reg.status %>
               </span>
             </td>
             <td class="py-3 text-right">
               <a href="/admin/users/<%= reg.userId %>"
-                class="text-xs text-gold font-semibold hover:underline whitespace-nowrap">View Parent →</a>
+                class="text-xs font-bold hover:underline whitespace-nowrap" style="color: var(--recent-from);">View Parent →</a>
             </td>
           </tr>
         <% }) %>

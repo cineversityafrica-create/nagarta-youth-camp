@@ -153,17 +153,61 @@ app.get('/admin/logout', (req, res) => {
 
 app.get('/admin', requireAdminSession, async (_req, res) => {
   try {
-    const [totalRegistrations, pendingRegistrations, confirmedRegistrations, totalMessages, recentRegistrations] =
+    const [totalRegistrations, pendingRegistrations, confirmedRegistrations, totalMessages, recentRegistrations, allChildren] =
       await Promise.all([
         prisma.registration.count(),
         prisma.registration.count({ where: { status: 'PENDING' } }),
         prisma.registration.count({ where: { status: 'CONFIRMED' } }),
         prisma.contactMessage.count({ where: { resolved: false } }),
         prisma.registration.findMany({ take: 8, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true, email: true } }, child: { select: { name: true } } } }),
+        prisma.child.findMany({ select: { age: true, gender: true, school: true } }),
       ]);
-    const capacity = parseInt((await prisma.siteContent.findUnique({ where: { key: 'camp_capacity' } }))?.value || '200');
+    const capacity = parseInt((await prisma.siteContent.findUnique({ where: { key: 'camp_capacity' } }))?.value || '1000');
+
+    // Age statistics — group by individual age
+    const ageStats: Record<string, number> = {};
+    for (let age = 12; age <= 18; age++) ageStats[age.toString()] = 0;
+    allChildren.forEach((c) => {
+      if (c.age != null) {
+        const key = c.age.toString();
+        ageStats[key] = (ageStats[key] || 0) + 1;
+      }
+    });
+
+    // Gender statistics
+    const genderStats: Record<string, number> = { Male: 0, Female: 0, Other: 0 };
+    allChildren.forEach((c) => {
+      const g = c.gender?.trim() || 'Other';
+      if (g === 'Male' || g === 'male') genderStats.Male++;
+      else if (g === 'Female' || g === 'female') genderStats.Female++;
+      else genderStats.Other++;
+    });
+
+    // School statistics — top 10 schools
+    const schoolCounts: Record<string, number> = {};
+    allChildren.forEach((c) => {
+      const school = c.school?.trim();
+      if (school) schoolCounts[school] = (schoolCounts[school] || 0) + 1;
+    });
+    const schoolStats = Object.entries(schoolCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+      .reduce((acc, [name, count]) => { acc[name] = count; return acc; }, {} as Record<string, number>);
+
     res.render('admin/dashboard', {
-      stats: { totalRegistrations, pendingRegistrations, confirmedRegistrations, unreadMessages: totalMessages, spotsRemaining: Math.max(0, capacity - totalRegistrations), capacity, recentRegistrations },
+      stats: {
+        totalRegistrations,
+        pendingRegistrations,
+        confirmedRegistrations,
+        unreadMessages: totalMessages,
+        spotsRemaining: Math.max(0, capacity - totalRegistrations),
+        capacity,
+        recentRegistrations,
+        ageStats,
+        genderStats,
+        schoolStats,
+        totalAttendees: allChildren.length,
+      },
     });
   } catch (e) {
     console.error(e);

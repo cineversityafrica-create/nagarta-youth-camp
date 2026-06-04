@@ -16,7 +16,7 @@ router.get('/', authenticate, requireAdmin, async (_req, res) => {
       prisma.contactMessage.count({ where: { resolved: false } }),
     ]);
 
-  const capacity = parseInt((await prisma.siteContent.findUnique({ where: { key: 'camp_capacity' } }))?.value || '200');
+  const capacity = parseInt((await prisma.siteContent.findUnique({ where: { key: 'camp_capacity' } }))?.value || '1000');
   const spotsRemaining = Math.max(0, capacity - totalRegistrations);
 
   return res.json({

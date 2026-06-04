@@ -43,7 +43,7 @@ async function main() {
     { key: 'camp_location', value: 'Accra, Ghana', label: 'Camp Location', group: 'details' },
     { key: 'camp_venue', value: 'Premium University Campus', label: 'Camp Venue', group: 'details' },
     { key: 'camp_duration', value: '5 Days', label: 'Camp Duration', group: 'details' },
-    { key: 'camp_capacity', value: '200', label: 'Total Capacity (spots)', group: 'details' },
+    { key: 'camp_capacity', value: '1000', label: 'Total Capacity (spots)', group: 'details' },
     // CTA Banner
     { key: 'cta_heading', value: 'Your spot is waiting.', label: 'CTA Banner Heading', group: 'cta' },
     // Contact

@@ -38,9 +38,13 @@
     .nav-payments.active    { background: rgba(59,130,246,0.12);  color: #1d6fce; }
     .nav-notifications.active { background: rgba(83,28,34,0.12);  color: #531c22; }
 
+    /* Hide overlay by default everywhere */
+    .sidebar-overlay { display: none !important; }
+
     /* DESKTOP LAYOUT (>= 768px) */
     @media (min-width: 768px) {
       .mobile-header { display: none !important; }
+      .sidebar-overlay { display: none !important; }
       .sidebar {
         display: flex !important;
         position: fixed;
@@ -53,6 +57,7 @@
       .main-content {
         margin-left: 16rem !important;
         padding-top: 2rem !important;
+        min-height: 100vh;
       }
     }
 
@@ -67,15 +72,17 @@
         height: 100vh;
         z-index: 50;
       }
-      #sidebar-toggle:checked ~ .sidebar { display: flex; }
+      #sidebar-toggle:checked ~ .sidebar {
+        display: flex;
+      }
       #sidebar-toggle:checked ~ .sidebar-overlay {
-        display: block;
+        display: block !important;
         position: fixed;
         inset: 0;
         background: rgba(0,0,0,0.4);
         z-index: 40;
+        cursor: pointer;
       }
-      .sidebar-overlay { display: none; }
       .main-content {
         margin-left: 0 !important;
         padding-top: 4rem !important;
