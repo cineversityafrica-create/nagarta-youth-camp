@@ -36,11 +36,11 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Uploaded/temporary image files at root
-*.PNG
-*.JPG
-*.JPEG
-*.HEIC
+# Uploaded/temporary image files at ROOT folder only (not subdirectories)
+/*.PNG
+/*.JPG
+/*.JPEG
+/*.HEIC
 
 # Editor
 .vscode/
