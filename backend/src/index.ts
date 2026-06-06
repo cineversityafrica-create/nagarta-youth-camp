@@ -52,6 +52,10 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:60001',
   'https://nagartayouthcamp.netlify.app',
+  'https://nagartayouthcamp.tech',
+  'https://www.nagartayouthcamp.tech',
+  'http://nagartayouthcamp.tech',
+  'http://www.nagartayouthcamp.tech',
 ].filter(Boolean) as string[];
 
 app.use(cors({
