@@ -43,6 +43,7 @@ export default function PricingSection() {
   const paymentMethods = [
     {
       name: 'Visa / Mastercard',
+      slug: 'visa',
       description: 'Pay securely with any credit or debit card',
       icon: (
         <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,6 +56,7 @@ export default function PricingSection() {
     },
     {
       name: 'Bank Transfer',
+      slug: 'bank',
       description: 'Direct bank deposit or wire transfer',
       icon: (
         <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -63,18 +65,6 @@ export default function PricingSection() {
       ),
       gradient: 'from-purple-500 via-violet-600 to-fuchsia-700',
       shadow: 'shadow-purple-400/50',
-    },
-    {
-      name: 'Mobile Money',
-      description: 'MTN, Vodafone, AirtelTigo accepted',
-      icon: (
-        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <rect x="6" y="2" width="12" height="20" rx="2" strokeWidth="2" />
-          <path strokeWidth="2" strokeLinecap="round" d="M11 18h2" />
-        </svg>
-      ),
-      gradient: 'from-pink-500 via-rose-500 to-red-500',
-      shadow: 'shadow-pink-400/50',
     },
   ];
 
@@ -185,11 +175,12 @@ export default function PricingSection() {
         </div>
 
         {/* Payment Method Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {paymentMethods.map((method, idx) => (
-            <div
+            <a
               key={idx}
-              className={`group relative rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:scale-105 cursor-pointer ${method.shadow}`}
+              href={`/payment/${method.slug}`}
+              className={`group relative rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:scale-105 cursor-pointer ${method.shadow} block`}
               style={{
                 background: 'rgba(255, 255, 255, 0.95)',
                 boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05)',
@@ -215,12 +206,12 @@ export default function PricingSection() {
                   <svg className={`w-4 h-4 ${method.gradient.includes('blue') ? 'text-blue-600' : method.gradient.includes('purple') ? 'text-purple-600' : 'text-pink-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className={`text-xs font-bold tracking-wider ${method.gradient.includes('blue') ? 'text-blue-700' : method.gradient.includes('purple') ? 'text-purple-700' : 'text-pink-700'}`}>
-                    SECURE PAYMENT
+                  <span className={`text-xs font-bold tracking-wider ${method.gradient.includes('blue') ? 'text-blue-700' : 'text-purple-700'}`}>
+                    CLICK TO PAY →
                   </span>
                 </div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
 
