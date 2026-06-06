@@ -22,10 +22,17 @@ export default function ContactPage() {
     setError('');
     setLoading(true);
     try {
+      // Validate before sending
+      if (form.name.length < 2) throw new Error('Please enter your full name (at least 2 characters)');
+      if (!form.email.includes('@')) throw new Error('Please enter a valid email address');
+      if (form.message.length < 10) throw new Error('Please enter a message (at least 10 characters)');
+
       await submitContactMessage(form);
       setSuccess(true);
-    } catch {
-      setError('Failed to send message. Please try again or email us directly.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to send message. Please try again or email us directly.';
+      setError(message);
+      console.error('Contact form error:', err);
     } finally {
       setLoading(false);
     }
