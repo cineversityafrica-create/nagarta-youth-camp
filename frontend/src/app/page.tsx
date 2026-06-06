@@ -11,7 +11,7 @@ import CTASection from '@/components/CTASection';
 import PricingSection from '@/components/PricingSection';
 import Footer from '@/components/Footer';
 
-export const revalidate = 60;
+export const revalidate = 5; // Re-fetch site content every 5 seconds
 
 // Default values — used when the DB is empty or the backend is unreachable
 const CONTENT_DEFAULTS: Record<string, string> = {

@@ -99,15 +99,15 @@ async function apiFetch<T>(
 // ── Public endpoints ─────────────────────────────────────────────────────────
 
 export function getSiteContent(): Promise<Record<string, string>> {
-  return apiFetch('/api/site-content', { next: { revalidate: 60 } } as RequestInit, 'siteContent');
+  return apiFetch('/api/site-content', { next: { revalidate: 5 } } as RequestInit, 'siteContent');
 }
 
 export function getActivities(): Promise<Activity[]> {
-  return apiFetch('/api/activities', { next: { revalidate: 60 } } as RequestInit, 'activities');
+  return apiFetch('/api/activities', { next: { revalidate: 5 } } as RequestInit, 'activities');
 }
 
 export function getSchedule(): Promise<ScheduleDay[]> {
-  return apiFetch('/api/schedule', { next: { revalidate: 60 } } as RequestInit, 'schedule');
+  return apiFetch('/api/schedule', { next: { revalidate: 5 } } as RequestInit, 'schedule');
 }
 
 export async function submitRegistration(data: unknown, token: string) {
