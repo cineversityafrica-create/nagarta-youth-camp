@@ -8,6 +8,7 @@ import AboutSection from '@/components/AboutSection';
 import ScheduleSection from '@/components/ScheduleSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import CTASection from '@/components/CTASection';
+import PricingSection from '@/components/PricingSection';
 import Footer from '@/components/Footer';
 
 export const revalidate = 60;
@@ -105,6 +106,7 @@ export default async function HomePage() {
           para3={content.about_para3}
         />
         <ScheduleSection days={schedule} />
+        <PricingSection />
         <TestimonialsSection />
         <CTASection heading={content.cta_heading} />
       </main>

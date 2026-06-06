@@ -28,12 +28,12 @@ const testimonials = [
 
 function TestimonialCard({ t }: { t: { quote: string; name: string; detail: string } }) {
   return (
-    <div className="bg-burgundy/30 border border-burgundy rounded-lg p-8 hover:border-gold/40 transition-colors">
-      <div className="font-serif text-6xl text-gold/30 leading-none mb-4 select-none">&ldquo;</div>
-      <p className="font-serif italic text-cream/90 text-lg leading-relaxed mb-6">{t.quote}</p>
+    <div className="bg-burgundy/30 border border-burgundy rounded-lg p-8 hover:border-gold/40 transition-colors" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+      <div className="text-6xl text-gold/30 leading-none mb-4 select-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>&ldquo;</div>
+      <p className="text-cream/90 text-lg leading-relaxed mb-6" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>{t.quote}</p>
       <div className="border-t border-burgundy pt-4">
-        <p className="font-semibold text-gold text-sm">{t.name}</p>
-        <p className="text-xs text-cream/40 mt-1">{t.detail}</p>
+        <p className="font-semibold text-gold text-sm" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>{t.name}</p>
+        <p className="text-xs text-cream/40 mt-1" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>{t.detail}</p>
       </div>
     </div>
   );
