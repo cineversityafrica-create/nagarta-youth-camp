@@ -10,34 +10,41 @@ interface HeroProps {
   urgency: string;
 }
 
+// The 3 images to rotate through in the hero
+const HERO_IMAGES = [
+  { src: '/camp-hero-1.jpg', objectPosition: 'center 30%' },
+  { src: '/camp-hero-3.jpg', objectPosition: 'center 30%' },
+  { src: '/camp-hero-4.jpg', objectPosition: 'center 25%' },
+];
+
+const SLIDE_DURATION = 5000; // 5 seconds per image
+
 export default function HeroSection({ eyebrow, heading, subheading, urgency }: HeroProps) {
   const parts = (heading ?? 'Arise & Lead').split(' & ');
   const firstWord = parts[0] || heading;
   const restWords = parts[1] ? `& ${parts[1]}` : '';
 
-  // Bumping this remounts the photo layers, which restarts the CSS slideshow.
-  // Covers: fresh load (0), client navigation back to "/" and browser
-  // back/forward cache restores (pageshow with persisted=true).
-  const [runId, setRunId] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Auto-rotate through images
   useEffect(() => {
-    const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) setRunId((id) => id + 1);
-    };
-    window.addEventListener('pageshow', onPageShow);
-    return () => window.removeEventListener('pageshow', onPageShow);
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, SLIDE_DURATION);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
 
       {/* ── LAYER 1 (bottom): permanent dark maroon background ─────────────── */}
-      {/* This is what you see after the photo exits                            */}
       <div
         className="absolute inset-0 z-0"
         style={{ background: 'linear-gradient(170deg, #301317 0%, #1a0a0e 60%, #0d0508 100%)' }}
       />
 
-      {/* Subtle radial glow — part of the permanent dark scene */}
+      {/* Subtle radial glow */}
       <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
@@ -46,54 +53,38 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
         }}
       />
 
-      {/* ── LAYER 2a: Photo 1 (camp-hero-1) — visible 0–5 s, then fades out ──────── */}
-      <div key={`photo1-${runId}`} className="camp-photo-1-animate absolute inset-0 z-10">
-        <Image
-          src="/camp-hero-1.jpg"
-          alt=""
-          fill
-          priority
-          style={{ objectFit: 'cover', objectPosition: 'center 30%' }}
-          sizes="100vw"
-        />
-        {/* Gradient veil so text stays readable while photo is showing */}
+      {/* ── ROTATING HERO IMAGES — All 3 with smooth crossfade ─────────────── */}
+      {HERO_IMAGES.map((img, idx) => (
         <div
-          className="absolute inset-0"
+          key={idx}
+          className="absolute inset-0 z-10 transition-opacity duration-[1500ms]"
           style={{
-            background: [
-              'linear-gradient(to bottom,',
-              '  rgba(20,6,9,0.78)  0%,',
-              '  rgba(20,6,9,0.42) 40%,',
-              '  rgba(20,6,9,0.35) 62%,',
-              '  rgba(20,6,9,0.70) 100%)',
-            ].join(' '),
+            opacity: currentIndex === idx ? 1 : 0,
           }}
-        />
-      </div>
-
-      {/* ── LAYER 2b: Photo 2 (camp-hero-4) — fades in at 5 s, exits at ~13.5 s ─ */}
-      <div key={`photo2-${runId}`} className="camp-photo-2-animate absolute inset-0 z-10">
-        <Image
-          src="/camp-hero-4.jpg"
-          alt=""
-          fill
-          style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
-          sizes="100vw"
-        />
-        {/* Same gradient veil */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: [
-              'linear-gradient(to bottom,',
-              '  rgba(20,6,9,0.78)  0%,',
-              '  rgba(20,6,9,0.42) 40%,',
-              '  rgba(20,6,9,0.35) 62%,',
-              '  rgba(20,6,9,0.70) 100%)',
-            ].join(' '),
-          }}
-        />
-      </div>
+        >
+          <Image
+            src={img.src}
+            alt=""
+            fill
+            priority={idx === 0}
+            style={{ objectFit: 'cover', objectPosition: img.objectPosition }}
+            sizes="100vw"
+          />
+          {/* Dark gradient overlay so text stays readable */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: [
+                'linear-gradient(to bottom,',
+                '  rgba(20,6,9,0.78)  0%,',
+                '  rgba(20,6,9,0.42) 40%,',
+                '  rgba(20,6,9,0.35) 62%,',
+                '  rgba(20,6,9,0.70) 100%)',
+              ].join(' '),
+            }}
+          />
+        </div>
+      ))}
 
       {/* ── LAYER 3: grain texture ───────────────────────────────────────────── */}
       <div
@@ -160,6 +151,24 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
         <svg className="w-4 h-4 text-gold/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
         </svg>
+      </div>
+
+      {/* Image indicator dots */}
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+        {HERO_IMAGES.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentIndex(idx)}
+            className="transition-all duration-300"
+            style={{
+              width: currentIndex === idx ? '24px' : '8px',
+              height: '8px',
+              borderRadius: '4px',
+              background: currentIndex === idx ? 'rgba(203, 163, 107, 0.9)' : 'rgba(203, 163, 107, 0.4)',
+            }}
+            aria-label={`Go to image ${idx + 1}`}
+          />
+        ))}
       </div>
     </section>
   );
