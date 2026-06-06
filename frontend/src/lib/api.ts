@@ -1,4 +1,8 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// Browser uses relative URL (proxied by Nginx to backend)
+// Server-side rendering uses direct backend URL
+const BASE_URL = typeof window !== 'undefined'
+  ? '' // Browser: empty so /api/... goes to same origin (Nginx routes to backend)
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
 
 // Static fallbacks — used if the backend is unreachable
 const FALLBACK: Record<string, unknown> = {
