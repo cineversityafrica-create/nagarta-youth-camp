@@ -22,8 +22,8 @@ export default function PaymentPage() {
     bankName: '',
     accountNumber: '',
     routingNumber: '',
-    amount: '200',
-    package: 'Premium Package',
+    amount: '235',
+    package: 'Early Bird',
   });
 
   const methodConfig = {
@@ -116,34 +116,34 @@ export default function PaymentPage() {
             <div className="mb-6">
               <label className="block text-sm font-bold text-burgundy mb-2 uppercase tracking-wider">Select Package</label>
               <div className="grid grid-cols-2 gap-3">
-                <label className={`relative cursor-pointer rounded-2xl p-4 border-2 ${formData.package === 'Premium Package' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
+                <label className={`relative cursor-pointer rounded-2xl p-4 border-2 ${formData.package === 'Early Bird' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
                   <input
                     type="radio"
                     name="package"
-                    value="Premium Package"
-                    checked={formData.package === 'Premium Package'}
-                    onChange={(e) => setFormData({ ...formData, package: e.target.value, amount: '200' })}
+                    value="Early Bird"
+                    checked={formData.package === 'Early Bird'}
+                    onChange={(e) => setFormData({ ...formData, package: e.target.value, amount: '235' })}
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <p className="font-bold text-maroon">Premium</p>
-                    <p className="text-2xl font-bold text-orange-600">$200</p>
-                    <p className="text-xs text-gray-500">+ Packing List</p>
+                    <p className="font-bold text-maroon">🐦 Early Bird</p>
+                    <p className="text-2xl font-bold text-orange-600">$235</p>
+                    <p className="text-xs text-rose-600 font-semibold">Save $25!</p>
                   </div>
                 </label>
-                <label className={`relative cursor-pointer rounded-2xl p-4 border-2 ${formData.package === 'Standard Package' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
+                <label className={`relative cursor-pointer rounded-2xl p-4 border-2 ${formData.package === 'Regular Package' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
                   <input
                     type="radio"
                     name="package"
-                    value="Standard Package"
-                    checked={formData.package === 'Standard Package'}
-                    onChange={(e) => setFormData({ ...formData, package: e.target.value, amount: '150' })}
+                    value="Regular Package"
+                    checked={formData.package === 'Regular Package'}
+                    onChange={(e) => setFormData({ ...formData, package: e.target.value, amount: '260' })}
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <p className="font-bold text-maroon">Standard</p>
-                    <p className="text-2xl font-bold text-emerald-600">$150</p>
-                    <p className="text-xs text-gray-500">Basic Package</p>
+                    <p className="font-bold text-maroon">Regular</p>
+                    <p className="text-2xl font-bold text-emerald-600">$260</p>
+                    <p className="text-xs text-gray-500">Standard Price</p>
                   </div>
                 </label>
               </div>

@@ -3,10 +3,31 @@
 export default function PricingSection() {
   const tiers = [
     {
-      name: 'Premium Package',
-      price: '200',
+      name: 'Early Bird',
+      price: '235',
+      originalPrice: '260',
       featured: true,
-      description: 'Full camp experience with all essentials provided',
+      description: 'Save $25! Register early and unlock exclusive savings',
+      features: [
+        'Full 5-day camp access',
+        'NAGARTA Branded Packing List',
+        'Camp T-shirt & merchandise',
+        'All meals included',
+        'Activity materials',
+        'Mentorship sessions',
+        'Certificate of completion',
+        'Awards Night participation',
+        '🎁 Save $25 - Limited Time!',
+      ],
+      gradient: 'from-amber-400 via-orange-500 to-rose-500',
+      shadow: 'shadow-amber-300/50',
+      badge: '🐦 EARLY BIRD - SAVE $25',
+    },
+    {
+      name: 'Regular Package',
+      price: '260',
+      featured: false,
+      description: 'Standard registration price after early bird ends',
       features: [
         'Full 5-day camp access',
         'NAGARTA Branded Packing List',
@@ -17,26 +38,9 @@ export default function PricingSection() {
         'Certificate of completion',
         'Awards Night participation',
       ],
-      gradient: 'from-amber-400 via-orange-500 to-rose-500',
-      shadow: 'shadow-amber-300/50',
-      badge: 'RECOMMENDED',
-    },
-    {
-      name: 'Standard Package',
-      price: '150',
-      featured: false,
-      description: 'Essential camp experience for budget-conscious families',
-      features: [
-        'Full 5-day camp access',
-        'All meals included',
-        'Activity participation',
-        'Mentorship sessions',
-        'Certificate of completion',
-        'Awards Night participation',
-      ],
       gradient: 'from-emerald-400 via-teal-500 to-cyan-500',
       shadow: 'shadow-emerald-300/50',
-      badge: 'BUDGET FRIENDLY',
+      badge: 'REGULAR PRICE',
     },
   ];
 
@@ -118,7 +122,17 @@ export default function PricingSection() {
                 <h3 className="font-serif text-3xl font-bold text-maroon mb-2">{tier.name}</h3>
                 <p className="text-sm text-burgundy/70 mb-6">{tier.description}</p>
 
-                {/* Price */}
+                {/* Price with optional strikethrough original */}
+                {tier.originalPrice && (
+                  <div className="mb-1">
+                    <span className="text-2xl text-gray-400 line-through font-semibold">
+                      ${tier.originalPrice}
+                    </span>
+                    <span className="ml-2 text-xs font-bold text-rose-500 bg-rose-100 px-2 py-1 rounded-full">
+                      SAVE ${parseInt(tier.originalPrice) - parseInt(tier.price)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-baseline justify-center gap-2 mb-2">
                   <span className={`text-7xl font-bold bg-gradient-to-r ${tier.gradient} bg-clip-text text-transparent`}>
                     ${tier.price}
