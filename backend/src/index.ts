@@ -34,6 +34,9 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '5000');
 const isProd = process.env.NODE_ENV === 'production';
 
+// Trust proxy (Nginx) - required for secure cookies and correct IPs behind reverse proxy
+app.set('trust proxy', 1);
+
 // Security
 app.use(helmet({ contentSecurityPolicy: false }));
 
@@ -92,7 +95,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'dev-session-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: isProd, httpOnly: true, maxAge: 8 * 60 * 60 * 1000 },
+  cookie: {
+    secure: false, // Set to false because Nginx terminates SSL and forwards as HTTP
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 8 * 60 * 60 * 1000,
+  },
 }));
 
 // EJS views
