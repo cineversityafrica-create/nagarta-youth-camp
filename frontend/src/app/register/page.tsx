@@ -1,10 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { submitRegistration } from '@/lib/api';
 import { getToken, isLoggedIn } from '@/lib/auth';
+import PricingSection from '@/components/PricingSection';
+
+const SAVED_FORM_KEY = 'nagarta_saved_registration';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
@@ -16,6 +19,9 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState<{ referenceCode: string; name: string } | null>(null);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [savedReminder, setSavedReminder] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const [child, setChild] = useState(emptyChild);
   const [childNotes, setChildNotes] = useState('');
@@ -26,6 +32,47 @@ export default function RegisterPage() {
   const [parentType, setParentType] = useState<'mother' | 'father' | 'both'>('both');
   const [mother, setMother] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
   const [father, setFather] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
+
+  // Load saved progress on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = localStorage.getItem(SAVED_FORM_KEY);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.child) setChild(data.child);
+        if (data.childNotes) setChildNotes(data.childNotes);
+        if (data.parent) setParent(data.parent);
+        if (data.parentType) setParentType(data.parentType);
+        if (data.mother) setMother(data.mother);
+        if (data.father) setFather(data.father);
+        setSavedReminder(true);
+      } catch (e) {
+        console.error('Failed to load saved progress:', e);
+      }
+    }
+  }, []);
+
+  function saveProgress() {
+    if (typeof window === 'undefined') return;
+    const data = { child, childNotes, parent, parentType, mother, father, savedAt: new Date().toISOString() };
+    localStorage.setItem(SAVED_FORM_KEY, JSON.stringify(data));
+    setSaveSuccess(true);
+    setTimeout(() => {
+      setSaveSuccess(false);
+      setSaveModalOpen(true);
+    }, 800);
+  }
+
+  function clearSavedProgress() {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(SAVED_FORM_KEY);
+    setSavedReminder(false);
+  }
+
+  function dismissReminder() {
+    setSavedReminder(false);
+  }
 
   function updateChild(field: string, val: string) {
     setChild((p) => ({ ...p, [field]: val }));
@@ -122,6 +169,10 @@ export default function RegisterPage() {
 
       const result = await submitRegistration(payload, token) as { referenceCode: string };
       setSuccess({ referenceCode: result.referenceCode, name: child.name });
+      // Clear saved progress on successful registration
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(SAVED_FORM_KEY);
+      }
     } catch {
       setError('Registration failed. Please check you are signed in and try again.');
     } finally {
@@ -375,14 +426,33 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-            <div className="pt-2">
+            <div className="pt-2 space-y-3">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gold text-maroon font-semibold py-4 rounded-lg tracking-widest uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50"
+                className="w-full bg-gold text-maroon font-semibold py-4 rounded-lg tracking-widest uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50 shadow-lg"
               >
                 {loading ? 'Submitting...' : 'Reserve Spot'}
               </button>
+
+              {/* Save Progress Button */}
+              <button
+                type="button"
+                onClick={saveProgress}
+                className="w-full border-2 border-dashed border-burgundy/30 text-burgundy font-semibold py-3 rounded-lg tracking-wider uppercase text-xs hover:bg-burgundy/5 hover:border-burgundy/50 transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                💾 Save Progress & Continue Later
+              </button>
+
+              {saveSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700 text-center font-semibold animate-pulse">
+                  ✅ Progress saved!
+                </div>
+              )}
+
               <p className="text-xs text-center text-maroon/40 mt-3">
                 You must be{' '}
                 <Link href="/auth/sign-in" className="text-gold hover:underline">signed in</Link>
@@ -391,7 +461,81 @@ export default function RegisterPage() {
             </div>
           </form>
         </div>
+
+        {/* Pricing Section after the form */}
+        <div className="mt-16">
+          <PricingSection />
+        </div>
       </div>
+
+      {/* Save Modal — appears after clicking Save Progress */}
+      {saveModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSaveModalOpen(false)}>
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-gold to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="font-serif text-2xl font-bold text-maroon mb-2">Progress Saved! 🎉</h3>
+              <p className="text-sm text-burgundy/70">
+                Your form has been safely saved. To continue later, sign in or create an account.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <Link
+                href="/auth/sign-up"
+                className="block w-full bg-gradient-to-r from-burgundy to-maroon text-gold font-semibold py-3 rounded-lg text-center tracking-wider uppercase text-sm hover:opacity-90 transition shadow-lg"
+              >
+                ✨ Create Account
+              </Link>
+              <Link
+                href="/auth/sign-in"
+                className="block w-full border-2 border-burgundy text-burgundy font-semibold py-3 rounded-lg text-center tracking-wider uppercase text-sm hover:bg-burgundy/5 transition"
+              >
+                🔑 Sign In
+              </Link>
+              <button
+                onClick={() => setSaveModalOpen(false)}
+                className="block w-full text-xs text-maroon/60 hover:text-maroon mt-4"
+              >
+                Continue without account →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Saved Progress Reminder — shown when user returns with saved data */}
+      {savedReminder && !saveModalOpen && !success && (
+        <div className="fixed bottom-6 right-6 z-40 max-w-sm bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-5 shadow-2xl animate-pulse-once">
+          <div className="flex items-start gap-3">
+            <div className="text-3xl">📝</div>
+            <div className="flex-1">
+              <h4 className="font-bold text-burgundy mb-1">Complete Your Form</h4>
+              <p className="text-xs text-burgundy/70 mb-3">
+                We restored your saved progress. Please finish filling out the form to reserve your spot.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={dismissReminder}
+                  className="text-xs bg-burgundy text-gold px-3 py-1.5 rounded-full font-semibold hover:opacity-90"
+                >
+                  Got it
+                </button>
+                <button
+                  onClick={clearSavedProgress}
+                  className="text-xs text-burgundy/60 hover:text-burgundy underline"
+                >
+                  Clear saved
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
