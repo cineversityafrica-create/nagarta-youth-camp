@@ -25,6 +25,24 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
   const restWords = parts[1] ? `& ${parts[1]}` : '';
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showEarlyBird, setShowEarlyBird] = useState(false);
+  const [daysLeft, setDaysLeft] = useState(0);
+
+  // Check if early bird is still active (before November 1, 2026)
+  useEffect(() => {
+    const checkEarlyBird = () => {
+      const now = new Date();
+      const endDate = new Date('2026-11-01T00:00:00'); // Early bird ends Oct 31, 2026
+      const diff = endDate.getTime() - now.getTime();
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      setShowEarlyBird(diff > 0);
+      setDaysLeft(days);
+    };
+    checkEarlyBird();
+    // Re-check every hour
+    const interval = setInterval(checkEarlyBird, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto-rotate through images
   useEffect(() => {
@@ -97,6 +115,48 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
 
       {/* Gold top rule */}
       <div className="absolute top-0 left-0 right-0 h-px z-30 bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+
+      {/* ── EARLY BIRD FLOATING LABEL — Auto-hides after October 2026 ─────── */}
+      {showEarlyBird && (
+        <Link
+          href="/register"
+          className="early-bird-label fixed top-24 right-4 md:right-8 z-40 group"
+          style={{ animation: 'earlyBirdFloat 3s ease-in-out infinite' }}
+        >
+          <div className="relative">
+            {/* Pulsing ring */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-400 to-rose-500 opacity-60 blur-md animate-pulse"></div>
+
+            {/* Main label */}
+            <div className="relative bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white rounded-2xl px-4 py-3 shadow-2xl border-2 border-white/30 cursor-pointer transform group-hover:scale-110 transition-all duration-300"
+              style={{
+                boxShadow: '0 10px 40px rgba(251, 146, 60, 0.6), 0 0 0 4px rgba(251, 191, 36, 0.3)',
+              }}>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🐦</span>
+                <div className="text-left">
+                  <p className="text-[9px] font-bold tracking-widest uppercase opacity-90">Limited Time</p>
+                  <p className="text-xs md:text-sm font-bold leading-tight">Early Bird Registration</p>
+                  <p className="text-[10px] md:text-xs opacity-95 mt-0.5">
+                    Ends Oct 31 • <span className="font-bold">{daysLeft} days left</span>
+                  </p>
+                </div>
+              </div>
+              {/* Click hint */}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-bold bg-white text-rose-600 px-2 py-0.5 rounded-full shadow-md whitespace-nowrap">
+                CLICK TO REGISTER →
+              </div>
+            </div>
+          </div>
+
+          <style jsx>{`
+            @keyframes earlyBirdFloat {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-8px); }
+            }
+          `}</style>
+        </Link>
+      )}
 
       {/* ── LAYER 4 (top): hero text ─────────────────────────────────────────── */}
       <div className="relative z-30 px-6 max-w-5xl mx-auto" suppressHydrationWarning>
