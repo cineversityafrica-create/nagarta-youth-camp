@@ -6,17 +6,19 @@ export default function GlowDivider() {
 
   return (
     <div
-      className="relative w-full h-20 flex items-center justify-center cursor-pointer"
+      className="relative w-full flex items-center justify-center cursor-pointer"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: 'linear-gradient(to bottom, #301317 0%, #531c22 50%, #301317 100%)',
+        height: '1px',
+        background: '#301317',
       }}
     >
-      {/* Single glowing line in the center */}
+      {/* Single glowing line */}
       <div
-        className="h-px transition-all duration-500"
+        className="absolute top-1/2 -translate-y-1/2 transition-all duration-500"
         style={{
+          height: '1px',
           width: hovered ? '80%' : '60%',
           background: hovered
             ? 'linear-gradient(to right, transparent 5%, rgba(251, 191, 36, 1) 50%, transparent 95%)'
