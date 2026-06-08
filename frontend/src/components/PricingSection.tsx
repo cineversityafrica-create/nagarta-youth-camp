@@ -1,6 +1,22 @@
 'use client';
 
-export default function PricingSection() {
+interface PricingSectionProps {
+  compact?: boolean; // Use compact layout for sidebar use
+}
+
+export default function PricingSection({ compact = false }: PricingSectionProps) {
+  // Common features for ALL packages (same content)
+  const commonFeatures = [
+    'Full 5-day camp access',
+    'NAGARTA Branded Packing List',
+    'Camp T-shirt & merchandise',
+    'All meals included',
+    'Activity materials',
+    'Mentorship sessions',
+    'Certificate of completion',
+    'Awards Night participation',
+  ];
+
   const tiers = [
     {
       name: 'Early Bird',
@@ -8,19 +24,9 @@ export default function PricingSection() {
       originalPrice: '260',
       featured: true,
       description: 'Save $25! Register early and unlock exclusive savings',
-      features: [
-        'Full 5-day camp access',
-        'NAGARTA Branded Packing List',
-        'Camp T-shirt & merchandise',
-        'All meals included',
-        'Activity materials',
-        'Mentorship sessions',
-        'Certificate of completion',
-        'Awards Night participation',
-        '🎁 Save $25 - Limited Time!',
-      ],
-      gradient: 'from-amber-400 via-orange-500 to-rose-500',
-      shadow: 'shadow-amber-300/50',
+      features: commonFeatures,
+      gradient: 'from-emerald-400 via-teal-500 to-cyan-500',
+      shadow: 'shadow-emerald-300/50',
       badge: '🐦 EARLY BIRD - SAVE $25',
     },
     {
@@ -28,16 +34,7 @@ export default function PricingSection() {
       price: '260',
       featured: false,
       description: 'Standard registration price after early bird ends',
-      features: [
-        'Full 5-day camp access',
-        'NAGARTA Branded Packing List',
-        'Camp T-shirt & merchandise',
-        'All meals included',
-        'Activity materials',
-        'Mentorship sessions',
-        'Certificate of completion',
-        'Awards Night participation',
-      ],
+      features: commonFeatures,
       gradient: 'from-emerald-400 via-teal-500 to-cyan-500',
       shadow: 'shadow-emerald-300/50',
       badge: 'REGULAR PRICE',
@@ -73,7 +70,7 @@ export default function PricingSection() {
   ];
 
   return (
-    <section className="relative py-24 overflow-hidden" style={{
+    <section className={`relative overflow-hidden rounded-2xl ${compact ? 'py-8' : 'py-24'}`} style={{
       background: 'linear-gradient(135deg, #fefce8 0%, #fef3c7 25%, #fce7f3 50%, #ddd6fe 75%, #cffafe 100%)'
     }}>
       {/* Animated bright background blobs */}
@@ -100,7 +97,7 @@ export default function PricingSection() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20 max-w-5xl mx-auto">
+        <div className={`grid grid-cols-1 ${compact ? '' : 'md:grid-cols-2'} gap-6 ${compact ? 'mb-8' : 'mb-20 max-w-5xl mx-auto'}`}>
           {tiers.map((tier, idx) => (
             <div
               key={idx}
@@ -189,7 +186,7 @@ export default function PricingSection() {
         </div>
 
         {/* Payment Method Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className={`grid grid-cols-1 ${compact ? '' : 'md:grid-cols-2'} gap-6 ${compact ? '' : 'max-w-3xl mx-auto'}`}>
           {paymentMethods.map((method, idx) => (
             <a
               key={idx}

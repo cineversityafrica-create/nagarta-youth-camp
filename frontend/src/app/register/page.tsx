@@ -189,13 +189,16 @@ export default function RegisterPage() {
         </Link>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-16">
+      <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-10">
           <p className="label-caps text-gold tracking-widest2 mb-3">NAGARTA 2026</p>
           <h1 className="font-serif text-4xl font-semibold text-maroon italic">Register an Attendee</h1>
           <div className="gold-divider mx-auto mt-4" />
           <p className="text-sm text-maroon/60 mt-4">Complete the form below to reserve a spot for your camper.</p>
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
 
         {/* Success banner — stays visible above the form */}
         {success && (
@@ -461,10 +464,14 @@ export default function RegisterPage() {
             </div>
           </form>
         </div>
+          </div>
 
-        {/* Pricing Section after the form */}
-        <div className="mt-16">
-          <PricingSection />
+          {/* Pricing Sidebar - shown beside the form */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6">
+              <PricingSection compact />
+            </div>
+          </div>
         </div>
       </div>
 
