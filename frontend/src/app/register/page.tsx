@@ -140,7 +140,7 @@ export default function RegisterPage() {
     setLoading(true);
     const token = getToken()!;
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         type: 'CHILD',
         notes: childNotes,
         child: { ...child, age: parseInt(child.age) || 0, photo: childPhoto || undefined },

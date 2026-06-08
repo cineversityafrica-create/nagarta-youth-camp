@@ -118,7 +118,7 @@ export default function ParentDashboard() {
     setAddChildError('');
     setAddingChild(true);
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         type: 'CHILD',
         child: { ...newChild, age: parseInt(newChild.age) || 0, photo: newChildPhoto || undefined },
       };
