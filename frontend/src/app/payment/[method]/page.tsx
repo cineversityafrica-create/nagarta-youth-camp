@@ -1,99 +1,145 @@
 'use client';
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
+
+const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_fcb37013accb3e3d1151fd2ae10613fb9c043301';
+
+declare global {
+  interface Window {
+    PaystackPop?: {
+      setup: (config: PaystackConfig) => { openIframe: () => void };
+    };
+  }
+}
+
+interface PaystackConfig {
+  key: string;
+  email: string;
+  amount: number;
+  currency: string;
+  ref: string;
+  metadata?: Record<string, unknown>;
+  callback?: (response: PaystackResponse) => void;
+  onClose?: () => void;
+}
+
+interface PaystackResponse {
+  reference: string;
+  status: string;
+  trans: string;
+  transaction: string;
+  message: string;
+}
 
 export default function PaymentPage() {
   const params = useParams();
-  const router = useRouter();
   const method = params.method as string;
   const [processing, setProcessing] = useState(false);
-  const [step, setStep] = useState(1);
 
-  // Form state
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardHolder: '',
-    bankName: '',
-    accountNumber: '',
-    routingNumber: '',
     amount: '235',
     package: 'Early Bird',
   });
 
   const methodConfig = {
     visa: {
-      title: 'Visa / Mastercard Payment',
+      title: 'Card Payment (Visa / Mastercard)',
       icon: '💳',
       gradient: 'from-blue-500 via-blue-600 to-indigo-700',
       bgGradient: 'from-blue-50 via-indigo-50 to-purple-50',
       lightGradient: 'from-blue-100 to-indigo-100',
       darkColor: 'text-blue-700',
       borderColor: 'border-blue-300',
-      buttonShadow: 'shadow-blue-400/50',
     },
     bank: {
-      title: 'Bank Transfer Payment',
+      title: 'Bank Transfer',
       icon: '🏦',
       gradient: 'from-purple-500 via-violet-600 to-fuchsia-700',
       bgGradient: 'from-purple-50 via-fuchsia-50 to-pink-50',
       lightGradient: 'from-purple-100 to-fuchsia-100',
       darkColor: 'text-purple-700',
       borderColor: 'border-purple-300',
-      buttonShadow: 'shadow-purple-400/50',
     },
   };
 
   const config = methodConfig[method as keyof typeof methodConfig] || methodConfig.visa;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function loadPaystackScript(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined') return resolve(false);
+      if (window.PaystackPop) return resolve(true);
+
+      const script = document.createElement('script');
+      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setProcessing(true);
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    setProcessing(false);
-    setStep(2);
-  };
 
-  if (step === 2) {
-    return (
-      <div className={`min-h-screen bg-gradient-to-br ${config.bgGradient} flex items-center justify-center p-6`}>
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 text-center" style={{ boxShadow: '0 30px 60px rgba(0,0,0,0.15)' }}>
-          <div className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${config.gradient} flex items-center justify-center mb-6 animate-bounce`}>
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-serif font-bold text-maroon mb-3">Payment Successful! 🎉</h1>
-          <p className="text-gray-600 mb-6">
-            Thank you for your payment of <span className={`font-bold ${config.darkColor}`}>${formData.amount}</span>.
-            <br />
-            A confirmation email has been sent to <span className="font-semibold">{formData.email}</span>
-          </p>
-          <div className={`bg-gradient-to-r ${config.lightGradient} rounded-2xl p-4 mb-6`}>
-            <p className="text-sm text-burgundy"><strong>Reference:</strong> NAGARTA-{Date.now().toString().slice(-8)}</p>
-            <p className="text-sm text-burgundy"><strong>Package:</strong> {formData.package}</p>
-          </div>
-          <Link
-            href="/"
-            className={`block w-full py-3 rounded-2xl text-white font-bold tracking-wider uppercase text-sm bg-gradient-to-r ${config.gradient} hover:shadow-2xl transition-all`}
-          >
-            Return Home
-          </Link>
-        </div>
-      </div>
-    );
+    try {
+      // Load Paystack script
+      const loaded = await loadPaystackScript();
+      if (!loaded || !window.PaystackPop) {
+        alert('Failed to load Paystack. Please check your internet and try again.');
+        setProcessing(false);
+        return;
+      }
+
+      // Generate unique reference
+      const reference = `NAGARTA-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      // Convert USD to GHS (using 12 as rate, you can adjust)
+      const amountInGHS = parseInt(formData.amount) * 12;
+      const amountInPesewas = amountInGHS * 100; // Paystack uses lowest currency unit
+
+      // Open Paystack popup
+      const paystack = window.PaystackPop.setup({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: formData.email,
+        amount: amountInPesewas,
+        currency: 'GHS',
+        ref: reference,
+        metadata: {
+          fullName: formData.fullName,
+          phone: formData.phone,
+          package: formData.package,
+          method,
+          custom_fields: [
+            { display_name: 'Full Name', variable_name: 'full_name', value: formData.fullName },
+            { display_name: 'Phone', variable_name: 'phone', value: formData.phone },
+            { display_name: 'Package', variable_name: 'package', value: formData.package },
+          ],
+        },
+        callback: (response: PaystackResponse) => {
+          // Payment successful - redirect to success page
+          window.location.href = `/payment/success?ref=${response.reference}&amount=${formData.amount}&package=${encodeURIComponent(formData.package)}&email=${encodeURIComponent(formData.email)}`;
+        },
+        onClose: () => {
+          setProcessing(false);
+        },
+      });
+
+      paystack.openIframe();
+    } catch (err) {
+      console.error('Payment error:', err);
+      alert('Something went wrong. Please try again.');
+      setProcessing(false);
+    }
   }
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${config.bgGradient} py-10 px-4`}>
-      <div className="max-w-3xl mx-auto">
-        {/* Back link */}
+      <div className="max-w-2xl mx-auto">
         <Link href="/" className="inline-flex items-center gap-2 text-burgundy hover:text-maroon mb-6 font-semibold">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -101,16 +147,13 @@ export default function PaymentPage() {
           Back to Home
         </Link>
 
-        {/* Main Card */}
-        <div className="bg-white rounded-3xl overflow-hidden" style={{ boxShadow: '0 30px 60px rgba(0,0,0,0.15)' }}>
-          {/* Header */}
+        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl">
           <div className={`bg-gradient-to-r ${config.gradient} p-8 text-center text-white`}>
             <div className="text-6xl mb-3">{config.icon}</div>
             <h1 className="text-3xl md:text-4xl font-bold font-serif mb-2">{config.title}</h1>
-            <p className="text-white/90 text-sm">Complete your secure payment below</p>
+            <p className="text-white/90 text-sm">Powered by Paystack • Secure Payment</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="p-8 md:p-10">
             {/* Package Selection */}
             <div className="mb-6">
@@ -152,7 +195,7 @@ export default function PaymentPage() {
             {/* Personal Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Full Name</label>
+                <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Full Name *</label>
                 <input
                   type="text"
                   required
@@ -163,7 +206,7 @@ export default function PaymentPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Phone</label>
+                <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Phone *</label>
                 <input
                   type="tel"
                   required
@@ -176,7 +219,7 @@ export default function PaymentPage() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Email Address</label>
+              <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Email Address *</label>
               <input
                 type="email"
                 required
@@ -185,131 +228,7 @@ export default function PaymentPage() {
                 placeholder="parent@example.com"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors"
               />
-            </div>
-
-            <div className="border-t-2 border-gray-100 pt-6 mb-6">
-              <h3 className={`text-lg font-bold ${config.darkColor} mb-4 flex items-center gap-2`}>
-                <span>{config.icon}</span>
-                {method === 'visa' ? 'Card Details' : 'Bank Details'}
-              </h3>
-
-              {method === 'visa' ? (
-                <>
-                  <div className="mb-4">
-                    <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Card Holder Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.cardHolder}
-                      onChange={(e) => setFormData({ ...formData, cardHolder: e.target.value })}
-                      placeholder="As shown on card"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Card Number</label>
-                    <input
-                      type="text"
-                      required
-                      maxLength={19}
-                      value={formData.cardNumber}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').match(/.{1,4}/g)?.join(' ') || '';
-                        setFormData({ ...formData, cardNumber: val });
-                      }}
-                      placeholder="1234 5678 9012 3456"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors font-mono"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Expiry Date</label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={5}
-                        value={formData.expiryDate}
-                        onChange={(e) => {
-                          let val = e.target.value.replace(/\D/g, '');
-                          if (val.length >= 2) val = val.slice(0, 2) + '/' + val.slice(2, 4);
-                          setFormData({ ...formData, expiryDate: val });
-                        }}
-                        placeholder="MM/YY"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">CVV</label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={4}
-                        value={formData.cvv}
-                        onChange={(e) => setFormData({ ...formData, cvv: e.target.value.replace(/\D/g, '') })}
-                        placeholder="123"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors font-mono"
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="mb-4">
-                    <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Bank Name</label>
-                    <select
-                      required
-                      value={formData.bankName}
-                      onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors"
-                    >
-                      <option value="">Select your bank</option>
-                      <option>GCB Bank</option>
-                      <option>Ecobank Ghana</option>
-                      <option>Absa Bank Ghana</option>
-                      <option>Standard Chartered</option>
-                      <option>Fidelity Bank</option>
-                      <option>Stanbic Bank</option>
-                      <option>CalBank</option>
-                      <option>Zenith Bank</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Account Holder Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.cardHolder}
-                      onChange={(e) => setFormData({ ...formData, cardHolder: e.target.value })}
-                      placeholder="Full name on bank account"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-bold text-burgundy mb-1 uppercase tracking-wider">Account Number</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.accountNumber}
-                      onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                      placeholder="Your account number"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-burgundy focus:outline-none transition-colors font-mono"
-                    />
-                  </div>
-
-                  <div className={`bg-gradient-to-r ${config.lightGradient} rounded-2xl p-4 mb-4`}>
-                    <p className={`text-sm ${config.darkColor} font-semibold mb-1`}>📌 Bank Transfer Details:</p>
-                    <p className="text-xs text-burgundy">Account Name: NAGARTA Youth Camp Ltd</p>
-                    <p className="text-xs text-burgundy">Account Number: 1234567890</p>
-                    <p className="text-xs text-burgundy">Bank: GCB Bank Ghana</p>
-                    <p className="text-xs text-burgundy">Branch: Accra Main</p>
-                  </div>
-                </>
-              )}
+              <p className="text-xs text-gray-500 mt-1">Receipt will be sent to this email</p>
             </div>
 
             {/* Amount Summary */}
@@ -318,9 +237,15 @@ export default function PaymentPage() {
                 <span className="text-sm font-semibold text-burgundy uppercase tracking-wider">Package</span>
                 <span className="text-sm font-bold text-maroon">{formData.package}</span>
               </div>
-              <div className="border-t border-burgundy/20 pt-2 flex items-center justify-between">
-                <span className="text-lg font-bold text-maroon uppercase tracking-wider">Total Amount</span>
-                <span className={`text-3xl font-bold ${config.darkColor}`}>${formData.amount}.00</span>
+              <div className="border-t border-burgundy/20 pt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-bold text-maroon uppercase tracking-wider">USD Amount</span>
+                  <span className={`text-2xl font-bold ${config.darkColor}`}>${formData.amount}.00</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-burgundy/70 uppercase tracking-wider">Ghana Cedis</span>
+                  <span className="text-sm font-bold text-emerald-700">GH₵ {(parseInt(formData.amount) * 12).toLocaleString()}.00</span>
+                </div>
               </div>
             </div>
 
@@ -334,12 +259,13 @@ export default function PaymentPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-emerald-700 mb-1 flex items-center gap-2">
-                    🔒 256-bit SSL Encryption
-                    <span className="text-xs bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full font-bold">SECURE</span>
+                    🔒 Secured by Paystack
+                    <span className="text-xs bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full font-bold">PCI-DSS</span>
                   </h4>
                   <p className="text-xs text-emerald-700 leading-relaxed">
-                    Your payment information is protected with bank-level encryption. We never store your card details.
-                    All transactions are securely processed and PCI-DSS compliant.
+                    Your payment is processed securely by Paystack (a Stripe company).
+                    Accepts Visa, Mastercard, Bank Transfer, Mobile Money.
+                    We never see or store your card details.
                   </p>
                 </div>
               </div>
@@ -349,10 +275,8 @@ export default function PaymentPage() {
             <button
               type="submit"
               disabled={processing}
-              className={`w-full py-5 rounded-2xl text-white font-bold tracking-widest uppercase text-base bg-gradient-to-r ${config.gradient} hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed ${config.buttonShadow}`}
-              style={{
-                boxShadow: `0 15px 40px rgba(0,0,0,0.2)`,
-              }}
+              className={`w-full py-5 rounded-2xl text-white font-bold tracking-widest uppercase text-base bg-gradient-to-r ${config.gradient} hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed`}
+              style={{ boxShadow: `0 15px 40px rgba(0,0,0,0.2)` }}
             >
               {processing ? (
                 <span className="flex items-center justify-center gap-3">
@@ -360,19 +284,17 @@ export default function PaymentPage() {
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Processing Payment...
+                  Opening Paystack...
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-3">
-                  🔐 Pay ${formData.amount} Securely
+                  🔐 Pay GH₵{(parseInt(formData.amount) * 12).toLocaleString()} Securely
                 </span>
               )}
             </button>
 
             <p className="text-center text-xs text-gray-500 mt-4">
-              By clicking &quot;Pay&quot;, you agree to our Terms of Service and Privacy Policy.
-              <br />
-              All payments are securely encrypted.
+              By clicking &quot;Pay&quot;, you&apos;ll be redirected to Paystack&apos;s secure payment page.
             </p>
           </form>
         </div>
