@@ -486,29 +486,32 @@ export default function RegisterPage() {
                 </svg>
               </div>
               <h3 className="font-serif text-2xl font-bold text-maroon mb-2">Progress Saved! 🎉</h3>
-              <p className="text-sm text-burgundy/70">
-                Your form has been safely saved. To continue later, sign in or create an account.
+              <p className="text-sm text-burgundy/70 mb-3">
+                Your form is saved. To continue later from your portal, sign in or create an account.
+              </p>
+              <p className="text-xs text-burgundy/60 italic">
+                💡 Your saved form will be linked to your account so you can finish it anytime.
               </p>
             </div>
 
             <div className="space-y-3">
               <Link
-                href="/auth/sign-up"
+                href="/auth/sign-up?continue=register"
                 className="block w-full bg-gradient-to-r from-burgundy to-maroon text-gold font-semibold py-3 rounded-lg text-center tracking-wider uppercase text-sm hover:opacity-90 transition shadow-lg"
               >
-                ✨ Create Account
+                ✨ Create Account & Save
               </Link>
               <Link
-                href="/auth/sign-in"
+                href="/auth/sign-in?continue=register"
                 className="block w-full border-2 border-burgundy text-burgundy font-semibold py-3 rounded-lg text-center tracking-wider uppercase text-sm hover:bg-burgundy/5 transition"
               >
-                🔑 Sign In
+                🔑 Sign In & Continue
               </Link>
               <button
                 onClick={() => setSaveModalOpen(false)}
                 className="block w-full text-xs text-maroon/60 hover:text-maroon mt-4"
               >
-                Continue without account →
+                Continue anonymously (saved in this browser only) →
               </button>
             </div>
           </div>

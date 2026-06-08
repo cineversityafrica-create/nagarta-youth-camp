@@ -214,6 +214,9 @@ export default function ParentDashboard() {
           <p className="text-sm text-burgundy mt-1">{user?.email}</p>
         </div>
 
+        {/* Saved Form Reminder */}
+        <SavedFormReminder />
+
         {/* Tabs */}
         <div className="flex border-b border-beige mb-8 gap-6">
           {tabs.map(({ key, label }) => (
@@ -531,6 +534,52 @@ export default function ParentDashboard() {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Component that shows a reminder if there's a saved registration form
+function SavedFormReminder() {
+  const [hasSaved, setHasSaved] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = localStorage.getItem('nagarta_saved_registration');
+    setHasSaved(!!saved);
+  }, []);
+
+  if (!hasSaved) return null;
+
+  return (
+    <div className="mb-8 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 border-2 border-amber-300 rounded-2xl p-6 shadow-lg">
+      <div className="flex items-start gap-4">
+        <div className="text-4xl">📝</div>
+        <div className="flex-1">
+          <h3 className="font-serif text-xl font-bold text-maroon mb-1">
+            Complete Your Registration Form
+          </h3>
+          <p className="text-sm text-burgundy/80 mb-3">
+            You have an incomplete registration form saved. Continue where you left off to reserve your camper's spot.
+          </p>
+          <div className="flex gap-3">
+            <Link
+              href="/register"
+              className="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-5 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase hover:shadow-lg transition-all shadow-md"
+            >
+              ✨ Continue Form
+            </Link>
+            <button
+              onClick={() => {
+                localStorage.removeItem('nagarta_saved_registration');
+                setHasSaved(false);
+              }}
+              className="text-xs text-burgundy/60 hover:text-burgundy underline px-3"
+            >
+              Discard saved form
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
