@@ -93,11 +93,13 @@ export default async function HomePage() {
           subheading={content.hero_subheading}
           urgency={content.hero_urgency}
         />
+        <GlowDivider />
         <QuickFacts
           location={content.camp_location}
           duration={content.camp_duration}
           venue={content.camp_venue}
         />
+        <GlowDivider />
         <ExperienceSection activities={activities} />
         <AboutSection
           heading={content.about_heading}
