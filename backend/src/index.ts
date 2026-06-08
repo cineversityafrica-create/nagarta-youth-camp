@@ -380,64 +380,6 @@ app.get('/admin/users/:id/delete', requireAdminSession, async (req, res) => {
   res.redirect('/admin/users');
 });
 
-// ── Notifications dashboard ───────────────────────────────────────────────────
-
-app.get('/admin/notifications', requireAdminSession, async (req, res) => {
-  const type = (req.query.type as string) || '';
-  const status = (req.query.status as string) || '';
-  const search = (req.query.search as string) || '';
-
-  const where: any = {};
-  if (type) where.type = type;
-  if (status) where.status = status;
-  if (search) {
-    where.OR = [
-      { recipientEmail: { contains: search, mode: 'insensitive' } },
-      { subject: { contains: search, mode: 'insensitive' } },
-    ];
-  }
-
-  const notifications = await prisma.notification.findMany({
-    where,
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: { sentAt: 'desc' },
-    take: 100,
-  });
-
-  res.render('admin/notifications', { notifications, filters: { type, status, search } });
-});
-
-app.get('/api/admin/notifications', async (req, res) => {
-  const limit = Math.min(parseInt((req.query.limit as string) || '50'), 500);
-  const offset = Math.max(parseInt((req.query.offset as string) || '0'), 0);
-  const type = (req.query.type as string) || undefined;
-  const status = (req.query.status as string) || undefined;
-
-  const where: any = {};
-  if (type) where.type = type;
-  if (status) where.status = status;
-
-  const [notifications, total] = await Promise.all([
-    prisma.notification.findMany({
-      where,
-      include: { user: { select: { name: true, email: true } } },
-      orderBy: { sentAt: 'desc' },
-      take: limit,
-      skip: offset,
-    }),
-    prisma.notification.count({ where }),
-  ]);
-
-  res.json({ notifications, total, limit, offset });
-});
-
-app.post('/admin/notifications/:id/resend', requireAdminSession, async (req, res) => {
-  const notificationId = req.params.id;
-  const success = await notificationService.resendNotification(notificationId);
-  const referer = req.get('referer') || '/admin/notifications';
-  res.redirect(`${referer}?${success ? 'success=Notification resent' : 'error=Failed to resend notification'}`);
-});
-
 // ── Payment portal ───────────────────────────────────────────────────────────
 
 async function sendReceiptEmail(to: string, subject: string, html: string) {
