@@ -8,6 +8,7 @@ import AboutSection from '@/components/AboutSection';
 import ScheduleSection from '@/components/ScheduleSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import CTASection from '@/components/CTASection';
+import GlowDivider from '@/components/GlowDivider';
 import Footer from '@/components/Footer';
 
 export const revalidate = 5; // Re-fetch site content every 5 seconds
@@ -106,6 +107,7 @@ export default async function HomePage() {
         />
         <ScheduleSection days={schedule} />
         <TestimonialsSection />
+        <GlowDivider />
         <CTASection heading={content.cta_heading} />
       </main>
       <Footer content={content} />

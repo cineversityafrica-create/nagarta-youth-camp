@@ -8,7 +8,6 @@ export default function PricingSection({ compact = false }: PricingSectionProps)
   // Common features for ALL packages (same content)
   const commonFeatures = [
     'Full 5-day camp access',
-    'NAGARTA Branded Packing List',
     'Camp T-shirt & merchandise',
     'All meals included',
     'Activity materials',
@@ -25,7 +24,9 @@ export default function PricingSection({ compact = false }: PricingSectionProps)
       featured: true,
       description: 'Save $25! Register early',
       features: commonFeatures,
-      gradient: 'from-emerald-400 via-teal-500 to-cyan-500',
+      gradient: 'from-amber-400 via-orange-500 to-rose-500',
+      borderColor: '#f97316',
+      shadowColor: 'rgba(251, 146, 60, 0.4)',
       badge: '🐦 EARLY BIRD',
     },
     {
@@ -35,6 +36,8 @@ export default function PricingSection({ compact = false }: PricingSectionProps)
       description: 'Standard registration',
       features: commonFeatures,
       gradient: 'from-emerald-400 via-teal-500 to-cyan-500',
+      borderColor: '#10b981',
+      shadowColor: 'rgba(16, 185, 129, 0.4)',
       badge: 'REGULAR',
     },
   ];
@@ -68,20 +71,16 @@ export default function PricingSection({ compact = false }: PricingSectionProps)
         {tiers.map((tier, idx) => (
           <div
             key={idx}
-            className="relative rounded-xl p-4 bg-white border-2"
+            className="relative rounded-xl p-4 bg-white border-2 transition-all duration-300 hover:scale-[1.02]"
             style={{
-              borderColor: tier.featured ? '#10b981' : '#e5e7eb',
-              boxShadow: tier.featured
-                ? '0 10px 20px -8px rgba(16, 185, 129, 0.4)'
-                : '0 4px 12px rgba(0, 0, 0, 0.05)',
+              borderColor: tier.borderColor,
+              boxShadow: `0 10px 20px -8px ${tier.shadowColor}`,
             }}
           >
-            {/* Mini Badge */}
-            {tier.featured && (
-              <div className={`absolute -top-2 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r ${tier.gradient} text-white text-[10px] font-bold tracking-wider shadow-md`}>
-                {tier.badge}
-              </div>
-            )}
+            {/* Mini Badge - shows for BOTH tiers now */}
+            <div className={`absolute -top-2 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r ${tier.gradient} text-white text-[10px] font-bold tracking-wider shadow-md`}>
+              {tier.badge}
+            </div>
 
             <div className="flex items-center justify-between mb-3 pt-1">
               <div>
@@ -102,13 +101,20 @@ export default function PricingSection({ compact = false }: PricingSectionProps)
             <ul className="space-y-1.5 mb-3">
               {tier.features.slice(0, 4).map((feature, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-3.5 h-3.5 flex-shrink-0"
+                    style={{ color: tier.borderColor }}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-xs text-burgundy">{feature}</span>
                 </li>
               ))}
-              <li className="text-[10px] text-burgundy/50 pl-5">+ {tier.features.length - 4} more benefits</li>
+              {tier.features.length > 4 && (
+                <li className="text-[10px] text-burgundy/50 pl-5">+ {tier.features.length - 4} more benefits</li>
+              )}
             </ul>
           </div>
         ))}
