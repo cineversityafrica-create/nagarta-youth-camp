@@ -1,3 +1,5 @@
+'use client';
+
 const speakers = [
   {
     quote: 'Visually impaired but not vision impaired; Inspiring hope; creating possibilities in the midst of challenges.',
@@ -95,13 +97,6 @@ function SpeakerCard({ s }: { s: SpeakerType }) {
             Coming Soon
           </div>
         </div>
-
-        <style jsx>{`
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
-        `}</style>
       </div>
     );
   }

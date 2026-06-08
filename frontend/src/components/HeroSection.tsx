@@ -121,7 +121,6 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
         <Link
           href="/register"
           className="early-bird-label fixed top-24 right-4 md:right-8 z-40 group"
-          style={{ animation: 'earlyBirdFloat 3s ease-in-out infinite' }}
         >
           <div className="relative">
             {/* Pulsing ring */}
@@ -149,12 +148,6 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
             </div>
           </div>
 
-          <style jsx>{`
-            @keyframes earlyBirdFloat {
-              0%, 100% { transform: translateY(0px); }
-              50% { transform: translateY(-8px); }
-            }
-          `}</style>
         </Link>
       )}
 
