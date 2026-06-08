@@ -108,6 +108,7 @@ export default async function HomePage() {
           para3={content.about_para3}
         />
         <ScheduleSection days={schedule} />
+        <GlowDivider />
         <TestimonialsSection />
         <GlowDivider />
         <CTASection heading={content.cta_heading} />
