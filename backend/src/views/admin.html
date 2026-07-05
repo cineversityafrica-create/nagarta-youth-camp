@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AYA Bloom — Admin Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #e6e3d6; color: #3d3730; }
+
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+      background: #3d3730; display: flex; flex-direction: column;
+    }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo h1 { color: #ccb69e; font-size: 20px; font-weight: 800; }
+    .sidebar-logo p { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 2px; }
+    .sidebar-nav { flex: 1; padding: 16px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; color: rgba(255,255,255,0.6);
+      cursor: pointer; font-size: 14px; transition: all 0.2s;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { border-left: 3px solid #a56548; }
+    .nav-icon { font-size: 18px; width: 24px; }
+
+    .main { margin-left: 240px; padding: 32px; min-height: 100vh; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h2 { font-size: 26px; font-weight: 800; }
+    .page-header p { color: #6b6358; font-size: 14px; margin-top: 4px; }
+
+    /* Stat cards — clickable */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+    .stat-card .label { font-size: 12px; color: #a09890; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card .value { font-size: 32px; font-weight: 900; margin: 6px 0 2px; }
+    .stat-card .sub { font-size: 12px; color: #a09890; }
+    .stat-card .click-hint { font-size: 10px; color: #ccb69e; margin-top: 6px; font-weight: 600; }
+    .stat-sage { border-top: 3px solid #87937c; }
+    .stat-clay { border-top: 3px solid #a56548; }
+    .stat-beige { border-top: 3px solid #ccb69e; }
+    .stat-dark { border-top: 3px solid #3d3730; }
+
+    .card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 24px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .card-header h3 { font-size: 16px; font-weight: 700; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-pending  { background: #f59e0b22; color: #d97706; }
+    .badge-confirmed{ background: #10b98122; color: #059669; }
+    .badge-cancelled{ background: #ef444422; color: #dc2626; }
+    .badge-new      { background: #3b82f622; color: #2563eb; }
+    .badge-read     { background: #e5e7eb;   color: #6b7280; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th { text-align: left; font-size: 11px; font-weight: 600; color: #a09890; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 12px 12px; border-bottom: 1px solid #f0ede6; }
+    tbody td { padding: 14px 12px; font-size: 13px; border-bottom: 1px solid #f0ede6; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.clickable-row { cursor: pointer; }
+    tbody tr.clickable-row:hover { background: #f5f3ef; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .service-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .service-card .s-icon { font-size: 28px; margin-bottom: 10px; }
+    .service-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .service-card p { font-size: 12px; color: #6b6358; line-height: 1.5; margin-bottom: 12px; }
+    .service-card .s-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .meta-tag { font-size: 11px; background: #f0ede6; border-radius: 6px; padding: 3px 8px; color: #6b6358; }
+    .price-tag { font-size: 13px; font-weight: 700; color: #a56548; }
+
+    .empty { text-align: center; padding: 40px; color: #a09890; }
+    .empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty p { font-size: 14px; }
+
+    .btn { padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-clay { background: #a56548; color: white; }
+    .btn-clay:hover { background: #854f36; }
+    .btn-sage { background: #87937c; color: white; }
+    .btn-sage:hover { background: #6b7860; }
+    .btn-outline { background: transparent; border: 1px solid #ccb69e; color: #3d3730; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+    /* Detail modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(61,55,48,0.75); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #faf9f6; border-radius: 20px; width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      margin: 16px;
+    }
+    .modal-head {
+      background: #a56548; padding: 20px 24px; border-radius: 20px 20px 0 0;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-head h3 { color: #fff; font-size: 18px; font-weight: 800; }
+    .modal-head .close-btn {
+      width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2);
+      color: #fff; border: none; cursor: pointer; font-size: 16px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-head .close-btn:hover { background: rgba(255,255,255,0.35); }
+    .modal-body { padding: 24px; }
+    .detail-row { display: flex; gap: 8px; padding: 10px 0; border-bottom: 1px solid #f0ede6; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { font-size: 12px; color: #a09890; font-weight: 600; min-width: 130px; padding-top: 1px; }
+    .detail-value { font-size: 13px; color: #3d3730; font-weight: 500; flex: 1; }
+    .status-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0ede6; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h1>AYA Bloom</h1>
+    <p>Admin Dashboard</p>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="showPage('dashboard', this)"><span class="nav-icon">🏠</span> Dashboard</button>
+    <button class="nav-item" onclick="showPage('services', this)"><span class="nav-icon">💆</span> Services</button>
+    <button class="nav-item" onclick="showPage('appointments', this)"><span class="nav-icon">📅</span> Appointments</button>
+    <button class="nav-item" onclick="showPage('enquiries', this)"><span class="nav-icon">📩</span> Enquiries</button>
+    <button class="nav-item" onclick="showPage('videos', this)"><span class="nav-icon">🎬</span> Media</button>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="page active">
+    <div class="page-header">
+      <h2>Dashboard</h2>
+      <p>Welcome back — here's what's happening at AYA Bloom</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card stat-sage" onclick="showPage('services', document.querySelector('[onclick*=services]'))">
+        <div class="label">Total Services</div>
+        <div class="value" id="stat-services">—</div>
+        <div class="sub">Therapy offerings</div>
+        <div class="click-hint">Click to view →</div>
+      </div>
+      <div class="stat-card stat-clay" onclick="showPage('appointments', document.querySelector('[onclick*=appointments]')); filterAppts('all')">
+        <div class="label">Appointments</div>
+        <div class="value" id="stat-appts">—</div>
+        <div class="sub">All time bookings</div>
+        <div class="click-hint">Click to view →</div>
+      </div>
+      <div class="stat-card stat-beige" onclick="showPage('appointments', document.querySelector('[onclick*=appointments]')); filterAppts('pending')">
+        <div class="label">Pending</div>
+        <div class="value" id="stat-pending">—</div>
+        <div class="sub">Awaiting confirmation</div>
+        <div class="click-hint">Click to view pending →</div>
+      </div>
+      <div class="stat-card stat-dark" onclick="showPage('enquiries', document.querySelector('[onclick*=enquiries]'))">
+        <div class="label">Enquiries</div>
+        <div class="value" id="stat-enquiries">—</div>
+        <div class="sub">Contact messages</div>
+        <div class="click-hint">Click to view →</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Recent Appointments</h3>
+        <button class="btn btn-outline" onclick="loadData()">↻ Refresh</button>
+      </div>
+      <div id="recent-appts"><div class="empty"><div class="empty-icon">📅</div><p>No appointments yet</p></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Recent Enquiries</h3></div>
+      <div id="recent-enquiries"><div class="empty"><div class="empty-icon">📩</div><p>No enquiries yet</p></div></div>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <div id="services" class="page">
+    <div class="page-header">
+      <h2>Therapy Services</h2>
+      <p>All services offered at AYA Bloom</p>
+    </div>
+    <div class="services-grid" id="services-grid">
+      <div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS -->
+  <div id="appointments" class="page">
+    <div class="page-header">
+      <h2>Appointments</h2>
+      <p>All booking requests — click any row to see full details</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h3>All Bookings</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="appt-filter" onchange="filterAppts(this.value)" style="border:1px solid #e8e4dc;border-radius:20px;padding:6px 12px;font-size:13px;background:#fff;color:#3d3730">
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button class="btn btn-clay" onclick="loadData()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="appts-table"><div class="empty"><div class="empty-icon">📅</div><p>No appointments yet.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ENQUIRIES -->
+  <div id="enquiries" class="page">
+    <div class="page-header">
+      <h2>Contact Enquiries</h2>
+      <p>Messages submitted through the website — click any row to see full details</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h3>All Enquiries</h3>
+        <button class="btn btn-clay" onclick="loadData()">↻ Refresh</button>
+      </div>
+      <div id="enquiries-table"><div class="empty"><div class="empty-icon">📩</div><p>No enquiries yet.</p></div></div>
+    </div>
+  </div>
+
+  <!-- MEDIA -->
+  <div id="videos" class="page">
+    <div class="page-header">
+      <h2>Media Management</h2>
+      <p>Upload videos and photos for the Therapy &amp; Wellness and AYA Bloom Nest sections</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <div class="card-header"><h3>💧 Therapy &amp; Wellness Video</h3></div>
+        <div id="therapy-video-preview" style="margin-bottom:16px"></div>
+        <div style="border:2px dashed #ccb69e;border-radius:12px;padding:24px;text-align:center;background:#faf9f6">
+          <div style="font-size:32px;margin-bottom:8px">🎬</div>
+          <p style="font-size:13px;font-weight:700;color:#3d3730;margin-bottom:4px">Upload Therapy Video</p>
+          <p style="font-size:11px;color:#a09890;margin-bottom:16px">MP4, WebM or MOV · Max 500MB</p>
+          <input type="file" id="therapy-file" accept="video/*" style="display:none" onchange="uploadVideo('therapy', this)"/>
+          <button class="btn btn-clay" onclick="document.getElementById('therapy-file').click()">Choose Video File</button>
+        </div>
+        <div id="therapy-progress" style="display:none;margin-top:12px">
+          <p style="font-size:12px;color:#6b6358;margin-bottom:6px">Uploading...</p>
+          <div style="background:#f0ede6;border-radius:99px;height:6px"><div id="therapy-bar" style="background:#a56548;height:6px;border-radius:99px;width:0%;transition:width 0.3s"></div></div>
+        </div>
+        <div id="therapy-status" style="margin-top:10px;font-size:12px"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🪴 AYA Bloom Nest Video</h3></div>
+        <div id="nest-video-preview" style="margin-bottom:16px"></div>
+        <div style="border:2px dashed #ccb69e;border-radius:12px;padding:24px;text-align:center;background:#faf9f6">
+          <div style="font-size:32px;margin-bottom:8px">🎬</div>
+          <p style="font-size:13px;font-weight:700;color:#3d3730;margin-bottom:4px">Upload Nest Video</p>
+          <p style="font-size:11px;color:#a09890;margin-bottom:16px">MP4, WebM or MOV · Max 500MB</p>
+          <input type="file" id="nest-file" accept="video/*" style="display:none" onchange="uploadVideo('nest', this)"/>
+          <button class="btn btn-clay" onclick="document.getElementById('nest-file').click()">Choose Video File</button>
+        </div>
+        <div id="nest-progress" style="display:none;margin-top:12px">
+          <p style="font-size:12px;color:#6b6358;margin-bottom:6px">Uploading...</p>
+          <div style="background:#f0ede6;border-radius:99px;height:6px"><div id="nest-bar" style="background:#87937c;height:6px;border-radius:99px;width:0%;transition:width 0.3s"></div></div>
+        </div>
+        <div id="nest-status" style="margin-top:10px;font-size:12px"></div>
+      </div>
+    </div>
+
+    <div class="page-header" style="margin-top:36px;margin-bottom:16px">
+      <h2 style="font-size:20px">🖼️ Photo Gallery</h2>
+      <p>Upload photos that appear in the media carousel</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <div class="card-header"><h3>💧 Therapy &amp; Wellness Photos</h3></div>
+        <div id="therapy-images-preview" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px"></div>
+        <div style="border:2px dashed #ccb69e;border-radius:12px;padding:24px;text-align:center;background:#faf9f6">
+          <div style="font-size:32px;margin-bottom:8px">🖼️</div>
+          <p style="font-size:13px;font-weight:700;color:#3d3730;margin-bottom:4px">Upload Photos</p>
+          <p style="font-size:11px;color:#a09890;margin-bottom:16px">JPG, PNG, WebP · Max 20MB · Multiple allowed</p>
+          <input type="file" id="therapy-img-file" accept="image/*" multiple style="display:none" onchange="uploadImages('therapy', this)"/>
+          <button class="btn btn-clay" onclick="document.getElementById('therapy-img-file').click()">Choose Photos</button>
+        </div>
+        <div id="therapy-img-progress" style="display:none;margin-top:12px">
+          <div style="background:#f0ede6;border-radius:99px;height:6px"><div id="therapy-img-bar" style="background:#a56548;height:6px;border-radius:99px;width:0%;transition:width 0.3s"></div></div>
+        </div>
+        <div id="therapy-img-status" style="margin-top:10px;font-size:12px"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🪴 AYA Bloom Nest Photos</h3></div>
+        <div id="nest-images-preview" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px"></div>
+        <div style="border:2px dashed #ccb69e;border-radius:12px;padding:24px;text-align:center;background:#faf9f6">
+          <div style="font-size:32px;margin-bottom:8px">🖼️</div>
+          <p style="font-size:13px;font-weight:700;color:#3d3730;margin-bottom:4px">Upload Photos</p>
+          <p style="font-size:11px;color:#a09890;margin-bottom:16px">JPG, PNG, WebP · Max 20MB · Multiple allowed</p>
+          <input type="file" id="nest-img-file" accept="image/*" multiple style="display:none" onchange="uploadImages('nest', this)"/>
+          <button class="btn btn-clay" onclick="document.getElementById('nest-img-file').click()">Choose Photos</button>
+        </div>
+        <div id="nest-img-progress" style="display:none;margin-top:12px">
+          <div style="background:#f0ede6;border-radius:99px;height:6px"><div id="nest-img-bar" style="background:#87937c;height:6px;border-radius:99px;width:0%;transition:width 0.3s"></div></div>
+        </div>
+        <div id="nest-img-status" style="margin-top:10px;font-size:12px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal" onclick="if(event.target===this) closeModal()">
+  <div class="modal-box">
+    <div class="modal-head" id="modal-head">
+      <h3 id="modal-title">Details</h3>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  const icons = { 'infant-massage':'🤲','baby-yoga':'🧘','sensory-play':'🎨','speech-therapy':'🗣️','occupational-therapy':'⚕️','hydrotherapy':'💧' };
+  let allAppts = [], allContacts = [];
+
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('detail-modal').classList.remove('open');
+  }
+
+  function openApptDetail(appt) {
+    document.getElementById('modal-title').textContent = '👶 Booking — ' + appt.childName;
+    document.getElementById('modal-head').style.background = '#a56548';
+    document.getElementById('modal-body').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-${appt.status}">${appt.status}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Child's Name</span><span class="detail-value">${appt.childName}</span></div>
+      <div class="detail-row"><span class="detail-label">Child's Age</span><span class="detail-value">${appt.childAge}</span></div>
+      <div class="detail-row"><span class="detail-label">Parent / Guardian</span><span class="detail-value">${appt.parentName}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${appt.parentEmail}" style="color:#a56548">${appt.parentEmail}</a></span></div>
+      <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value"><a href="tel:${appt.parentPhone}" style="color:#a56548">${appt.parentPhone}</a></span></div>
+      ${appt.service ? `<div class="detail-row"><span class="detail-label">Service</span><span class="detail-value">${appt.service.title}</span></div>` : ''}
+      ${appt.preferredDate ? `<div class="detail-row"><span class="detail-label">Preferred Date</span><span class="detail-value">${new Date(appt.preferredDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span></div>` : ''}
+      ${appt.preferredTime ? `<div class="detail-row"><span class="detail-label">Preferred Time</span><span class="detail-value">${appt.preferredTime}</span></div>` : ''}
+      ${appt.notes ? `<div class="detail-row"><span class="detail-label">Notes</span><span class="detail-value">${appt.notes}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">${new Date(appt.createdAt).toLocaleString('en-GB')}</span></div>
+      <div class="status-actions">
+        <strong style="font-size:12px;color:#a09890;margin-right:4px;align-self:center">Update Status:</strong>
+        <button class="btn btn-sm btn-sage" onclick="updateStatus('${appt.id}','confirmed')">✓ Confirm</button>
+        <button class="btn btn-sm btn-outline" onclick="updateStatus('${appt.id}','pending')">⏳ Pending</button>
+        <button class="btn btn-sm" style="background:#ef4444;color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:none" onclick="updateStatus('${appt.id}','cancelled')">✕ Cancel</button>
+      </div>`;
+    document.getElementById('detail-modal').classList.add('open');
+  }
+
+  function openEnqDetail(c) {
+    document.getElementById('modal-title').textContent = '📩 Enquiry — ' + c.name;
+    document.getElementById('modal-head').style.background = '#87937c';
+    document.getElementById('modal-body').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-${c.status}">${c.status}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-value">${c.name}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${c.email}" style="color:#87937c">${c.email}</a></span></div>
+      ${c.phone ? `<div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value"><a href="tel:${c.phone}" style="color:#87937c">${c.phone}</a></span></div>` : ''}
+      ${c.service ? `<div class="detail-row"><span class="detail-label">Service Interested</span><span class="detail-value">${c.service}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-label">Message</span><span class="detail-value" style="white-space:pre-wrap;line-height:1.6">${c.message}</span></div>
+      <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">${new Date(c.createdAt).toLocaleString('en-GB')}</span></div>`;
+    document.getElementById('detail-modal').classList.add('open');
+  }
+
+  async function updateStatus(id, status) {
+    await fetch(`/api/appointments/${id}/status`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status })
+    });
+    closeModal();
+    loadData();
+  }
+
+  function filterAppts(filter) {
+    document.getElementById('appt-filter').value = filter;
+    const filtered = filter === 'all' ? allAppts : allAppts.filter(a => a.status === filter);
+    renderApptsTable('appts-table', filtered);
+  }
+
+  function renderApptsTable(targetId, data) {
+    document.getElementById(targetId).innerHTML = data.length === 0
+      ? '<div class="empty"><div class="empty-icon">📅</div><p>No appointments found.</p></div>'
+      : `<table><thead><tr>
+          <th>Child</th><th>Parent</th><th>Phone</th><th>Email</th><th>Notes</th><th>Status</th><th>Date Submitted</th>
+        </tr></thead><tbody>
+        ${data.map(a=>`
+          <tr class="clickable-row" onclick='openApptDetail(${JSON.stringify(a)})'>
+            <td><strong>${a.childName}</strong><br><small style="color:#a09890">${a.childAge}</small></td>
+            <td>${a.parentName}</td>
+            <td><a href="tel:${a.parentPhone}" style="color:#a56548">${a.parentPhone}</a></td>
+            <td><a href="mailto:${a.parentEmail}" style="color:#a56548">${a.parentEmail}</a></td>
+            <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6b6358">${a.notes||'—'}</td>
+            <td><span class="badge badge-${a.status}">${a.status}</span></td>
+            <td style="color:#a09890">${new Date(a.createdAt).toLocaleDateString('en-GB')}</td>
+          </tr>`).join('')}
+        </tbody></table>`;
+  }
+
+  async function loadData() {
+    try {
+      const [svcs, appts, contacts] = await Promise.all([
+        fetch('/api/services').then(r=>r.json()),
+        fetch('/api/appointments').then(r=>r.json()),
+        fetch('/api/contact').then(r=>r.json()),
+      ]);
+
+      allAppts = appts.data || [];
+      allContacts = contacts.data || [];
+
+      document.getElementById('stat-services').textContent = svcs.data.length;
+      document.getElementById('stat-appts').textContent = appts.total;
+      document.getElementById('stat-pending').textContent = allAppts.filter(a=>a.status==='pending').length;
+      document.getElementById('stat-enquiries').textContent = contacts.total;
+
+      // Services grid
+      document.getElementById('services-grid').innerHTML = svcs.data.map(s => `
+        <div class="service-card">
+          <div class="s-icon">${icons[s.id]||'💼'}</div>
+          <h4>${s.title}</h4>
+          <p>${s.description}</p>
+          <div class="s-meta">
+            <span class="meta-tag">⏱ ${s.duration}</span>
+            <span class="meta-tag">👶 ${s.ageRange}</span>
+            <span class="meta-tag">${s.category}</span>
+          </div>
+          <div style="margin-top:12px"><span class="price-tag">$${s.price.toLocaleString()}</span></div>
+        </div>`).join('');
+
+      // Full appointments table
+      renderApptsTable('appts-table', allAppts);
+
+      // Recent appointments (last 5)
+      const recentA = [...allAppts].reverse().slice(0, 5);
+      document.getElementById('recent-appts').innerHTML = recentA.length === 0
+        ? '<div class="empty"><div class="empty-icon">📅</div><p>No appointments yet</p></div>'
+        : `<table><thead><tr><th>Child</th><th>Parent</th><th>Phone</th><th>Status</th><th>Submitted</th></tr></thead><tbody>
+          ${recentA.map(a=>`
+            <tr class="clickable-row" onclick='openApptDetail(${JSON.stringify(a)})'>
+              <td><strong>${a.childName}</strong><br><small style="color:#a09890">${a.childAge}</small></td>
+              <td>${a.parentName}</td>
+              <td><a href="tel:${a.parentPhone}" style="color:#a56548">${a.parentPhone}</a></td>
+              <td><span class="badge badge-${a.status}">${a.status}</span></td>
+              <td style="color:#a09890">${new Date(a.createdAt).toLocaleDateString('en-GB')}</td>
+            </tr>`).join('')}
+          </tbody></table>`;
+
+      // Enquiries table
+      const enqHtml = allContacts.length === 0
+        ? '<div class="empty"><div class="empty-icon">📩</div><p>No enquiries yet.</p></div>'
+        : `<table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Service</th><th>Message</th><th>Status</th><th>Date</th></tr></thead><tbody>
+          ${allContacts.map(c=>`
+            <tr class="clickable-row" onclick='openEnqDetail(${JSON.stringify(c)})'>
+              <td><strong>${c.name}</strong></td>
+              <td>${c.email}</td>
+              <td>${c.phone||'—'}</td>
+              <td>${c.service||'General'}</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6b6358">${c.message}</td>
+              <td><span class="badge badge-${c.status}">${c.status}</span></td>
+              <td style="color:#a09890">${new Date(c.createdAt).toLocaleDateString('en-GB')}</td>
+            </tr>`).join('')}
+          </tbody></table>`;
+      document.getElementById('enquiries-table').innerHTML = enqHtml;
+
+      // Recent enquiries (last 5)
+      const recentC = [...allContacts].reverse().slice(0, 5);
+      document.getElementById('recent-enquiries').innerHTML = recentC.length === 0
+        ? '<div class="empty"><div class="empty-icon">📩</div><p>No enquiries yet</p></div>'
+        : `<table><thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Status</th></tr></thead><tbody>
+          ${recentC.map(c=>`
+            <tr class="clickable-row" onclick='openEnqDetail(${JSON.stringify(c)})'>
+              <td><strong>${c.name}</strong></td>
+              <td>${c.email}</td>
+              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6b6358">${c.message}</td>
+              <td><span class="badge badge-${c.status}">${c.status}</span></td>
+            </tr>`).join('')}
+          </tbody></table>`;
+
+    } catch(e) { console.error('Load error:', e); }
+  }
+
+  loadData();
+  setInterval(loadData, 30000);
+
+  async function loadVideoPreview(section) {
+    const res = await fetch(`/api/videos/${section}`).then(r=>r.json());
+    const el = document.getElementById(`${section}-video-preview`);
+    if (res.success) {
+      el.innerHTML = `
+        <video src="${res.url}" controls style="width:100%;border-radius:10px;max-height:180px;background:#000"></video>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:11px;color:#87937c;font-weight:700">✓ ${res.filename}</span>
+          <button onclick="deleteVideo('${section}')" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;font-weight:600">✕ Remove</button>
+        </div>`;
+    } else { el.innerHTML = ''; }
+  }
+  loadVideoPreview('therapy');
+  loadVideoPreview('nest');
+
+  async function uploadVideo(section, input) {
+    const file = input.files[0]; if (!file) return;
+    const progressEl = document.getElementById(`${section}-progress`);
+    const barEl = document.getElementById(`${section}-bar`);
+    const statusEl = document.getElementById(`${section}-status`);
+    progressEl.style.display = 'block'; statusEl.innerHTML = '';
+    const formData = new FormData(); formData.append('video', file);
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', e => { if (e.lengthComputable) barEl.style.width = Math.round((e.loaded/e.total)*100)+'%'; });
+    xhr.onload = () => {
+      progressEl.style.display = 'none';
+      const json = JSON.parse(xhr.responseText);
+      statusEl.innerHTML = json.success ? `<span style="color:#87937c;font-weight:700">✓ ${json.message}</span>` : `<span style="color:#ef4444">✗ Failed</span>`;
+      if (json.success) loadVideoPreview(section);
+      input.value = '';
+    };
+    xhr.open('POST', `/api/videos/upload/${section}`); xhr.send(formData);
+  }
+
+  async function deleteVideo(section) {
+    if (!confirm('Remove this video?')) return;
+    await fetch(`/api/videos/${section}`, { method: 'DELETE' });
+    loadVideoPreview(section);
+  }
+
+  async function loadImagesPreview(section) {
+    const res = await fetch(`/api/images/${section}`).then(r=>r.json()).catch(()=>({success:false,images:[]}));
+    const el = document.getElementById(`${section}-images-preview`);
+    if (!res.success || !res.images.length) { el.innerHTML = ''; return; }
+    el.innerHTML = res.images.map(img => `
+      <div style="position:relative;border-radius:8px;overflow:hidden;background:#000;aspect-ratio:1">
+        <img src="${img.url}" style="width:100%;height:100%;object-fit:cover" />
+        <button onclick="deleteImage('${section}','${img.filename}')"
+          style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:1">✕</button>
+      </div>`).join('');
+  }
+  loadImagesPreview('therapy');
+  loadImagesPreview('nest');
+
+  async function uploadImages(section, input) {
+    const files = input.files; if (!files.length) return;
+    const barEl = document.getElementById(`${section}-img-bar`);
+    const statusEl = document.getElementById(`${section}-img-status`);
+    document.getElementById(`${section}-img-progress`).style.display = 'block';
+    statusEl.innerHTML = '';
+    const formData = new FormData();
+    for (const f of files) formData.append('images', f);
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', e => { if (e.lengthComputable) barEl.style.width = Math.round((e.loaded/e.total)*100)+'%'; });
+    xhr.onload = () => {
+      document.getElementById(`${section}-img-progress`).style.display = 'none';
+      const json = JSON.parse(xhr.responseText);
+      statusEl.innerHTML = json.success ? `<span style="color:#87937c;font-weight:700">✓ ${json.message}</span>` : `<span style="color:#ef4444">✗ Failed</span>`;
+      if (json.success) loadImagesPreview(section);
+      input.value = '';
+    };
+    xhr.open('POST', `/api/images/upload/${section}`); xhr.send(formData);
+  }
+
+  async function deleteImage(section, filename) {
+    if (!confirm('Remove this photo?')) return;
+    await fetch(`/api/images/${section}/${filename}`, { method: 'DELETE' });
+    loadImagesPreview(section);
+  }
+</script>
+</body>
+</html>

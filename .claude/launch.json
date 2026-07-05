@@ -2,6 +2,22 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "AYA Bloom Frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "../AYA-BLOOM/frontend",
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "AYA Bloom Backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "../AYA-BLOOM/backend",
+      "port": 5001,
+      "autoPort": true
+    },
+    {
       "name": "NAGARTA Frontend (Next.js)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
@@ -15,6 +31,14 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "backend",
       "port": 5000,
+      "autoPort": true
+    },
+    {
+      "name": "Abofra Frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "../ABOFRA WORLD SCHOOL/frontend",
+      "port": 3001,
       "autoPort": true
     }
   ]

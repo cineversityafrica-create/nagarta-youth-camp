@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { submitRegistration } from '@/lib/api';
-import { getToken, isLoggedIn } from '@/lib/auth';
+import { submitRegistration, register as registerAccount } from '@/lib/api';
+import { getToken, isLoggedIn, saveAuth } from '@/lib/auth';
 import PricingSection from '@/components/PricingSection';
 
 const SAVED_FORM_KEY = 'nagarta_saved_registration';
@@ -32,6 +32,16 @@ export default function RegisterPage() {
   const [parentType, setParentType] = useState<'mother' | 'father' | 'both'>('both');
   const [mother, setMother] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
   const [father, setFather] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
+
+  // Account creation fields (for parents not yet signed in)
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [alreadyLoggedIn, setAlreadyLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setAlreadyLoggedIn(isLoggedIn());
+  }, []);
 
   // Load saved progress on mount
   useEffect(() => {
@@ -132,14 +142,58 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoggedIn()) {
-      router.push('/auth/sign-in');
-      return;
-    }
     setError('');
     setLoading(true);
-    const token = getToken()!;
+
     try {
+      // Determine parent email (mother preferred, then father)
+      const parentEmail = mother.email || father.email;
+      const parentName = mother.name || father.name || parent.name;
+      const parentPhone = mother.phone || father.phone || parent.phone;
+
+      let token = getToken();
+
+      // If NOT logged in, create account first with parent email + password
+      if (!token) {
+        if (!parentEmail) {
+          setError('Please provide a parent email address (mother or father)');
+          setLoading(false);
+          return;
+        }
+        if (!password || password.length < 6) {
+          setError('Please create a password (at least 6 characters)');
+          setLoading(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+
+        // Create parent account
+        try {
+          const authResult = await registerAccount({
+            email: parentEmail,
+            password,
+            name: parentName || 'Parent',
+            phone: parentPhone || undefined,
+            role: 'PARENT',
+          });
+          saveAuth(authResult.token, authResult.user);
+          token = authResult.token;
+        } catch (err: unknown) {
+          const error = err as { message?: string };
+          if (error.message?.includes('already') || error.message?.includes('exists')) {
+            setError('An account with this email already exists. Please sign in first, then register your camper.');
+          } else {
+            setError('Failed to create account. Please try again.');
+          }
+          setLoading(false);
+          return;
+        }
+      }
+
       const payload: Record<string, unknown> = {
         type: 'CHILD',
         notes: childNotes,
@@ -167,12 +221,28 @@ export default function RegisterPage() {
         payload.fatherEmergencyContact = father.emergencyContact || undefined;
       }
 
-      const result = await submitRegistration(payload, token) as { referenceCode: string };
-      setSuccess({ referenceCode: result.referenceCode, name: child.name });
+      const result = await submitRegistration(payload, token!) as { referenceCode: string };
+
       // Clear saved progress on successful registration
       if (typeof window !== 'undefined') {
         localStorage.removeItem(SAVED_FORM_KEY);
       }
+
+      // Redirect to payment page with pre-filled info
+      const paymentParams = new URLSearchParams({
+        ref: result.referenceCode,
+        camperName: child.name,
+        parentEmail: parentEmail || '',
+        parentPhone: parentPhone || '',
+        parentName: parentName || '',
+      });
+
+      // Show quick success message then redirect
+      setSuccess({ referenceCode: result.referenceCode, name: child.name });
+
+      setTimeout(() => {
+        router.push(`/payment/visa?${paymentParams.toString()}`);
+      }, 2000);
     } catch {
       setError('Registration failed. Please check you are signed in and try again.');
     } finally {
@@ -429,13 +499,78 @@ export default function RegisterPage() {
                   )}
                 </div>
 
+            {/* CREATE ACCOUNT SECTION — only shows if not logged in */}
+            {!alreadyLoggedIn && (
+              <div className="mt-8 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-lg font-bold text-maroon">Create Your Parent Account</h3>
+                    <p className="text-xs text-burgundy/70">Access your dashboard anytime to view registration status</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-3 border border-amber-200">
+                  <p className="text-xs text-burgundy mb-1"><strong>📧 Your Login Email:</strong></p>
+                  <p className="text-sm font-semibold text-maroon">{mother.email || father.email || 'Please enter mother\'s or father\'s email above'}</p>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Create Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required={!alreadyLoggedIn}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      className={inputClass}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gold hover:text-amber-600"
+                    >
+                      {showPassword ? '🙈 Hide' : '👁️ Show'}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Confirm Password *</label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required={!alreadyLoggedIn}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    className={inputClass}
+                  />
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-xs text-red-600 mt-1">⚠️ Passwords do not match</p>
+                  )}
+                  {confirmPassword && password === confirmPassword && (
+                    <p className="text-xs text-green-600 mt-1">✅ Passwords match</p>
+                  )}
+                </div>
+
+                <div className="text-xs text-burgundy/70 bg-white rounded-lg p-3 border border-amber-100">
+                  <p><strong>Already have an account?</strong> <Link href="/auth/sign-in" className="text-gold underline font-semibold">Sign in here</Link> to skip this step.</p>
+                </div>
+              </div>
+            )}
+
             <div className="pt-2 space-y-3">
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full bg-gold text-maroon font-semibold py-4 rounded-lg tracking-widest uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50 shadow-lg"
               >
-                {loading ? 'Submitting...' : 'Reserve Spot'}
+                {loading ? '⏳ Processing...' : '🎯 Reserve Spot & Continue to Payment'}
               </button>
 
               {/* Save Progress Button */}

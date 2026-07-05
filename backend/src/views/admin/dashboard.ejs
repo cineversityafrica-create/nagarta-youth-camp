@@ -46,6 +46,10 @@
     transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: inherit;
   }
   .stat-card::before {
     content: '';
@@ -56,7 +60,18 @@
   }
   .stat-card:hover {
     transform: translateY(-5px) scale(1.02);
+    text-decoration: none;
+    color: inherit;
   }
+  .stat-card .click-hint {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 8px;
+    opacity: 0.5;
+  }
+  .stat-card:hover .click-hint { opacity: 1; }
 
   /* ─── AGE Card — Purple Theme ─── */
   .age-card {
@@ -182,8 +197,8 @@
 
   <!-- ═══ STAT CARDS — Each different color ═══ -->
   <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-8 md:mb-10">
-    <!-- GREEN -->
-    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #10b981; --stat-to: #059669; box-shadow: 0 15px 35px -10px rgba(16, 185, 129, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(16, 185, 129, 0.15);">
+    <!-- GREEN — Total Registrations -->
+    <a href="/admin/registrations" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #10b981; --stat-to: #059669; box-shadow: 0 15px 35px -10px rgba(16, 185, 129, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(16, 185, 129, 0.15);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Total Registrations</p>
         <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669);">
@@ -191,10 +206,11 @@
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.totalRegistrations %></p>
-    </div>
+      <p class="click-hint" style="color: #059669;">View all registrations →</p>
+    </a>
 
-    <!-- BLUE -->
-    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #3b82f6; --stat-to: #1d4ed8; animation-delay: 0.1s; box-shadow: 0 15px 35px -10px rgba(59, 130, 246, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(59, 130, 246, 0.15);">
+    <!-- BLUE — Spots Remaining -->
+    <a href="/admin/registrations" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #3b82f6; --stat-to: #1d4ed8; animation-delay: 0.1s; box-shadow: 0 15px 35px -10px rgba(59, 130, 246, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(59, 130, 246, 0.15);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Spots Remaining</p>
         <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
@@ -202,10 +218,11 @@
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.spotsRemaining %><span class="text-sm md:text-lg text-gray-400"> / <%= stats.capacity %></span></p>
-    </div>
+      <p class="click-hint" style="color: #1d4ed8;">View registrations →</p>
+    </a>
 
-    <!-- AMBER -->
-    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #f59e0b; --stat-to: #d97706; animation-delay: 0.2s; box-shadow: 0 15px 35px -10px rgba(245, 158, 11, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(245, 158, 11, 0.15);">
+    <!-- AMBER — Confirmed -->
+    <a href="/admin/registrations?status=CONFIRMED" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #f59e0b; --stat-to: #d97706; animation-delay: 0.2s; box-shadow: 0 15px 35px -10px rgba(245, 158, 11, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(245, 158, 11, 0.15);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Confirmed</p>
         <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
@@ -213,10 +230,11 @@
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.confirmedRegistrations %></p>
-    </div>
+      <p class="click-hint" style="color: #d97706;">View confirmed →</p>
+    </a>
 
-    <!-- PINK -->
-    <div class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #ec4899; --stat-to: #be185d; animation-delay: 0.3s; box-shadow: 0 15px 35px -10px rgba(236, 72, 153, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(236, 72, 153, 0.15);">
+    <!-- PINK — Unread Messages -->
+    <a href="/admin/messages" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #ec4899; --stat-to: #be185d; animation-delay: 0.3s; box-shadow: 0 15px 35px -10px rgba(236, 72, 153, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(236, 72, 153, 0.15);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Unread Messages</p>
         <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #ec4899, #be185d);">
@@ -224,7 +242,8 @@
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.unreadMessages %></p>
-    </div>
+      <p class="click-hint" style="color: #be185d;">View messages →</p>
+    </a>
   </div>
 
   <!-- ═══ AGE + GENDER ROW ═══ -->
@@ -392,7 +411,9 @@
       </thead>
       <tbody>
         <% stats.recentRegistrations.forEach(reg => { %>
-          <tr class="border-b border-gray-100 transition-all" onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='transparent'">
+          <tr class="border-b border-gray-100 transition-all cursor-pointer"
+            onmouseover="this.style.background='#ecfeff'" onmouseout="this.style.background='transparent'"
+            onclick="openRegDetail(<%= JSON.stringify(reg) %>)">
             <td class="py-3">
               <p class="text-maroon font-bold text-sm"><%= reg.child ? reg.child.name : reg.user.name %></p>
               <p class="text-xs text-gray-500"><%= reg.type %></p>
@@ -408,8 +429,7 @@
               </span>
             </td>
             <td class="py-3 text-right">
-              <a href="/admin/users/<%= reg.userId %>"
-                class="text-xs font-bold hover:underline whitespace-nowrap" style="color: var(--recent-from);">View Parent →</a>
+              <span class="text-xs font-bold whitespace-nowrap" style="color: var(--recent-from);">View Details →</span>
             </td>
           </tr>
         <% }) %>
@@ -421,5 +441,64 @@
     </div>
   </div>
 </main>
+
+<!-- ── Registration Detail Modal ── -->
+<div id="reg-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;" onclick="if(event.target===this)closeRegModal()">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.25);margin:16px;">
+    <div id="reg-modal-head" style="background:linear-gradient(135deg,#06b6d4,#0e7490);padding:20px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <p style="color:rgba(255,255,255,0.7);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:2px;">Registration Details</p>
+        <h3 id="reg-modal-title" style="color:#fff;font-size:18px;font-weight:800;font-family:serif;"></h3>
+      </div>
+      <button onclick="closeRegModal()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;border:none;cursor:pointer;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div id="reg-modal-body" style="padding:24px;"></div>
+  </div>
+</div>
+
+<style>
+  #reg-modal.open { display:flex !important; }
+  .drw { display:flex; gap:8px; padding:10px 0; border-bottom:1px solid #f3f4f6; }
+  .drw:last-child { border-bottom:none; }
+  .dl { font-size:12px; color:#9ca3af; font-weight:700; min-width:140px; padding-top:1px; text-transform:uppercase; letter-spacing:0.04em; }
+  .dv { font-size:13px; color:#1f2937; font-weight:500; flex:1; }
+</style>
+
+<script>
+function openRegDetail(reg) {
+  const name = reg.child ? reg.child.name : reg.user.name;
+  document.getElementById('reg-modal-title').textContent = name;
+  const statusColor = reg.status === 'CONFIRMED' ? '#059669' : reg.status === 'PENDING' ? '#d97706' : reg.status === 'CANCELLED' ? '#dc2626' : '#2563eb';
+  let html = `
+    <div class="drw"><span class="dl">Status</span><span class="dv"><span style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;background:${statusColor}22;color:${statusColor}">${reg.status}</span></span></div>
+    <div class="drw"><span class="dl">Type</span><span class="dv">${reg.type || '—'}</span></div>`;
+  if (reg.child) {
+    html += `
+    <div class="drw"><span class="dl">Child Name</span><span class="dv">${reg.child.name}</span></div>
+    ${reg.child.age ? `<div class="drw"><span class="dl">Child Age</span><span class="dv">${reg.child.age}</span></div>` : ''}
+    ${reg.child.gender ? `<div class="drw"><span class="dl">Gender</span><span class="dv">${reg.child.gender}</span></div>` : ''}
+    ${reg.child.school ? `<div class="drw"><span class="dl">School</span><span class="dv">${reg.child.school}</span></div>` : ''}`;
+  }
+  html += `
+    <div class="drw"><span class="dl">Parent Name</span><span class="dv">${reg.user.name}</span></div>
+    <div class="drw"><span class="dl">Parent Email</span><span class="dv"><a href="mailto:${reg.user.email}" style="color:#06b6d4">${reg.user.email}</a></span></div>
+    ${reg.user.phone ? `<div class="drw"><span class="dl">Phone</span><span class="dv"><a href="tel:${reg.user.phone}" style="color:#06b6d4">${reg.user.phone}</a></span></div>` : ''}
+    ${reg.amount != null ? `<div class="drw"><span class="dl">Amount</span><span class="dv" style="font-weight:700;color:#059669">₦${Number(reg.amount).toLocaleString()}</span></div>` : ''}
+    ${reg.paymentStatus ? `<div class="drw"><span class="dl">Payment</span><span class="dv">${reg.paymentStatus}</span></div>` : ''}
+    ${reg.referenceCode ? `<div class="drw"><span class="dl">Reference</span><span class="dv"><code style="background:#f3f4f6;padding:2px 8px;border-radius:6px;font-size:12px">${reg.referenceCode}</code></span></div>` : ''}
+    <div class="drw"><span class="dl">Submitted</span><span class="dv">${new Date(reg.createdAt).toLocaleString('en-GB')}</span></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f3f4f6;display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="/admin/registrations" style="display:inline-block;padding:8px 16px;background:linear-gradient(135deg,#06b6d4,#0e7490);color:#fff;border-radius:20px;font-size:13px;font-weight:700;text-decoration:none;">View All Registrations →</a>
+      <a href="/admin/users/${reg.userId}" style="display:inline-block;padding:8px 16px;background:#f3f4f6;color:#374151;border-radius:20px;font-size:13px;font-weight:700;text-decoration:none;">View Parent Profile →</a>
+    </div>`;
+  document.getElementById('reg-modal-body').innerHTML = html;
+  document.getElementById('reg-modal').classList.add('open');
+  document.getElementById('reg-modal').style.display = 'flex';
+}
+function closeRegModal() {
+  document.getElementById('reg-modal').style.display = 'none';
+  document.getElementById('reg-modal').classList.remove('open');
+}
+</script>
 </body>
 </html>

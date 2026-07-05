@@ -30,7 +30,7 @@
       </thead>
       <tbody>
         <% registrations.forEach(reg => { %>
-          <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+          <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer" onclick="toggleDetails('<%= reg.id %>')" title="Click to view details">
             <td class="px-4 py-3">
               <% if (reg.child && reg.child.photo) { %>
                 <img src="<%= reg.child.photo %>" alt="Attendee"
@@ -45,7 +45,7 @@
               <% if (reg.child && reg.child.age) { %><span class="text-xs text-burgundy/50">· <%= reg.child.age %>y</span><% } %>
             </td>
             <td class="px-4 py-3 text-burgundy text-xs"><%= reg.user.email %></td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-3" onclick="event.stopPropagation()">
               <form method="POST" action="/admin/registrations/<%= reg.id %>/status">
                 <select name="status" onchange="this.form.submit()"
                   class="text-xs border border-beige rounded px-2 py-1 bg-white">
@@ -55,7 +55,7 @@
                 </select>
               </form>
             </td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-3" onclick="event.stopPropagation()">
               <form method="POST" action="/admin/registrations/<%= reg.id %>/payment">
                 <select name="paymentStatus" onchange="this.form.submit()"
                   class="text-xs border border-beige rounded px-2 py-1 bg-white">

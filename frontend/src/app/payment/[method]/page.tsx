@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_fcb37013accb3e3d1151fd2ae10613fb9c043301';
@@ -32,8 +32,9 @@ interface PaystackResponse {
   message: string;
 }
 
-export default function PaymentPage() {
+function PaymentPageContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const method = params.method as string;
   const [processing, setProcessing] = useState(false);
 
@@ -44,6 +45,22 @@ export default function PaymentPage() {
     amount: '235',
     package: 'Early Bird',
   });
+
+  // Pre-fill from URL params (when redirected from registration)
+  useEffect(() => {
+    const parentName = searchParams.get('parentName');
+    const parentEmail = searchParams.get('parentEmail');
+    const parentPhone = searchParams.get('parentPhone');
+
+    if (parentName || parentEmail || parentPhone) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: parentName || prev.fullName,
+        email: parentEmail || prev.email,
+        phone: parentPhone || prev.phone,
+      }));
+    }
+  }, [searchParams]);
 
   const methodConfig = {
     visa: {
@@ -300,5 +317,18 @@ export default function PaymentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap in Suspense boundary for useSearchParams
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+        <p className="text-burgundy">Loading payment page...</p>
+      </div>
+    }>
+      <PaymentPageContent />
+    </Suspense>
   );
 }
