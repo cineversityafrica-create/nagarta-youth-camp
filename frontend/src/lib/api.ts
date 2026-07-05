@@ -217,6 +217,7 @@ export interface Registration {
     name: string;
     age: number;
     school?: string;
+    photo?: string;
   };
   parentName?: string;
   parentAddress?: string;

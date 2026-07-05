@@ -117,9 +117,12 @@ function PaymentPageContent() {
       // Generate unique reference
       const reference = `NAGARTA-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-      // Convert USD to GHS (using 12 as rate, you can adjust)
+      // Get registration ref from URL (if coming from registration flow)
+      const registrationRef = searchParams.get('ref') || '';
+
+      // Convert USD to GHS (using 12 as rate)
       const amountInGHS = parseInt(formData.amount) * 12;
-      const amountInPesewas = amountInGHS * 100; // Paystack uses lowest currency unit
+      const amountInPesewas = amountInGHS * 100;
 
       // Open Paystack popup
       const paystack = window.PaystackPop.setup({
@@ -133,15 +136,21 @@ function PaymentPageContent() {
           phone: formData.phone,
           package: formData.package,
           method,
+          registrationRef, // NAGARTA registration ref - used by backend to update DB
           custom_fields: [
             { display_name: 'Full Name', variable_name: 'full_name', value: formData.fullName },
             { display_name: 'Phone', variable_name: 'phone', value: formData.phone },
             { display_name: 'Package', variable_name: 'package', value: formData.package },
+            { display_name: 'NAGARTA Ref', variable_name: 'nagarta_ref', value: registrationRef },
           ],
         },
         callback: (response: PaystackResponse) => {
-          // Payment successful - redirect to success page
-          window.location.href = `/payment/success?ref=${response.reference}&amount=${formData.amount}&package=${encodeURIComponent(formData.package)}&email=${encodeURIComponent(formData.email)}`;
+          // Payment successful - call backend to verify and update DB
+          fetch(`/api/paystack/verify/${response.reference}`)
+            .catch(() => {}) // Silent fail - webhook will handle it too
+            .finally(() => {
+              window.location.href = `/payment/success?ref=${response.reference}&amount=${formData.amount}&package=${encodeURIComponent(formData.package)}&email=${encodeURIComponent(formData.email)}&campRef=${encodeURIComponent(registrationRef)}`;
+            });
         },
         onClose: () => {
           setProcessing(false);

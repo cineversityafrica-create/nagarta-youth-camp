@@ -257,23 +257,46 @@ export default function ParentDashboard() {
             ) : (
               <div className="grid gap-4">
                 {registrations.map((reg) => (
-                  <div key={reg.id} className="bg-white border border-beige rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <p className="font-semibold text-maroon">{reg.child?.name || 'Self Registration'}</p>
-                      {reg.child && <p className="text-sm text-burgundy">Age {reg.child.age}{reg.child.school ? ` · ${reg.child.school}` : ''}</p>}
-                      <p className="text-xs text-gold font-mono mt-1">{reg.referenceCode.slice(0, 20)}...</p>
+                  <div key={reg.id} className="bg-white border border-beige rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+                    {/* Child Photo */}
+                    <div className="flex-shrink-0">
+                      {reg.child?.photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={reg.child.photo}
+                          alt={reg.child.name || 'Camper'}
+                          className="w-20 h-20 rounded-full object-cover border-2 border-gold shadow-md"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gold to-amber-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
+                          {(reg.child?.name || '?').charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex gap-3 items-center">
-                      <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                        reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
-                        reg.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>{reg.status}</span>
-                      <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                        reg.paymentStatus === 'PAID' ? 'bg-green-100 text-green-700' :
-                        reg.paymentStatus === 'PARTIAL' ? 'bg-blue-100 text-blue-700' :
-                        'bg-orange-100 text-orange-700'
-                      }`}>{reg.paymentStatus}</span>
+
+                    {/* Info */}
+                    <div className="flex-1">
+                      <p className="font-semibold text-maroon text-lg">{reg.child?.name || 'Self Registration'}</p>
+                      {reg.child && <p className="text-sm text-burgundy">Age {reg.child.age}{reg.child.school ? ` · ${reg.child.school}` : ''}</p>}
+                      <p className="text-xs text-gold font-mono mt-1">Ref: {reg.referenceCode}</p>
+                    </div>
+
+                    {/* Status Badges */}
+                    <div className="flex flex-col gap-2 items-end">
+                      <span className={`text-xs px-3 py-1 rounded-full font-bold shadow-sm ${
+                        reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700 border border-green-300' :
+                        reg.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' :
+                        'bg-red-100 text-red-700 border border-red-300'
+                      }`}>
+                        {reg.status === 'CONFIRMED' ? '✅ CONFIRMED' : reg.status === 'PENDING' ? '⏳ PENDING' : reg.status}
+                      </span>
+                      <span className={`text-xs px-3 py-1 rounded-full font-bold shadow-sm ${
+                        reg.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' :
+                        reg.paymentStatus === 'PARTIAL' ? 'bg-blue-100 text-blue-700 border border-blue-300' :
+                        'bg-orange-100 text-orange-700 border border-orange-300'
+                      }`}>
+                        {reg.paymentStatus === 'PAID' ? '💰 PAID' : reg.paymentStatus === 'PARTIAL' ? '💳 PARTIAL' : '⏱️ UNPAID'}
+                      </span>
                     </div>
                   </div>
                 ))}
