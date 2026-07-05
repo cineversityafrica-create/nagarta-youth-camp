@@ -5,8 +5,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { submitRegistration, register as registerAccount } from '@/lib/api';
 import { getToken, isLoggedIn, saveAuth } from '@/lib/auth';
-import PricingSection from '@/components/PricingSection';
-
 const SAVED_FORM_KEY = 'nagarta_saved_registration';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
@@ -38,6 +36,10 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [alreadyLoggedIn, setAlreadyLoggedIn] = useState(false);
+
+  // Package selection
+  const [selectedPackage, setSelectedPackage] = useState<'Early Bird' | 'Regular Package'>('Early Bird');
+  const packagePrice = selectedPackage === 'Early Bird' ? '235' : '260';
 
   useEffect(() => {
     setAlreadyLoggedIn(isLoggedIn());
@@ -228,13 +230,15 @@ export default function RegisterPage() {
         localStorage.removeItem(SAVED_FORM_KEY);
       }
 
-      // Redirect to payment page with pre-filled info
+      // Redirect to payment page with pre-filled info + selected package
       const paymentParams = new URLSearchParams({
         ref: result.referenceCode,
         camperName: child.name,
         parentEmail: parentEmail || '',
         parentPhone: parentPhone || '',
         parentName: parentName || '',
+        package: selectedPackage,
+        amount: packagePrice,
       });
 
       // Show quick success message then redirect
@@ -267,8 +271,7 @@ export default function RegisterPage() {
           <p className="text-sm text-maroon/60 mt-4">Complete the form below to reserve a spot for your camper.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <div className="max-w-3xl mx-auto">
 
         {/* Success banner — stays visible above the form */}
         {success && (
@@ -318,8 +321,119 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+
+            {/* ═══ PACKAGE SELECTION ═══ */}
+            <div className="bg-white rounded-2xl border-2 border-beige p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-serif text-lg font-bold text-maroon">Choose Your Package</h3>
+                  <p className="text-xs text-burgundy/70">Select a package to reserve your spot</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* EARLY BIRD */}
+                <label
+                  className={`relative cursor-pointer rounded-2xl p-5 border-2 transition-all hover:scale-[1.02] ${
+                    selectedPackage === 'Early Bird'
+                      ? 'border-orange-500 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 shadow-lg'
+                      : 'border-gray-200 bg-white hover:border-orange-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="package"
+                    value="Early Bird"
+                    checked={selectedPackage === 'Early Bird'}
+                    onChange={() => setSelectedPackage('Early Bird')}
+                    className="sr-only"
+                  />
+
+                  {selectedPackage === 'Early Bird' && (
+                    <div className="absolute -top-2 -right-2 w-7 h-7 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center shadow-md">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+
+                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-white text-[9px] font-bold tracking-widest shadow-md">
+                    🐦 EARLY BIRD
+                  </div>
+
+                  <div className="pt-6 text-center">
+                    <div className="mb-2">
+                      <span className="text-lg text-gray-400 line-through font-semibold">$260</span>
+                      <span className="ml-2 text-[10px] font-bold text-rose-500 bg-rose-100 px-2 py-0.5 rounded-full">SAVE $25</span>
+                    </div>
+                    <p className="text-4xl font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-1">
+                      $235
+                    </p>
+                    <p className="text-xs text-burgundy/70 font-medium">per camper</p>
+                    <p className="text-[11px] text-rose-600 font-bold mt-2">⏰ Limited Time - Register Early!</p>
+                  </div>
+                </label>
+
+                {/* REGULAR */}
+                <label
+                  className={`relative cursor-pointer rounded-2xl p-5 border-2 transition-all hover:scale-[1.02] ${
+                    selectedPackage === 'Regular Package'
+                      ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 shadow-lg'
+                      : 'border-gray-200 bg-white hover:border-emerald-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="package"
+                    value="Regular Package"
+                    checked={selectedPackage === 'Regular Package'}
+                    onChange={() => setSelectedPackage('Regular Package')}
+                    className="sr-only"
+                  />
+
+                  {selectedPackage === 'Regular Package' && (
+                    <div className="absolute -top-2 -right-2 w-7 h-7 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center shadow-md">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+
+                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500 text-white text-[9px] font-bold tracking-widest shadow-md">
+                    REGULAR
+                  </div>
+
+                  <div className="pt-6 text-center">
+                    <div className="mb-2 h-6"></div>
+                    <p className="text-4xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent mb-1">
+                      $260
+                    </p>
+                    <p className="text-xs text-burgundy/70 font-medium">per camper</p>
+                    <p className="text-[11px] text-emerald-700 font-bold mt-2">Standard Registration</p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="mt-4 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-xs text-emerald-700">
+                    <strong>Selected:</strong> {selectedPackage} — <strong>${packagePrice}</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Attendee Info */}
-            <p className="text-sm text-burgundy font-semibold mb-3">Attendee&apos;s Information</p>
+            <p className="text-sm text-burgundy font-semibold mb-3 mt-6">Attendee&apos;s Information</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Photo upload */}
                   <div className="sm:col-span-2">
@@ -599,14 +713,6 @@ export default function RegisterPage() {
             </div>
           </form>
         </div>
-          </div>
-
-          {/* Pricing Sidebar - shown beside the form */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6">
-              <PricingSection compact />
-            </div>
-          </div>
         </div>
       </div>
 

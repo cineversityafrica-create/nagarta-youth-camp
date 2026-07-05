@@ -51,15 +51,17 @@ function PaymentPageContent() {
     const parentName = searchParams.get('parentName');
     const parentEmail = searchParams.get('parentEmail');
     const parentPhone = searchParams.get('parentPhone');
+    const pkg = searchParams.get('package');
+    const amount = searchParams.get('amount');
 
-    if (parentName || parentEmail || parentPhone) {
-      setFormData((prev) => ({
-        ...prev,
-        fullName: parentName || prev.fullName,
-        email: parentEmail || prev.email,
-        phone: parentPhone || prev.phone,
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      fullName: parentName || prev.fullName,
+      email: parentEmail || prev.email,
+      phone: parentPhone || prev.phone,
+      package: (pkg === 'Regular Package' ? 'Regular Package' : pkg === 'Early Bird' ? 'Early Bird' : prev.package),
+      amount: amount || prev.amount,
+    }));
   }, [searchParams]);
 
   const methodConfig = {
