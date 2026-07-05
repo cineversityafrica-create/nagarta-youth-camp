@@ -138,8 +138,8 @@ export default function SignInPage() {
 
           <p className="text-center text-sm text-maroon/60 mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/auth/sign-up" className="text-gold hover:underline font-medium">
-              Create one
+            <Link href="/register" className="text-gold hover:underline font-medium">
+              Register your camper &amp; create account
             </Link>
           </p>
         </div>
