@@ -6,19 +6,6 @@ import Image from 'next/image';
 import { getMe, getAnnouncements, getMyRegistrations, submitRegistration, submitContactMessage, type User, type Announcement, type Registration } from '@/lib/api';
 import { getToken, getStoredUser, clearAuth } from '@/lib/auth';
 
-const PACKING_LIST = [
-  'Comfortable athletic wear (5 changes)',
-  'Smart/formal outfit for Awards Night',
-  'Running shoes & slippers',
-  'Toiletries & personal hygiene items',
-  'Bedsheet and light blanket',
-  'Notebook & pens',
-  'Bible or devotional material',
-  'Water bottle',
-  'Any prescribed medication',
-  'Positive attitude & open mind',
-];
-
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
 const emptyChild = { name: '', age: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContact: '' };
@@ -28,7 +15,7 @@ export default function ParentDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'packing' | 'announcements' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'announcements' | 'messages'>('overview');
 
   // Messages state
   const [messageForm, setMessageForm] = useState({ subject: '', message: '' });
@@ -221,7 +208,6 @@ export default function ParentDashboard() {
     { key: 'overview', label: '🏠 Overview' },
     { key: 'announcements', label: `📢 News (${announcements.length})` },
     { key: 'messages', label: '💬 Messages' },
-    { key: 'packing', label: '🎒 Packing List' },
   ] as const;
 
   return (
@@ -555,22 +541,6 @@ export default function ParentDashboard() {
                 <div><p className="text-gold/60 label-caps mb-1">Venue</p><p>Premium University Campus</p></div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Packing list tab */}
-        {activeTab === 'packing' && (
-          <div className="bg-white border border-beige rounded-xl p-8">
-            <h2 className="font-serif text-2xl font-semibold text-maroon italic mb-6">Packing List</h2>
-            <ul className="space-y-3">
-              {PACKING_LIST.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-maroon">
-                  <span className="w-5 h-5 flex-shrink-0 border-2 border-gold rounded mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-burgundy/60 mt-6 italic">Full details will be emailed closer to the camp date.</p>
           </div>
         )}
 
