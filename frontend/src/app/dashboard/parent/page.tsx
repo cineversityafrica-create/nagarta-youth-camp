@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getMe, getAnnouncements, getMyRegistrations, submitRegistration, type User, type Announcement, type Registration } from '@/lib/api';
+import { getMe, getAnnouncements, getMyRegistrations, submitRegistration, submitContactMessage, type User, type Announcement, type Registration } from '@/lib/api';
 import { getToken, getStoredUser, clearAuth } from '@/lib/auth';
 
 const PACKING_LIST = [
@@ -28,7 +28,13 @@ export default function ParentDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'packing' | 'announcements'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'packing' | 'announcements' | 'messages'>('overview');
+
+  // Messages state
+  const [messageForm, setMessageForm] = useState({ subject: '', message: '' });
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageSent, setMessageSent] = useState(false);
+  const [messageError, setMessageError] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Add-a-child state
@@ -185,10 +191,37 @@ export default function ParentDashboard() {
     );
   }
 
+  async function handleSendMessage(e: React.FormEvent) {
+    e.preventDefault();
+    setMessageError('');
+    if (!messageForm.message.trim() || messageForm.message.length < 10) {
+      setMessageError('Please enter a message (at least 10 characters)');
+      return;
+    }
+    setSendingMessage(true);
+    try {
+      await submitContactMessage({
+        name: user?.name || 'Parent',
+        email: user?.email || '',
+        phone: user?.phone || '',
+        subject: messageForm.subject || 'Message from Parent Portal',
+        message: messageForm.message,
+      });
+      setMessageSent(true);
+      setMessageForm({ subject: '', message: '' });
+      setTimeout(() => setMessageSent(false), 5000);
+    } catch {
+      setMessageError('Failed to send message. Please try again.');
+    } finally {
+      setSendingMessage(false);
+    }
+  }
+
   const tabs = [
-    { key: 'overview', label: 'Overview' },
-    { key: 'packing', label: 'Packing List' },
-    { key: 'announcements', label: `Announcements (${announcements.length})` },
+    { key: 'overview', label: '🏠 Overview' },
+    { key: 'announcements', label: `📢 News (${announcements.length})` },
+    { key: 'messages', label: '💬 Messages' },
+    { key: 'packing', label: '🎒 Packing List' },
   ] as const;
 
   return (
@@ -541,20 +574,187 @@ export default function ParentDashboard() {
           </div>
         )}
 
-        {/* Announcements tab */}
+        {/* News/Announcements tab */}
         {activeTab === 'announcements' && (
           <div className="space-y-4">
+            <div className="bg-gradient-to-r from-gold/10 to-amber-100 border border-gold/30 rounded-2xl p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-gold to-amber-600 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="font-serif text-2xl font-bold text-maroon mb-1">📢 Latest News from NAGARTA</h2>
+                  <p className="text-sm text-burgundy/70">Stay updated with camp announcements, updates and important information</p>
+                </div>
+              </div>
+            </div>
+
             {announcements.length === 0 ? (
-              <p className="text-maroon/50 text-sm text-center py-12">No announcements yet.</p>
+              <div className="bg-white border border-beige rounded-2xl p-12 text-center">
+                <div className="w-16 h-16 bg-beige rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-maroon/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 15.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v4.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
+                <p className="text-maroon/50 text-sm">No news or announcements yet.</p>
+                <p className="text-xs text-burgundy/40 mt-2">Check back soon for updates from NAGARTA!</p>
+              </div>
             ) : (
               announcements.map((ann) => (
-                <div key={ann.id} className="bg-white border border-beige rounded-xl p-6">
-                  <h3 className="font-serif text-lg font-semibold text-maroon">{ann.title}</h3>
-                  <p className="text-xs text-gold font-medium mt-0.5 mb-3">{new Date(ann.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  <p className="text-sm text-maroon/75 leading-relaxed">{ann.body}</p>
+                <div key={ann.id} className="bg-white border-2 border-beige rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-gold to-amber-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                      <span className="text-white text-sm">📌</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-serif text-xl font-bold text-maroon">{ann.title}</h3>
+                      <p className="text-xs text-gold font-semibold mt-0.5">
+                        {new Date(ann.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-maroon/80 leading-relaxed whitespace-pre-wrap">{ann.body}</p>
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {/* Messages tab — Send messages to NAGARTA */}
+        {activeTab === 'messages' && (
+          <div className="space-y-6">
+            {/* Contact NAGARTA header */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-100 border border-blue-200 rounded-2xl p-6">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="font-serif text-2xl font-bold text-maroon mb-1">💬 Message NAGARTA Team</h2>
+                  <p className="text-sm text-burgundy/70">Have a question or need help? Send us a message directly</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Send message form */}
+            <div className="bg-white border-2 border-beige rounded-2xl p-6 shadow-sm">
+              <h3 className="font-serif text-lg font-bold text-maroon mb-4">✉️ Send a Message</h3>
+
+              {messageSent && (
+                <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p className="text-sm font-bold text-green-700">✅ Message sent! NAGARTA will respond soon.</p>
+                  </div>
+                </div>
+              )}
+
+              {messageError && (
+                <div className="bg-red-50 border border-red-300 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-red-700">{messageError}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleSendMessage} className="space-y-4">
+                <div>
+                  <label className={labelClass}>Subject</label>
+                  <input
+                    type="text"
+                    value={messageForm.subject}
+                    onChange={(e) => setMessageForm({ ...messageForm, subject: e.target.value })}
+                    placeholder="What is this about?"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Your Message *</label>
+                  <textarea
+                    required
+                    rows={5}
+                    value={messageForm.message}
+                    onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
+                    placeholder="Type your message here..."
+                    className={`${inputClass} resize-none`}
+                  />
+                  <p className="text-xs text-burgundy/50 mt-1">{messageForm.message.length}/1000 characters</p>
+                </div>
+                <button
+                  type="submit"
+                  disabled={sendingMessage}
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 rounded-xl tracking-wider uppercase text-sm hover:shadow-lg disabled:opacity-50 transition-all"
+                >
+                  {sendingMessage ? '⏳ Sending...' : '📤 Send Message'}
+                </button>
+              </form>
+            </div>
+
+            {/* Ways to reach NAGARTA */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white border-2 border-beige rounded-2xl p-5 text-center hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-xs text-burgundy/60 uppercase font-bold tracking-wide mb-1">Email Us</p>
+                <a href="mailto:info@nagartayouthcamp.com" className="text-sm text-maroon font-semibold hover:text-gold break-all">
+                  info@nagartayouthcamp.com
+                </a>
+              </div>
+
+              <div className="bg-white border-2 border-beige rounded-2xl p-5 text-center hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+                <p className="text-xs text-burgundy/60 uppercase font-bold tracking-wide mb-1">Call Us</p>
+                <a href="tel:0550171717" className="block text-sm text-maroon font-semibold hover:text-gold">
+                  0550 17 17 17
+                </a>
+                <a href="tel:0243608872" className="block text-sm text-maroon font-semibold hover:text-gold">
+                  0243 60 88 72
+                </a>
+              </div>
+
+              <div className="bg-white border-2 border-beige rounded-2xl p-5 text-center hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <p className="text-xs text-burgundy/60 uppercase font-bold tracking-wide mb-1">Visit Us</p>
+                <p className="text-sm text-maroon font-semibold">Accra, Ghana</p>
+                <p className="text-xs text-burgundy/50 mt-1">Premium University Campus</p>
+              </div>
+            </div>
+
+            {/* Your info that NAGARTA has */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6">
+              <h3 className="font-serif text-lg font-bold text-maroon mb-4 flex items-center gap-2">
+                📞 How NAGARTA Can Reach You
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-xl p-4 border border-amber-200">
+                  <p className="text-xs text-burgundy/60 uppercase font-bold tracking-wide mb-1">Your Email</p>
+                  <p className="text-sm text-maroon font-semibold">{user?.email || 'Not set'}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-amber-200">
+                  <p className="text-xs text-burgundy/60 uppercase font-bold tracking-wide mb-1">Your Phone</p>
+                  <p className="text-sm text-maroon font-semibold">{user?.phone || 'Not set'}</p>
+                </div>
+              </div>
+              <p className="text-xs text-burgundy/60 mt-3 italic">
+                💡 NAGARTA will send updates to your email and can reach you at your phone number. Make sure they&apos;re current!
+              </p>
+            </div>
           </div>
         )}
       </div>
