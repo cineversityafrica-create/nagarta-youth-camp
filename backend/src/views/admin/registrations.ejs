@@ -66,9 +66,11 @@
               </form>
             </td>
             <td class="px-4 py-3 text-xs text-burgundy"><%= new Date(reg.createdAt).toLocaleDateString() %></td>
-            <td class="px-4 py-3 text-right">
+            <td class="px-4 py-3 text-right whitespace-nowrap">
               <button type="button" onclick="toggleDetails('<%= reg.id %>')"
                 class="text-xs text-gold font-semibold hover:underline">Details</button>
+              <a href="/admin/registrations/<%= reg.id %>/print" target="_blank"
+                class="text-xs text-burgundy font-semibold hover:underline ml-3">🖨️ Print</a>
             </td>
           </tr>
 
@@ -132,6 +134,13 @@
                     <div><span class="text-burgundy/50">Phone:</span> <%= reg.parentPhone || reg.user.phone || '—' %></div>
                     <div><span class="text-burgundy/50">Account email:</span> <%= reg.user.email %></div>
                   </dl>
+                  <a href="/admin/registrations/<%= reg.id %>/print" target="_blank"
+                    class="inline-flex items-center gap-1.5 mt-4 bg-maroon text-gold px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase hover:bg-burgundy transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Print Registration Form
+                  </a>
                 </div>
 
               </div>

@@ -274,6 +274,160 @@ app.get('/admin/registrations/export', requireAdminSession, async (_req, res) =>
   res.send(csv);
 });
 
+// Printable registration form (single registration) — with photo, print/PDF friendly
+app.get('/admin/registrations/:id/print', requireAdminSession, async (req, res) => {
+  const reg = await prisma.registration.findUnique({
+    where: { id: req.params.id },
+    include: {
+      user: { select: { name: true, email: true, phone: true } },
+      child: true,
+      transactions: { orderBy: { createdAt: 'desc' } },
+    },
+  });
+  if (!reg) return res.status(404).send('Registration not found');
+
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+
+  const photo = reg.child?.photo;
+  const photoBlock = photo
+    ? `<img src="${photo}" alt="Attendee" style="width:150px;height:150px;object-fit:cover;border-radius:8px;border:3px solid #cba36b;" />`
+    : `<div style="width:150px;height:150px;border-radius:8px;border:3px dashed #decbb2;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;text-align:center;">No Photo<br/>Provided</div>`;
+
+  const row = (label: string, value: unknown) =>
+    `<tr><td style="padding:7px 12px;font-weight:600;color:#531c22;width:190px;border-bottom:1px solid #f0e9e0;font-size:13px;">${esc(label)}</td><td style="padding:7px 12px;color:#301317;border-bottom:1px solid #f0e9e0;font-size:13px;">${esc(value) || '—'}</td></tr>`;
+
+  const paidTotal = reg.transactions.reduce((s, t) => s + t.amount, 0) / 100;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Registration Form — ${esc(reg.child?.name || reg.user.name)}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: #301317; background: #f3eee9; padding: 24px; }
+  .sheet { max-width: 820px; margin: 0 auto; background: #fff; border: 1px solid #e5ddd2; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+  .header { background: linear-gradient(135deg, #301317 0%, #531c22 100%); color: #f3eee9; padding: 26px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 26px; font-style: italic; color: #cba36b; letter-spacing: 1px; }
+  .header .sub { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: rgba(243,238,233,0.6); margin-top: 4px; }
+  .header .ref { text-align: right; font-size: 12px; }
+  .header .ref b { display:block; font-size: 15px; color: #cba36b; font-family: monospace; letter-spacing: 1px; }
+  .body { padding: 28px 32px; }
+  .top-row { display: flex; gap: 26px; margin-bottom: 24px; align-items: flex-start; }
+  .badges { margin-top: 12px; display:flex; gap:8px; flex-wrap:wrap; }
+  .badge { font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .b-green { background:#dcfce7; color:#15803d; } .b-amber { background:#fef3c7; color:#b45309; }
+  .b-red { background:#fee2e2; color:#b91c1c; } .b-blue { background:#dbeafe; color:#1d4ed8; } .b-orange { background:#ffedd5; color:#c2410c; }
+  h2.section { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #cba36b; font-weight: 700; margin: 22px 0 8px; border-bottom: 2px solid #cba36b; padding-bottom: 5px; font-family: Arial, sans-serif; }
+  table { width: 100%; border-collapse: collapse; }
+  .name-big { font-size: 28px; font-style: italic; color: #301317; }
+  .age-line { font-size: 14px; color: #531c22; margin-top: 4px; }
+  .footer { padding: 18px 32px; border-top: 1px solid #f0e9e0; font-size: 11px; color: #999; display:flex; justify-content:space-between; }
+  .print-bar { max-width: 820px; margin: 0 auto 16px; display: flex; gap: 10px; justify-content: flex-end; }
+  .print-bar button, .print-bar a { font-family: Arial, sans-serif; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; }
+  .btn-print { background: #cba36b; color: #301317; }
+  .btn-back { background: #fff; color: #531c22; border: 1px solid #decbb2; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .print-bar { display: none; }
+    .sheet { box-shadow: none; border: none; border-radius: 0; max-width: 100%; }
+    @page { margin: 12mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="print-bar">
+    <a class="btn-back" href="/admin/registrations">← Back</a>
+    <button class="btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <div class="sheet">
+    <div class="header">
+      <div>
+        <h1>NAGARTA Youth Camp</h1>
+        <div class="sub">Official Registration Form · 2026</div>
+      </div>
+      <div class="ref">
+        Reference<b>${esc(reg.referenceCode)}</b>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="top-row">
+        <div>${photoBlock}</div>
+        <div style="flex:1;">
+          <div class="name-big">${esc(reg.child?.name || reg.user.name)}</div>
+          <div class="age-line">${reg.child?.age ? `Age ${esc(reg.child.age)}` : ''}${reg.child?.gender ? ` · ${esc(reg.child.gender)}` : ''}${reg.child?.school ? ` · ${esc(reg.child.school)}` : ''}</div>
+          <div class="badges">
+            <span class="badge ${reg.status === 'CONFIRMED' ? 'b-green' : reg.status === 'PENDING' ? 'b-amber' : reg.status === 'CANCELLED' ? 'b-red' : 'b-blue'}">${esc(reg.status)}</span>
+            <span class="badge ${reg.paymentStatus === 'PAID' ? 'b-green' : reg.paymentStatus === 'PARTIAL' ? 'b-blue' : 'b-orange'}">Payment: ${esc(reg.paymentStatus)}</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section">Attendee Details</h2>
+      <table>
+        ${row('Full Name', reg.child?.name)}
+        ${row('Age', reg.child?.age)}
+        ${row('Gender', reg.child?.gender)}
+        ${row('School', reg.child?.school)}
+        ${row('Dietary Needs', reg.child?.dietaryNeeds)}
+        ${row('Medical Notes', reg.child?.medicalNotes)}
+        ${row('Emergency Contact', reg.child?.emergencyContact)}
+      </table>
+
+      <h2 class="section">Parent / Guardian</h2>
+      <table>
+        ${row('Parent Name', reg.parentName || reg.user.name)}
+        ${row('Address', reg.parentAddress)}
+        ${row('Phone', reg.parentPhone || reg.user.phone)}
+        ${row('Account Email', reg.user.email)}
+      </table>
+
+      ${(reg.motherName || reg.motherPhone || reg.motherEmail) ? `
+      <h2 class="section">Mother's Information</h2>
+      <table>
+        ${row("Mother's Name", reg.motherName)}
+        ${row('Address', reg.motherAddress)}
+        ${row('Phone', reg.motherPhone)}
+        ${row('Email', reg.motherEmail)}
+        ${row('Emergency Contact', reg.motherEmergencyContact)}
+      </table>` : ''}
+
+      ${(reg.fatherName || reg.fatherPhone || reg.fatherEmail) ? `
+      <h2 class="section">Father's Information</h2>
+      <table>
+        ${row("Father's Name", reg.fatherName)}
+        ${row('Address', reg.fatherAddress)}
+        ${row('Phone', reg.fatherPhone)}
+        ${row('Email', reg.fatherEmail)}
+        ${row('Emergency Contact', reg.fatherEmergencyContact)}
+      </table>` : ''}
+
+      <h2 class="section">Registration & Payment</h2>
+      <table>
+        ${row('Reference Code', reg.referenceCode)}
+        ${row('Status', reg.status)}
+        ${row('Payment Status', reg.paymentStatus)}
+        ${row('Amount Paid', paidTotal > 0 ? `GH₵ ${paidTotal.toLocaleString()}` : 'Not paid yet')}
+        ${row('Registered On', reg.createdAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}
+        ${reg.notes ? row('Notes', reg.notes) : ''}
+      </table>
+    </div>
+
+    <div class="footer">
+      <span>NAGARTA Youth Camp · 19–23 December 2026 · Accra, Ghana</span>
+      <span>Printed: ${new Date().toLocaleDateString('en-GB')}</span>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
+});
+
 app.post('/admin/registrations/:id/status', requireAdminSession, async (req, res) => {
   await prisma.registration.update({ where: { id: req.params.id }, data: { status: req.body.status } });
   res.redirect('/admin/registrations');
