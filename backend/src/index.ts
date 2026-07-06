@@ -166,16 +166,29 @@ app.get('/admin/logout', (req, res) => {
 
 app.get('/admin', requireAdminSession, async (_req, res) => {
   try {
-    const [totalRegistrations, pendingRegistrations, confirmedRegistrations, totalMessages, recentRegistrations, allChildren] =
-      await Promise.all([
-        prisma.registration.count(),
-        prisma.registration.count({ where: { status: 'PENDING' } }),
-        prisma.registration.count({ where: { status: 'CONFIRMED' } }),
-        prisma.contactMessage.count({ where: { resolved: false } }),
-        prisma.registration.findMany({ take: 8, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true, email: true } }, child: { select: { name: true } } } }),
-        prisma.child.findMany({ select: { age: true, gender: true, school: true } }),
-      ]);
-    const capacity = parseInt((await prisma.siteContent.findUnique({ where: { key: 'camp_capacity' } }))?.value || '1000');
+    // Run ALL queries in parallel (was: 6 parallel + 1 sequential = slower)
+    const [
+      totalRegistrations,
+      pendingRegistrations,
+      confirmedRegistrations,
+      totalMessages,
+      recentRegistrations,
+      allChildren,
+      capacityContent,
+    ] = await Promise.all([
+      prisma.registration.count(),
+      prisma.registration.count({ where: { status: 'PENDING' } }),
+      prisma.registration.count({ where: { status: 'CONFIRMED' } }),
+      prisma.contactMessage.count({ where: { resolved: false } }),
+      prisma.registration.findMany({
+        take: 8,
+        orderBy: { createdAt: 'desc' },
+        include: { user: { select: { name: true, email: true } }, child: { select: { name: true } } },
+      }),
+      prisma.child.findMany({ select: { age: true, gender: true, school: true } }),
+      prisma.siteContent.findUnique({ where: { key: 'camp_capacity' }, select: { value: true } }),
+    ]);
+    const capacity = parseInt(capacityContent?.value || '1000');
 
     // Age statistics — group by individual age
     const ageStats: Record<string, number> = {};

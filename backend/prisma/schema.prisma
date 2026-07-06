@@ -38,6 +38,8 @@ model Child {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   registrations    Registration[]
+
+  @@index([parentId])
   @@map("children")
 }
 
@@ -71,6 +73,11 @@ model Registration {
   updatedAt        DateTime             @updatedAt
   transactions     PaymentTransaction[]
   notifications    Notification[]
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([userId])
+  @@index([createdAt])
   @@map("registrations")
 }
 
