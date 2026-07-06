@@ -37,6 +37,14 @@ export default function ParentDashboard() {
   const [mother, setMother] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
   const [father, setFather] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
 
+  // Package selection for add-a-child
+  const [selectedPackage, setSelectedPackage] = useState<'Early Bird' | 'Regular Package'>('Early Bird');
+  const packagePrice = selectedPackage === 'Early Bird' ? '235' : '260';
+
+  // Paystack payment popup state
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_fcb37013accb3e3d1151fd2ae10613fb9c043301';
+
   useEffect(() => {
     const token = getToken();
     if (!token) { router.push('/auth/sign-in'); return; }
@@ -138,10 +146,89 @@ export default function ParentDashboard() {
       setAddChildRef(result.referenceCode);
       const regs = await getMyRegistrations(token);
       setRegistrations(regs);
+
+      // Auto-trigger Paystack payment popup after successful registration
+      setTimeout(() => {
+        openPaystackPayment(result.referenceCode, newChild.name);
+      }, 500);
     } catch {
       setAddChildError('Registration failed. Please try again.');
     } finally {
       setAddingChild(false);
+    }
+  }
+
+  // Load Paystack script dynamically
+  function loadPaystackScript(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined') return resolve(false);
+      if ((window as unknown as { PaystackPop?: unknown }).PaystackPop) return resolve(true);
+      const script = document.createElement('script');
+      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+
+  // Open Paystack popup for payment
+  async function openPaystackPayment(registrationRef: string, camperName: string) {
+    setPaymentProcessing(true);
+    try {
+      const loaded = await loadPaystackScript();
+      const PaystackPop = (window as unknown as {
+        PaystackPop?: { setup: (config: Record<string, unknown>) => { openIframe: () => void } };
+      }).PaystackPop;
+
+      if (!loaded || !PaystackPop) {
+        alert('Failed to load Paystack. Please try again.');
+        setPaymentProcessing(false);
+        return;
+      }
+
+      const parentEmail = mother.email || father.email || user?.email || '';
+      const parentName = mother.name || father.name || user?.name || 'Parent';
+      const parentPhone = mother.phone || father.phone || user?.phone || '';
+      const reference = `NAGARTA-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const amountInGHS = parseInt(packagePrice) * 12;
+      const amountInPesewas = amountInGHS * 100;
+
+      const paystack = PaystackPop.setup({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: parentEmail,
+        amount: amountInPesewas,
+        currency: 'GHS',
+        ref: reference,
+        metadata: {
+          fullName: parentName,
+          phone: parentPhone,
+          package: selectedPackage,
+          camperName,
+          registrationRef,
+          custom_fields: [
+            { display_name: 'Camper Name', variable_name: 'camper_name', value: camperName },
+            { display_name: 'Package', variable_name: 'package', value: selectedPackage },
+            { display_name: 'NAGARTA Ref', variable_name: 'nagarta_ref', value: registrationRef },
+          ],
+        },
+        callback: (response: { reference: string }) => {
+          // Payment successful - verify + redirect
+          fetch(`/api/paystack/verify/${response.reference}`)
+            .catch(() => {})
+            .finally(() => {
+              window.location.href = `/payment/success?ref=${response.reference}&amount=${packagePrice}&package=${encodeURIComponent(selectedPackage)}&email=${encodeURIComponent(parentEmail)}&campRef=${encodeURIComponent(registrationRef)}`;
+            });
+        },
+        onClose: () => {
+          setPaymentProcessing(false);
+        },
+      });
+
+      paystack.openIframe();
+    } catch (err) {
+      console.error('Payment error:', err);
+      setPaymentProcessing(false);
     }
   }
 
@@ -357,6 +444,40 @@ export default function ParentDashboard() {
                       <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-3 text-sm">{addChildError}</div>
                     )}
 
+                    {/* PACKAGE SELECTION */}
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4">
+                      <p className="text-sm font-bold text-maroon mb-3">💰 Select Package</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className={`relative cursor-pointer rounded-xl p-3 border-2 transition-all ${
+                          selectedPackage === 'Early Bird'
+                            ? 'border-orange-500 bg-gradient-to-br from-amber-50 to-orange-100 shadow-md'
+                            : 'border-gray-200 bg-white'
+                        }`}>
+                          <input type="radio" checked={selectedPackage === 'Early Bird'} onChange={() => setSelectedPackage('Early Bird')} className="sr-only" />
+                          <div className="text-center">
+                            <p className="text-xs font-bold text-maroon">🐦 Early Bird</p>
+                            <p className="text-2xl font-bold text-orange-600">$235</p>
+                            <p className="text-[10px] text-rose-600 font-semibold">Save $25!</p>
+                          </div>
+                        </label>
+                        <label className={`relative cursor-pointer rounded-xl p-3 border-2 transition-all ${
+                          selectedPackage === 'Regular Package'
+                            ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-100 shadow-md'
+                            : 'border-gray-200 bg-white'
+                        }`}>
+                          <input type="radio" checked={selectedPackage === 'Regular Package'} onChange={() => setSelectedPackage('Regular Package')} className="sr-only" />
+                          <div className="text-center">
+                            <p className="text-xs font-bold text-maroon">Regular</p>
+                            <p className="text-2xl font-bold text-emerald-600">$260</p>
+                            <p className="text-[10px] text-gray-500">Standard</p>
+                          </div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-emerald-700 mt-2 text-center">
+                        💳 Payment popup will appear after registration • Amount: <strong>GH₵ {(parseInt(packagePrice) * 12).toLocaleString()}</strong>
+                      </p>
+                    </div>
+
                     {/* Photo upload */}
                     <div>
                       <label className={labelClass}>Attendee Photo</label>
@@ -522,10 +643,10 @@ export default function ParentDashboard() {
 
                     <button
                       type="submit"
-                      disabled={addingChild}
-                      className="w-full bg-gold text-maroon font-semibold py-3 rounded-lg tracking-wider uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50 mt-6"
+                      disabled={addingChild || paymentProcessing}
+                      className="w-full bg-gradient-to-r from-gold via-amber-500 to-orange-500 text-maroon font-bold py-4 rounded-xl tracking-wider uppercase text-sm hover:shadow-lg transition-all disabled:opacity-50 mt-6 shadow-md"
                     >
-                      {addingChild ? 'Registering...' : 'Register Child'}
+                      {addingChild ? '⏳ Registering...' : paymentProcessing ? '💳 Opening Payment...' : '🎯 Register & Pay Now'}
                     </button>
                   </form>
                 )}
