@@ -145,6 +145,13 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+
+    // Photo is mandatory
+    if (!childPhoto) {
+      setError('Please upload a photo of the attendee before submitting.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -437,8 +444,8 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Photo upload */}
                   <div className="sm:col-span-2">
-                    <label className={labelClass}>Attendee Photo</label>
-                    <div className="flex items-center gap-4">
+                    <label className={labelClass}>Attendee Photo <span className="text-red-500">*</span></label>
+                    <div className={`flex items-center gap-4 p-3 rounded-lg border-2 ${!childPhoto ? 'border-dashed border-red-300 bg-red-50/30' : 'border-transparent'}`}>
                       <div className="w-20 h-20 rounded-full border-2 border-dashed border-beige bg-cream flex items-center justify-center overflow-hidden flex-shrink-0">
                         {photoPreview ? (
                           <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
@@ -453,11 +460,12 @@ export default function RegisterPage() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                          {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                          {photoPreview ? 'Change Photo' : 'Upload Photo (Required)'}
                           <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                         </label>
-                        <p className="text-xs text-burgundy/50 mt-1.5">Used by camp staff to identify the attendee on arrival. JPG, PNG or WEBP · Max 5MB</p>
+                        <p className="text-xs text-burgundy/50 mt-1.5">Required — used by camp staff to identify the attendee on arrival. JPG, PNG or WEBP · Max 5MB</p>
                         {photoError && <p className="text-xs text-red-600 font-medium mt-1.5">⚠️ {photoError}</p>}
+                        {!photoPreview && !photoError && <p className="text-xs text-red-500 font-medium mt-1.5">⚠️ A photo is required to complete registration</p>}
                       </div>
                     </div>
                   </div>
