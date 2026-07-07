@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getMe, getAnnouncements, getMyRegistrations, submitRegistration, submitContactMessage, type User, type Announcement, type Registration } from '@/lib/api';
 import { getToken, getStoredUser, clearAuth } from '@/lib/auth';
+import BankDetails from '@/components/BankDetails';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
@@ -36,14 +37,6 @@ export default function ParentDashboard() {
   const [parentType, setParentType] = useState<'mother' | 'father' | 'both'>('both');
   const [mother, setMother] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
   const [father, setFather] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
-
-  // Package selection for add-a-child
-  const [selectedPackage, setSelectedPackage] = useState<'Early Bird' | 'Regular Package'>('Early Bird');
-  const packagePrice = selectedPackage === 'Early Bird' ? '235' : '260';
-
-  // Paystack payment popup state
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_fcb37013accb3e3d1151fd2ae10613fb9c043301';
 
   useEffect(() => {
     const token = getToken();
@@ -153,89 +146,10 @@ export default function ParentDashboard() {
       setAddChildRef(result.referenceCode);
       const regs = await getMyRegistrations(token);
       setRegistrations(regs);
-
-      // Auto-trigger Paystack payment popup after successful registration
-      setTimeout(() => {
-        openPaystackPayment(result.referenceCode, newChild.name);
-      }, 500);
     } catch {
       setAddChildError('Registration failed. Please try again.');
     } finally {
       setAddingChild(false);
-    }
-  }
-
-  // Load Paystack script dynamically
-  function loadPaystackScript(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (typeof window === 'undefined') return resolve(false);
-      if ((window as unknown as { PaystackPop?: unknown }).PaystackPop) return resolve(true);
-      const script = document.createElement('script');
-      script.src = 'https://js.paystack.co/v1/inline.js';
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  }
-
-  // Open Paystack popup for payment
-  async function openPaystackPayment(registrationRef: string, camperName: string) {
-    setPaymentProcessing(true);
-    try {
-      const loaded = await loadPaystackScript();
-      const PaystackPop = (window as unknown as {
-        PaystackPop?: { setup: (config: Record<string, unknown>) => { openIframe: () => void } };
-      }).PaystackPop;
-
-      if (!loaded || !PaystackPop) {
-        alert('Failed to load Paystack. Please try again.');
-        setPaymentProcessing(false);
-        return;
-      }
-
-      const parentEmail = mother.email || father.email || user?.email || '';
-      const parentName = mother.name || father.name || user?.name || 'Parent';
-      const parentPhone = mother.phone || father.phone || user?.phone || '';
-      const reference = `NAGARTA-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      const amountInGHS = parseInt(packagePrice) * 12;
-      const amountInPesewas = amountInGHS * 100;
-
-      const paystack = PaystackPop.setup({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: parentEmail,
-        amount: amountInPesewas,
-        currency: 'GHS',
-        ref: reference,
-        metadata: {
-          fullName: parentName,
-          phone: parentPhone,
-          package: selectedPackage,
-          camperName,
-          registrationRef,
-          custom_fields: [
-            { display_name: 'Camper Name', variable_name: 'camper_name', value: camperName },
-            { display_name: 'Package', variable_name: 'package', value: selectedPackage },
-            { display_name: 'NAGARTA Ref', variable_name: 'nagarta_ref', value: registrationRef },
-          ],
-        },
-        callback: (response: { reference: string }) => {
-          // Payment successful - verify + redirect
-          fetch(`/api/paystack/verify/${response.reference}`)
-            .catch(() => {})
-            .finally(() => {
-              window.location.href = `/payment/success?ref=${response.reference}&amount=${packagePrice}&package=${encodeURIComponent(selectedPackage)}&email=${encodeURIComponent(parentEmail)}&campRef=${encodeURIComponent(registrationRef)}`;
-            });
-        },
-        onClose: () => {
-          setPaymentProcessing(false);
-        },
-      });
-
-      paystack.openIframe();
-    } catch (err) {
-      console.error('Payment error:', err);
-      setPaymentProcessing(false);
     }
   }
 
@@ -416,6 +330,20 @@ export default function ParentDashboard() {
               </div>
             )}
 
+            {/* Permanent payment info — how to pay via bank transfer */}
+            {registrations.length > 0 && !showAddChild && (
+              <div className="bg-white border-2 border-emerald-100 rounded-2xl p-6 shadow-sm">
+                <h3 className="font-serif text-lg font-bold text-maroon mb-4 flex items-center gap-2">
+                  💳 How to Pay
+                </h3>
+                <BankDetails
+                  referenceCode={registrations[0]?.referenceCode}
+                  camperName={registrations[0]?.child?.name || undefined}
+                  compact
+                />
+              </div>
+            )}
+
             {/* Add a Child inline form */}
             {showAddChild && (
               <div className="bg-white border border-gold/30 rounded-xl p-6 shadow-sm">
@@ -425,18 +353,20 @@ export default function ParentDashboard() {
                 </div>
 
                 {addChildRef ? (
-                  <div className="text-center py-8">
-                    <div className="w-14 h-14 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-7 h-7 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                  <div className="py-4">
+                    <div className="text-center mb-5">
+                      <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <p className="font-serif text-xl text-maroon italic">Child registered! 🎉</p>
+                      <p className="text-sm text-burgundy/70 mt-1">Complete payment using the bank details below</p>
                     </div>
-                    <p className="font-serif text-lg text-maroon italic">Child registered!</p>
-                    <div className="bg-beige rounded px-3 py-2 inline-block mt-2">
-                      <p className="label-caps text-burgundy text-xs mb-0.5">Reference Code</p>
-                      <p className="font-mono text-maroon text-xs font-semibold break-all">{addChildRef}</p>
-                    </div>
-                    <div className="flex gap-3 justify-center mt-5">
+
+                    <BankDetails referenceCode={addChildRef} camperName={newChild.name} compact />
+
+                    <div className="flex gap-3 justify-center mt-6">
                       <button onClick={addAnother} className="bg-gold text-maroon px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
                         Add Another Child
                       </button>
@@ -451,39 +381,6 @@ export default function ParentDashboard() {
                       <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-3 text-sm">{addChildError}</div>
                     )}
 
-                    {/* PACKAGE SELECTION */}
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4">
-                      <p className="text-sm font-bold text-maroon mb-3">💰 Select Package</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className={`relative cursor-pointer rounded-xl p-3 border-2 transition-all ${
-                          selectedPackage === 'Early Bird'
-                            ? 'border-orange-500 bg-gradient-to-br from-amber-50 to-orange-100 shadow-md'
-                            : 'border-gray-200 bg-white'
-                        }`}>
-                          <input type="radio" checked={selectedPackage === 'Early Bird'} onChange={() => setSelectedPackage('Early Bird')} className="sr-only" />
-                          <div className="text-center">
-                            <p className="text-xs font-bold text-maroon">🐦 Early Bird</p>
-                            <p className="text-2xl font-bold text-orange-600">$235</p>
-                            <p className="text-[10px] text-rose-600 font-semibold">Save $25!</p>
-                          </div>
-                        </label>
-                        <label className={`relative cursor-pointer rounded-xl p-3 border-2 transition-all ${
-                          selectedPackage === 'Regular Package'
-                            ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-100 shadow-md'
-                            : 'border-gray-200 bg-white'
-                        }`}>
-                          <input type="radio" checked={selectedPackage === 'Regular Package'} onChange={() => setSelectedPackage('Regular Package')} className="sr-only" />
-                          <div className="text-center">
-                            <p className="text-xs font-bold text-maroon">Regular</p>
-                            <p className="text-2xl font-bold text-emerald-600">$260</p>
-                            <p className="text-[10px] text-gray-500">Standard</p>
-                          </div>
-                        </label>
-                      </div>
-                      <p className="text-xs text-emerald-700 mt-2 text-center">
-                        💳 Payment popup will appear after registration • Amount: <strong>GH₵ {(parseInt(packagePrice) * 12).toLocaleString()}</strong>
-                      </p>
-                    </div>
 
                     {/* Photo upload */}
                     <div>
@@ -653,10 +550,10 @@ export default function ParentDashboard() {
 
                     <button
                       type="submit"
-                      disabled={addingChild || paymentProcessing}
+                      disabled={addingChild}
                       className="w-full bg-gradient-to-r from-gold via-amber-500 to-orange-500 text-maroon font-bold py-4 rounded-xl tracking-wider uppercase text-sm hover:shadow-lg transition-all disabled:opacity-50 mt-6 shadow-md"
                     >
-                      {addingChild ? '⏳ Registering...' : paymentProcessing ? '💳 Opening Payment...' : '🎯 Register & Pay Now'}
+                      {addingChild ? '⏳ Registering...' : '🎯 Register Child'}
                     </button>
                   </form>
                 )}

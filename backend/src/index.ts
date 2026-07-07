@@ -116,7 +116,6 @@ app.use('/api/schedule', scheduleRouter);
 app.use('/api/registrations', registrationsRouter);
 app.use('/api/contact-messages', contactRouter);
 app.use('/api/announcements', announcementsRouter);
-app.use('/api/paystack', require('./routes/paystack').default);
 
 // ── Admin REST API ───────────────────────────────────────────────────────────
 app.use('/api/admin/stats', statsRouter);

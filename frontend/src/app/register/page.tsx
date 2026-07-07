@@ -237,22 +237,17 @@ export default function RegisterPage() {
         localStorage.removeItem(SAVED_FORM_KEY);
       }
 
-      // Redirect to payment page with pre-filled info + selected package
+      // Redirect to bank-transfer details page with the child's reference
       const paymentParams = new URLSearchParams({
         ref: result.referenceCode,
         camperName: child.name,
-        parentEmail: parentEmail || '',
-        parentPhone: parentPhone || '',
-        parentName: parentName || '',
-        package: selectedPackage,
-        amount: packagePrice,
       });
 
       // Show quick success message then redirect
       setSuccess({ referenceCode: result.referenceCode, name: child.name });
 
       setTimeout(() => {
-        router.push(`/payment/visa?${paymentParams.toString()}`);
+        router.push(`/payment/bank?${paymentParams.toString()}`);
       }, 2000);
     } catch {
       setError('Registration failed. Please check you are signed in and try again.');
