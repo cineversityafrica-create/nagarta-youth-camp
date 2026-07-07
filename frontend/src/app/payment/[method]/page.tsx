@@ -183,11 +183,32 @@ function PaymentPageContent() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 md:p-10">
-            {/* Package Selection */}
+            {/* Child Reference Number — highlighted */}
+            {searchParams.get('ref') && (
+              <div className="mb-5 rounded-2xl border-2 border-gold bg-gradient-to-br from-amber-50 to-orange-50 p-4 text-center">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-burgundy/70 mb-1">
+                  {searchParams.get('camperName') ? `${searchParams.get('camperName')}'s ` : ''}Reference Number
+                </p>
+                <p className="text-2xl md:text-3xl font-mono font-bold text-maroon tracking-wide break-all">
+                  {searchParams.get('ref')}
+                </p>
+              </div>
+            )}
+
+            {/* Payment Notice */}
+            <div className="mb-6 rounded-xl border-l-4 border-rose-500 bg-rose-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-rose-700 mb-1">⚠️ Payment Notice</p>
+              <p className="text-xs text-rose-800 leading-relaxed">
+                Use your child&apos;s reference number as your payment reference. This helps us match your payment
+                to your child. Incorrect or missing references may delay payment confirmation.
+              </p>
+            </div>
+
+            {/* Package Selection — compact, GHS */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-burgundy mb-2 uppercase tracking-wider">Select Package</label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className={`relative cursor-pointer rounded-2xl p-4 border-2 ${formData.package === 'Early Bird' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
+              <label className="block text-xs font-bold text-burgundy mb-2 uppercase tracking-wider">Select Package</label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className={`relative cursor-pointer rounded-xl p-2.5 border-2 ${formData.package === 'Early Bird' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
                   <input
                     type="radio"
                     name="package"
@@ -197,12 +218,12 @@ function PaymentPageContent() {
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <p className="font-bold text-maroon">🐦 Early Bird</p>
-                    <p className="text-2xl font-bold text-orange-600">$235</p>
-                    <p className="text-xs text-rose-600 font-semibold">Save $25!</p>
+                    <p className="text-[11px] font-bold text-maroon">🐦 Early Bird</p>
+                    <p className="text-base font-bold text-orange-600">GH₵ 2,820</p>
+                    <p className="text-[10px] text-rose-600 font-semibold">Save GH₵ 300!</p>
                   </div>
                 </label>
-                <label className={`relative cursor-pointer rounded-2xl p-4 border-2 ${formData.package === 'Regular Package' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
+                <label className={`relative cursor-pointer rounded-xl p-2.5 border-2 ${formData.package === 'Regular Package' ? `${config.borderColor} bg-gradient-to-br ${config.lightGradient}` : 'border-gray-200'} transition-all`}>
                   <input
                     type="radio"
                     name="package"
@@ -212,9 +233,9 @@ function PaymentPageContent() {
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <p className="font-bold text-maroon">Regular</p>
-                    <p className="text-2xl font-bold text-emerald-600">$260</p>
-                    <p className="text-xs text-gray-500">Standard Price</p>
+                    <p className="text-[11px] font-bold text-maroon">Regular</p>
+                    <p className="text-base font-bold text-emerald-600">GH₵ 3,120</p>
+                    <p className="text-[10px] text-gray-500">Standard Price</p>
                   </div>
                 </label>
               </div>
