@@ -70,15 +70,16 @@ export default function ParentDashboard() {
   }, [router]);
 
   function updateNewChild(field: string, val: string) {
-    setNewChild((p) => ({ ...p, [field]: val }));
+    setNewChild((p) => ({ ...p, [field]: val.toUpperCase() }));
   }
 
   function updateMother(field: string, val: string) {
-    setMother((p) => ({ ...p, [field]: val }));
+    // Uppercase everything except the email (case matters for login)
+    setMother((p) => ({ ...p, [field]: field === 'email' ? val : val.toUpperCase() }));
   }
 
   function updateFather(field: string, val: string) {
-    setFather((p) => ({ ...p, [field]: val }));
+    setFather((p) => ({ ...p, [field]: field === 'email' ? val : val.toUpperCase() }));
   }
 
   function handleNewChildPhoto(e: React.ChangeEvent<HTMLInputElement>) {

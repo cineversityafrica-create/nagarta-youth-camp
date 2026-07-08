@@ -98,19 +98,21 @@ export default function RegisterPage() {
   }
 
   function updateChild(field: string, val: string) {
-    setChild((p) => ({ ...p, [field]: val }));
+    // Block letters for data fields; leave the gender dropdown value untouched
+    setChild((p) => ({ ...p, [field]: field === 'gender' ? val : val.toUpperCase() }));
   }
 
   function updateParent(field: string, val: string) {
-    setParent((p) => ({ ...p, [field]: val }));
+    setParent((p) => ({ ...p, [field]: val.toUpperCase() }));
   }
 
   function updateMother(field: string, val: string) {
-    setMother((p) => ({ ...p, [field]: val }));
+    // Uppercase everything except the email (case matters for login)
+    setMother((p) => ({ ...p, [field]: field === 'email' ? val : val.toUpperCase() }));
   }
 
   function updateFather(field: string, val: string) {
-    setFather((p) => ({ ...p, [field]: val }));
+    setFather((p) => ({ ...p, [field]: field === 'email' ? val : val.toUpperCase() }));
   }
 
   function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -519,7 +521,7 @@ export default function RegisterPage() {
                   </div>
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Additional Notes</label>
-                    <textarea rows={2} value={childNotes} onChange={e => setChildNotes(e.target.value)} placeholder="Anything else we should know?" className={inputClass} />
+                    <textarea rows={2} value={childNotes} onChange={e => setChildNotes(e.target.value.toUpperCase())} placeholder="Anything else we should know?" className={inputClass} />
                   </div>
                 </div>
 
