@@ -123,32 +123,32 @@ export default function BankDetails({ referenceCode, camperName }: BankDetailsPr
             className="block w-full text-left group mb-6"
           >
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60 mb-1">Account Number</p>
-            <div className="flex items-center gap-3">
-              <p className="text-2xl md:text-3xl font-mono font-bold tracking-[0.15em] text-white drop-shadow-sm">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <p className="text-xl sm:text-2xl md:text-3xl font-mono font-bold tracking-[0.08em] sm:tracking-[0.15em] text-white drop-shadow-sm break-all">
                 {ACCOUNT_NUMBER}
               </p>
-              <span className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 transition-colors ${copied === 'number' ? 'bg-emerald-300 text-emerald-900' : 'bg-white/15 text-white/80 group-hover:bg-white/25'}`}>
-                {copied === 'number' ? '✓' : 'Copy'}
+              <span className={`flex-shrink-0 text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 transition-colors ${copied === 'number' ? 'bg-emerald-300 text-emerald-900' : 'bg-white/15 text-white/80 group-hover:bg-white/25'}`}>
+                {copied === 'number' ? '✓ Copied' : 'Copy'}
               </span>
             </div>
           </button>
 
           {/* bottom row: name + bank */}
-          <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
             <button
               type="button"
               onClick={() => copy(ACCOUNT_NAME, 'name')}
-              className="text-left group min-w-0"
+              className="text-left group w-full sm:min-w-0"
             >
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60 mb-0.5">Account Name</p>
-              <p className="text-sm md:text-base font-bold tracking-wide text-white truncate group-hover:text-amber-200 transition-colors">
+              <p className="text-sm md:text-base font-bold tracking-wide text-white break-words group-hover:text-amber-200 transition-colors">
                 {ACCOUNT_NAME}
-                <span className={`ml-2 align-middle text-[9px] font-bold uppercase rounded-full px-1.5 py-0.5 ${copied === 'name' ? 'bg-emerald-300 text-emerald-900' : 'bg-white/15 text-white/70'}`}>
-                  {copied === 'name' ? '✓' : 'copy'}
+                <span className={`ml-2 inline-block align-middle text-[9px] font-bold uppercase rounded-full px-1.5 py-0.5 ${copied === 'name' ? 'bg-emerald-300 text-emerald-900' : 'bg-white/15 text-white/70'}`}>
+                  {copied === 'name' ? '✓ Copied' : 'copy'}
                 </span>
               </p>
             </button>
-            <div className="flex-shrink-0 text-right">
+            <div className="flex-shrink-0 flex items-center gap-1.5 sm:block sm:text-right">
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">Currency</p>
               <p className="text-sm font-bold text-white">GH₵</p>
             </div>
