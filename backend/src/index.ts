@@ -624,8 +624,7 @@ app.get('/admin/payments', requireAdminSession, async (req, res) => {
   const ref = ((req.query.ref as string) || '').trim().toUpperCase();
   const success = (req.query.success as string) || null;
   const errMsg  = (req.query.error   as string) || null;
-  const key = process.env.PAYSTACK_PUBLIC_KEY || '';
-  if (!ref) return res.render('admin/payments', { registration: null, error: errMsg, success, paystackKey: key });
+  if (!ref) return res.render('admin/payments', { registration: null, error: errMsg, success });
 
   const registration = await prisma.registration.findUnique({
     where: { referenceCode: ref },
@@ -635,7 +634,6 @@ app.get('/admin/payments', requireAdminSession, async (req, res) => {
     registration: registration || null,
     error: registration ? errMsg : 'No registration found for that reference code.',
     success,
-    paystackKey: key,
     query: ref,
   });
 });
