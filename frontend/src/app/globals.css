@@ -75,6 +75,17 @@
   }
 }
 
+/* Legal pages (Terms, Privacy) — readable long-form typography */
+.legal-content h2 {
+  @apply font-serif text-lg md:text-xl font-bold text-maroon mt-8 mb-3;
+}
+.legal-content h2:first-child { @apply mt-0; }
+.legal-content p { @apply text-sm text-maroon/80 leading-relaxed mb-4; }
+.legal-content ul { @apply list-disc pl-5 space-y-1.5 mb-5; }
+.legal-content li { @apply text-sm text-maroon/80 leading-relaxed; }
+.legal-content strong { @apply font-semibold text-maroon; }
+.legal-content a { @apply text-gold underline hover:text-amber-600; }
+
 /* Skeleton loader pulse animation */
 @keyframes skeleton-pulse {
   0%, 100% {

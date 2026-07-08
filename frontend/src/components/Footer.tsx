@@ -101,9 +101,11 @@ export default function Footer({ content }: FooterProps) {
           <p className="text-xs text-beige/40">
             &copy; {new Date().getFullYear()} NAGARTA Youth Camp. All rights reserved.
           </p>
-          <div className="flex gap-6 text-xs text-beige/40">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-beige/40">
             <Link href="/contact" className="hover:text-gold transition-colors">Contact</Link>
             <Link href="/auth/sign-in" className="hover:text-gold transition-colors">Parent Portal</Link>
+            <Link href="/terms" className="hover:text-gold transition-colors">Terms</Link>
+            <Link href="/privacy" className="hover:text-gold transition-colors">Privacy</Link>
           </div>
         </div>
       </div>
