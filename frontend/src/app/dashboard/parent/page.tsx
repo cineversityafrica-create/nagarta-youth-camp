@@ -92,10 +92,10 @@ export default function ParentDashboard() {
       return;
     }
 
-    // Validate file size (5MB = 5242880 bytes)
-    const maxSize = 5 * 1024 * 1024;
+    // Validate file size (15MB) — the image is compressed client-side before upload
+    const maxSize = 15 * 1024 * 1024;
     if (file.size > maxSize) {
-      setPhotoError('File size must be less than 5MB');
+      setPhotoError('File size must be less than 15MB');
       return;
     }
 

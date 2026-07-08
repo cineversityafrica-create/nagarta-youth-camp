@@ -124,10 +124,10 @@ export default function RegisterPage() {
       return;
     }
 
-    // Validate file size (5MB = 5242880 bytes)
-    const maxSize = 5 * 1024 * 1024;
+    // Validate file size (15MB) — the image is compressed client-side before upload
+    const maxSize = 15 * 1024 * 1024;
     if (file.size > maxSize) {
-      setPhotoError('File size must be less than 5MB');
+      setPhotoError('File size must be less than 15MB');
       return;
     }
 
@@ -468,7 +468,7 @@ export default function RegisterPage() {
                           {photoPreview ? 'Change Photo' : 'Upload Photo (Required)'}
                           <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                         </label>
-                        <p className="text-xs text-burgundy/50 mt-1.5">Required — used by camp staff to identify the attendee on arrival. JPG, PNG or WEBP · Max 5MB</p>
+                        <p className="text-xs text-burgundy/50 mt-1.5">Required — used by camp staff to identify the attendee on arrival. JPG, PNG or WEBP · Max 15MB</p>
                         {photoError && <p className="text-xs text-red-600 font-medium mt-1.5">⚠️ {photoError}</p>}
                         {!photoPreview && !photoError && <p className="text-xs text-red-500 font-medium mt-1.5">⚠️ A photo is required to complete registration</p>}
                       </div>
