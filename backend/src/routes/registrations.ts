@@ -134,10 +134,20 @@ router.get('/my', authenticate, async (req: AuthRequest, res) => {
   try {
     const regs = await prisma.registration.findMany({
       where: { userId: req.user!.userId },
-      include: { child: true },
+      include: {
+        child: true,
+        transactions: { orderBy: { createdAt: 'desc' } },
+      },
       orderBy: { createdAt: 'desc' },
     });
-    return res.json(regs);
+
+    // Attach amountPaid (in cedis) computed from transactions (stored in pesewas)
+    const withTotals = regs.map((r) => ({
+      ...r,
+      amountPaid: r.transactions.reduce((sum, t) => sum + t.amount, 0) / 100,
+    }));
+
+    return res.json(withTotals);
   } catch (err) {
     console.error('[registrations/my]', err);
     return res.status(500).json({ error: 'Failed to load registrations. Please try again.' });

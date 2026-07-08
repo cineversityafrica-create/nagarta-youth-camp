@@ -233,4 +233,13 @@ export interface Registration {
   fatherEmail?: string;
   fatherEmergencyContact?: string;
   createdAt: string;
+  amountPaid?: number; // in Ghana Cedis, summed from transactions
+  transactions?: {
+    id: string;
+    amount: number; // stored in pesewas (÷100 for cedis)
+    method: string;
+    reference?: string | null;
+    note?: string | null;
+    createdAt: string;
+  }[];
 }

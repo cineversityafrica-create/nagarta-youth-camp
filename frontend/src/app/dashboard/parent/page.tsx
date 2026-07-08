@@ -212,6 +212,12 @@ export default function ParentDashboard() {
     }
   }
 
+  // Derived summary totals
+  const totalChildren = registrations.length;
+  const totalPaid = registrations.reduce((sum, r) => sum + (r.amountPaid || 0), 0);
+  const confirmedCount = registrations.filter((r) => r.status === 'CONFIRMED').length;
+  const firstName = (user?.name || 'Parent').split(' ')[0];
+
   const tabs = [
     { key: 'overview', label: '🏠 Overview' },
     { key: 'announcements', label: `📢 News (${announcements.length})` },
@@ -219,39 +225,69 @@ export default function ParentDashboard() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-cream">
-      {/* Top bar */}
-      <div className="bg-maroon border-b border-burgundy">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/"><Image src="/logo-full.png" alt="NAGARTA" width={40} height={40} className="object-contain" /></Link>
-          <div className="flex items-center gap-4">
-            <span className="text-cream/60 text-sm">Parent Portal</span>
-            <button onClick={() => { clearAuth(); router.push('/'); }} className="text-xs text-beige/40 hover:text-gold transition-colors">
+    <div className="min-h-screen" style={{ background: 'radial-gradient(circle at 12% 0%, rgba(203,163,107,0.12), transparent 45%), radial-gradient(circle at 88% 8%, rgba(16,185,129,0.10), transparent 45%), #f6f1ea' }}>
+      {/* ── Hero header ─────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #301317 0%, #531c22 55%, #3b1f14 100%)' }}>
+        {/* decorative glows */}
+        <div className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 rounded-full opacity-30 blur-3xl" style={{ background: 'radial-gradient(circle, #cba36b, transparent 70%)' }} />
+        <div className="pointer-events-none absolute -bottom-28 left-10 w-72 h-72 rounded-full opacity-20 blur-3xl" style={{ background: 'radial-gradient(circle, #10b981, transparent 70%)' }} />
+        <div className="pointer-events-none absolute inset-0" style={{ background: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20h40M20 0v40' stroke='%23ffffff' stroke-opacity='0.03' stroke-width='1'/%3E%3C/svg%3E\")" }} />
+
+        <div className="relative max-w-6xl mx-auto px-6">
+          {/* top nav row */}
+          <div className="flex items-center justify-between py-4">
+            <Link href="/"><Image src="/logo-full.png" alt="NAGARTA" width={44} height={44} className="object-contain" /></Link>
+            <button onClick={() => { clearAuth(); router.push('/'); }} className="inline-flex items-center gap-1.5 text-xs text-beige/60 hover:text-gold transition-colors border border-white/10 hover:border-gold/40 rounded-full px-3 py-1.5">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
               Sign Out
             </button>
+          </div>
+
+          {/* greeting */}
+          <div className="flex items-center gap-4 pt-4 pb-8">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-maroon shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #f5d38a, #cba36b)' }}>
+              {firstName.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold/80">Parent Portal</p>
+              <h1 className="font-serif text-3xl md:text-4xl font-semibold text-cream italic leading-tight">Hi, {firstName} 👋</h1>
+              <p className="text-xs text-beige/50 mt-0.5">{user?.email}</p>
+            </div>
+          </div>
+
+          {/* summary stat cards — overlap bottom edge */}
+          <div className="grid grid-cols-3 gap-3 md:gap-4 -mb-10 pb-2">
+            {[
+              { label: 'Children', value: String(totalChildren), icon: '🧒', from: '#3b82f6', to: '#1d4ed8' },
+              { label: 'Total Paid', value: `GH₵ ${totalPaid.toLocaleString()}`, icon: '💰', from: '#10b981', to: '#047857' },
+              { label: 'Confirmed', value: String(confirmedCount), icon: '✅', from: '#f59e0b', to: '#d97706' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-2xl bg-white p-4 md:p-5 shadow-xl border border-white/60" style={{ boxShadow: '0 20px 40px -15px rgba(0,0,0,0.35)' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-burgundy/50">{s.label}</span>
+                  <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-md" style={{ background: `linear-gradient(135deg, ${s.from}, ${s.to})` }}>{s.icon}</span>
+                </div>
+                <p className="text-lg md:text-2xl font-bold text-maroon leading-none truncate">{s.value}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* Welcome */}
-        <div className="mb-8">
-          <p className="label-caps text-gold mb-2">Welcome back</p>
-          <h1 className="font-serif text-3xl font-semibold text-maroon italic">{user?.name}</h1>
-          <p className="text-sm text-burgundy mt-1">{user?.email}</p>
-        </div>
-
+      <div className="max-w-6xl mx-auto px-6 pt-16 pb-12">
         {/* Saved Form Reminder */}
         <SavedFormReminder />
 
-        {/* Tabs */}
-        <div className="flex border-b border-beige mb-8 gap-6">
+        {/* Tabs — pills */}
+        <div className="flex flex-wrap gap-2 mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 border border-beige/60 w-fit shadow-sm">
           {tabs.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`pb-3 text-sm font-medium tracking-wide transition-colors ${
-                activeTab === key ? 'border-b-2 border-gold text-maroon' : 'text-maroon/50 hover:text-maroon'
+              className={`px-4 py-2 rounded-xl text-sm font-semibold tracking-wide transition-all ${
+                activeTab === key
+                  ? 'bg-gradient-to-r from-maroon to-burgundy text-gold shadow-md'
+                  : 'text-maroon/60 hover:text-maroon hover:bg-white'
               }`}
             >
               {label}
@@ -282,47 +318,64 @@ export default function ParentDashboard() {
                 <p className="text-maroon/60 text-sm mb-4">No registrations yet.</p>
               </div>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {registrations.map((reg) => (
-                  <div key={reg.id} className="bg-white border border-beige rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                    {/* Child Photo */}
-                    <div className="flex-shrink-0">
-                      {reg.child?.photo ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={reg.child.photo}
-                          alt={reg.child.name || 'Camper'}
-                          className="w-20 h-20 rounded-full object-cover border-2 border-gold shadow-md"
-                        />
-                      ) : (
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gold to-amber-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
-                          {(reg.child?.name || '?').charAt(0).toUpperCase()}
+                  <div key={reg.id} className="group relative bg-white rounded-2xl p-5 border border-beige/70 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+                    {/* top accent by payment status */}
+                    <div className="absolute top-0 left-0 right-0 h-1.5" style={{
+                      background: reg.paymentStatus === 'PAID'
+                        ? 'linear-gradient(90deg,#10b981,#047857)'
+                        : reg.paymentStatus === 'PARTIAL'
+                        ? 'linear-gradient(90deg,#3b82f6,#1d4ed8)'
+                        : 'linear-gradient(90deg,#f59e0b,#d97706)',
+                    }} />
+
+                    <div className="flex items-start gap-4">
+                      {/* Photo */}
+                      <div className="flex-shrink-0">
+                        {reg.child?.photo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={reg.child.photo} alt={reg.child.name || 'Camper'}
+                            className="w-16 h-16 rounded-2xl object-cover ring-2 ring-gold/60 shadow-md" />
+                        ) : (
+                          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-md"
+                            style={{ background: 'linear-gradient(135deg,#cba36b,#a97c3f)' }}>
+                            {(reg.child?.name || '?').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-serif text-lg font-bold text-maroon truncate">{reg.child?.name || 'Self Registration'}</p>
+                        {reg.child && <p className="text-xs text-burgundy/70">Age {reg.child.age}{reg.child.school ? ` · ${reg.child.school}` : ''}</p>}
+                        <p className="text-[11px] text-gold font-mono mt-1 truncate">Ref: {reg.referenceCode}</p>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${
+                            reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                            reg.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {reg.status === 'CONFIRMED' ? '✅ Confirmed' : reg.status === 'PENDING' ? '⏳ Pending' : reg.status}
+                          </span>
+                          <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${
+                            reg.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
+                            reg.paymentStatus === 'PARTIAL' ? 'bg-blue-100 text-blue-700' :
+                            'bg-orange-100 text-orange-700'
+                          }`}>
+                            {reg.paymentStatus === 'PAID' ? '💰 Paid' : reg.paymentStatus === 'PARTIAL' ? '💳 Partial' : '⏱️ Unpaid'}
+                          </span>
                         </div>
-                      )}
+                      </div>
                     </div>
 
-                    {/* Info */}
-                    <div className="flex-1">
-                      <p className="font-semibold text-maroon text-lg">{reg.child?.name || 'Self Registration'}</p>
-                      {reg.child && <p className="text-sm text-burgundy">Age {reg.child.age}{reg.child.school ? ` · ${reg.child.school}` : ''}</p>}
-                      <p className="text-xs text-gold font-mono mt-1">Ref: {reg.referenceCode}</p>
-                    </div>
-
-                    {/* Status Badges */}
-                    <div className="flex flex-col gap-2 items-end">
-                      <span className={`text-xs px-3 py-1 rounded-full font-bold shadow-sm ${
-                        reg.status === 'CONFIRMED' ? 'bg-green-100 text-green-700 border border-green-300' :
-                        reg.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' :
-                        'bg-red-100 text-red-700 border border-red-300'
-                      }`}>
-                        {reg.status === 'CONFIRMED' ? '✅ CONFIRMED' : reg.status === 'PENDING' ? '⏳ PENDING' : reg.status}
-                      </span>
-                      <span className={`text-xs px-3 py-1 rounded-full font-bold shadow-sm ${
-                        reg.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' :
-                        reg.paymentStatus === 'PARTIAL' ? 'bg-blue-100 text-blue-700 border border-blue-300' :
-                        'bg-orange-100 text-orange-700 border border-orange-300'
-                      }`}>
-                        {reg.paymentStatus === 'PAID' ? '💰 PAID' : reg.paymentStatus === 'PARTIAL' ? '💳 PARTIAL' : '⏱️ UNPAID'}
+                    {/* Amount paid strip */}
+                    <div className="mt-4 flex items-center justify-between rounded-xl px-4 py-3"
+                      style={{ background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)' }}>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700/70">Amount Paid</span>
+                      <span className="text-lg font-bold text-emerald-700">
+                        GH₵ {(reg.amountPaid || 0).toLocaleString()}
+                        <span className="text-[10px] text-emerald-600/70 font-semibold">.00</span>
                       </span>
                     </div>
                   </div>
