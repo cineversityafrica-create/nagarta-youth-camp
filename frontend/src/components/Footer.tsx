@@ -106,6 +106,7 @@ export default function Footer({ content }: FooterProps) {
             <Link href="/auth/sign-in" className="hover:text-gold transition-colors">Parent Portal</Link>
             <Link href="/terms" className="hover:text-gold transition-colors">Terms</Link>
             <Link href="/privacy" className="hover:text-gold transition-colors">Privacy</Link>
+            <Link href="/refunds" className="hover:text-gold transition-colors">Refunds</Link>
           </div>
         </div>
       </div>

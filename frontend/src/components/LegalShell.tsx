@@ -41,6 +41,8 @@ export default function LegalShell({
             <Link href="/terms" className="hover:text-gold transition-colors">Terms of Service</Link>
             <span className="mx-2">·</span>
             <Link href="/privacy" className="hover:text-gold transition-colors">Privacy Policy</Link>
+            <span className="mx-2">·</span>
+            <Link href="/refunds" className="hover:text-gold transition-colors">Refund Policy</Link>
           </div>
         </div>
       </main>
