@@ -7,99 +7,189 @@ interface BankDetailsProps {
   compact?: boolean;
 }
 
-export default function BankDetails({ referenceCode, camperName, compact = false }: BankDetailsProps) {
+const ACCOUNT_NAME = 'SOABAPA GREEN PROJECT';
+const ACCOUNT_NUMBER = '1028000006418';
+const BANK_NAME = 'ACCESS BANK';
+
+export default function BankDetails({ referenceCode, camperName }: BankDetailsProps) {
   const [copied, setCopied] = useState<string>('');
 
   function copy(text: string, label: string) {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
         setCopied(label);
-        setTimeout(() => setCopied(''), 1500);
+        setTimeout(() => setCopied(''), 1600);
       });
     }
   }
 
   return (
-    <div className={compact ? '' : 'max-w-xl mx-auto'}>
-      {/* Reference number highlight */}
+    <div className="w-full">
+      {/* ── Reference ticket ─────────────────────────────── */}
       {referenceCode && (
-        <div className="mb-5 rounded-2xl border-2 border-gold bg-gradient-to-br from-amber-50 to-orange-50 p-4 text-center">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-burgundy/70 mb-1">
-            {camperName ? `${camperName}'s ` : ''}Reference Number
-          </p>
-          <button
-            type="button"
-            onClick={() => copy(referenceCode, 'ref')}
-            className="text-2xl md:text-3xl font-mono font-bold text-maroon tracking-wide break-all hover:text-gold transition-colors"
-            title="Click to copy"
+        <button
+          type="button"
+          onClick={() => copy(referenceCode, 'ref')}
+          className="group relative block w-full text-left mb-6 focus:outline-none"
+        >
+          {/* side notches */}
+          <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/70 z-10" />
+          <span className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/70 z-10" />
+          <div
+            className="relative overflow-hidden rounded-2xl px-5 py-4 transition-transform duration-300 group-hover:-translate-y-0.5"
+            style={{
+              background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 45%, #fcd34d 100%)',
+              boxShadow: '0 12px 30px -10px rgba(203,163,107,0.65), inset 0 1px 0 rgba(255,255,255,0.7)',
+            }}
           >
-            {referenceCode}
-          </button>
-          <p className="text-[10px] text-burgundy/50 mt-1">{copied === 'ref' ? '✅ Copied!' : 'Tap to copy'}</p>
-        </div>
+            {/* dashed divider */}
+            <span className="pointer-events-none absolute inset-y-3 left-1/2 border-l border-dashed border-amber-700/25" />
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800/80 mb-0.5">
+                  {camperName ? `${camperName}'s ` : ''}Reference
+                </p>
+                <p className="text-2xl md:text-3xl font-mono font-extrabold text-[#7a4a12] tracking-wide break-all leading-none">
+                  {referenceCode}
+                </p>
+              </div>
+              <span
+                className="flex-shrink-0 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-md transition-colors"
+                style={{ background: copied === 'ref' ? '#059669' : '#b45309' }}
+              >
+                {copied === 'ref' ? (
+                  <>✓ Copied</>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy
+                  </>
+                )}
+              </span>
+            </div>
+          </div>
+        </button>
       )}
 
-      {/* Bank details card */}
-      <div className="rounded-2xl border-2 border-emerald-200 bg-white shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-4 text-white">
-          <h3 className="font-serif text-lg font-bold flex items-center gap-2">
-            🏦 Bank Transfer Details
-          </h3>
-          <p className="text-xs text-white/80">Pay via bank transfer or mobile banking</p>
-        </div>
+      {/* ── The bank card ────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden rounded-3xl p-6 text-white"
+        style={{
+          background: 'linear-gradient(135deg, #065f46 0%, #0f766e 40%, #047857 70%, #064e3b 100%)',
+          boxShadow: '0 25px 50px -12px rgba(6,95,70,0.55), inset 0 1px 0 rgba(255,255,255,0.15)',
+        }}
+      >
+        {/* decorative blobs */}
+        <div className="pointer-events-none absolute -top-16 -right-16 w-52 h-52 rounded-full opacity-30 blur-2xl"
+          style={{ background: 'radial-gradient(circle, #34d399, transparent 70%)' }} />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 w-52 h-52 rounded-full opacity-25 blur-2xl"
+          style={{ background: 'radial-gradient(circle, #cba36b, transparent 70%)' }} />
+        {/* diagonal sheen */}
+        <div className="pointer-events-none absolute inset-0"
+          style={{ background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%)' }} />
 
-        <div className="p-5 space-y-4">
-          <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-burgundy/60">Account Name</p>
-              <p className="text-base font-bold text-maroon">SOABAPA GREEN PROJECT</p>
+        <div className="relative">
+          {/* top row */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🌿</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">Green Project</span>
             </div>
-            <button
-              type="button"
-              onClick={() => copy('SOABAPA GREEN PROJECT', 'name')}
-              className="text-xs text-emerald-600 font-semibold hover:text-emerald-800 flex-shrink-0"
-            >
-              {copied === 'name' ? '✅' : 'Copy'}
-            </button>
+            <span className="text-sm font-bold tracking-wide text-white drop-shadow-sm">{BANK_NAME}</span>
           </div>
 
-          <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-burgundy/60">Account Number</p>
-              <p className="text-xl font-mono font-bold text-maroon tracking-wider">1028000006418</p>
+          {/* chip + contactless */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-11 h-8 rounded-md relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #fde68a, #f59e0b)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)' }}>
+              <span className="absolute inset-y-1 left-1/2 -translate-x-1/2 w-px bg-black/25" />
+              <span className="absolute inset-x-1 top-1/2 -translate-y-1/2 h-px bg-black/25" />
             </div>
-            <button
-              type="button"
-              onClick={() => copy('1028000006418', 'number')}
-              className="text-xs text-emerald-600 font-semibold hover:text-emerald-800 flex-shrink-0"
-            >
-              {copied === 'number' ? '✅' : 'Copy'}
-            </button>
+            <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeWidth={2} d="M8.5 8.5a5 5 0 010 7M11.5 6a9 9 0 010 12M14.5 3.5a13 13 0 010 17" />
+            </svg>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-burgundy/60">Bank Name</p>
-              <p className="text-base font-bold text-maroon">ACCESS BANK</p>
+          {/* account number */}
+          <button
+            type="button"
+            onClick={() => copy(ACCOUNT_NUMBER, 'number')}
+            className="block w-full text-left group mb-6"
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60 mb-1">Account Number</p>
+            <div className="flex items-center gap-3">
+              <p className="text-2xl md:text-3xl font-mono font-bold tracking-[0.15em] text-white drop-shadow-sm">
+                {ACCOUNT_NUMBER}
+              </p>
+              <span className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 transition-colors ${copied === 'number' ? 'bg-emerald-300 text-emerald-900' : 'bg-white/15 text-white/80 group-hover:bg-white/25'}`}>
+                {copied === 'number' ? '✓' : 'Copy'}
+              </span>
             </div>
+          </button>
+
+          {/* bottom row: name + bank */}
+          <div className="flex items-end justify-between gap-3">
             <button
               type="button"
-              onClick={() => copy('ACCESS BANK', 'bank')}
-              className="text-xs text-emerald-600 font-semibold hover:text-emerald-800 flex-shrink-0"
+              onClick={() => copy(ACCOUNT_NAME, 'name')}
+              className="text-left group min-w-0"
             >
-              {copied === 'bank' ? '✅' : 'Copy'}
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60 mb-0.5">Account Name</p>
+              <p className="text-sm md:text-base font-bold tracking-wide text-white truncate group-hover:text-amber-200 transition-colors">
+                {ACCOUNT_NAME}
+                <span className={`ml-2 align-middle text-[9px] font-bold uppercase rounded-full px-1.5 py-0.5 ${copied === 'name' ? 'bg-emerald-300 text-emerald-900' : 'bg-white/15 text-white/70'}`}>
+                  {copied === 'name' ? '✓' : 'copy'}
+                </span>
+              </p>
             </button>
+            <div className="flex-shrink-0 text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">Currency</p>
+              <p className="text-sm font-bold text-white">GH₵</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Payment Notice — reference warning */}
-      <div className="mt-5 rounded-xl border-l-4 border-rose-500 bg-rose-50 p-4">
-        <p className="text-xs font-bold uppercase tracking-wider text-rose-700 mb-1">⚠️ Payment Notice</p>
-        <p className="text-xs text-rose-800 leading-relaxed">
-          Use your child&apos;s reference number as your payment reference. This helps us match your payment
-          to your child. Incorrect or missing references may delay payment confirmation.
-        </p>
+      {/* quick copy-all row */}
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {[
+          { label: 'Name', value: ACCOUNT_NAME, key: 'name' },
+          { label: 'Number', value: ACCOUNT_NUMBER, key: 'number' },
+          { label: 'Bank', value: BANK_NAME, key: 'bank' },
+        ].map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => copy(f.value, f.key)}
+            className={`rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition-all ${
+              copied === f.key
+                ? 'bg-emerald-500 text-white shadow-md'
+                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+            }`}
+          >
+            {copied === f.key ? '✓ Copied' : `Copy ${f.label}`}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Payment notice ───────────────────────────────── */}
+      <div className="mt-5 flex gap-3 rounded-2xl p-4"
+        style={{ background: 'linear-gradient(135deg, #fff1f2 0%, #fef3c7 100%)', border: '1px solid #fecdd3' }}>
+        <div className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md"
+          style={{ background: 'linear-gradient(135deg, #f43f5e, #e11d48)' }}>
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-rose-700 mb-1">Payment Notice</p>
+          <p className="text-xs text-rose-900/80 leading-relaxed">
+            Use your child&apos;s <strong>reference number</strong> as your payment reference. This helps us match
+            your payment to your child. Incorrect or missing references may delay payment confirmation.
+          </p>
+        </div>
       </div>
     </div>
   );
