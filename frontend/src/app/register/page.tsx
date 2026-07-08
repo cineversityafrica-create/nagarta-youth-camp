@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { submitRegistration, register as registerAccount } from '@/lib/api';
 import { getToken, isLoggedIn, saveAuth } from '@/lib/auth';
+import { EARLY_BIRD_USD, REGULAR_USD } from '@/lib/pricing';
+import { fileToCompressedDataUrl } from '@/lib/image';
 const SAVED_FORM_KEY = 'nagarta_saved_registration';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
@@ -39,7 +41,16 @@ export default function RegisterPage() {
 
   // Package selection
   const [selectedPackage, setSelectedPackage] = useState<'Early Bird' | 'Regular Package'>('Early Bird');
-  const packagePrice = selectedPackage === 'Early Bird' ? '235' : '260';
+  const packagePrice = String(selectedPackage === 'Early Bird' ? EARLY_BIRD_USD : REGULAR_USD);
+
+  // Make validation/submit errors visible even on this long form (the banner is
+  // near the top while the submit button is at the bottom — otherwise it looks
+  // like "nothing happened" when a fresh user's submit is rejected).
+  useEffect(() => {
+    if (error && typeof document !== 'undefined') {
+      document.getElementById('register-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   useEffect(() => {
     setAlreadyLoggedIn(isLoggedIn());
@@ -122,10 +133,9 @@ export default function RegisterPage() {
 
     setPhotoError('');
     setPhotoPreview(URL.createObjectURL(file));
-    const reader = new FileReader();
-    reader.onloadend = () => setChildPhoto(reader.result as string);
-    reader.onerror = () => setPhotoError('Failed to read file');
-    reader.readAsDataURL(file);
+    fileToCompressedDataUrl(file)
+      .then((dataUrl) => setChildPhoto(dataUrl))
+      .catch(() => setPhotoError('Failed to process image. Please try another photo.'));
   }
 
   function resetForAnother() {
@@ -169,8 +179,8 @@ export default function RegisterPage() {
           setLoading(false);
           return;
         }
-        if (!password || password.length < 6) {
-          setError('Please create a password (at least 6 characters)');
+        if (!password || password.length < 8) {
+          setError('Please create a password (at least 8 characters)');
           setLoading(false);
           return;
         }
@@ -314,7 +324,7 @@ export default function RegisterPage() {
 
         <div className="bg-white rounded-xl shadow-sm border border-beige p-8">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-3 text-sm mb-6">
+            <div id="register-error" className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-3 text-sm mb-6">
               {error}{' '}
               {error.includes('signed in') && (
                 <Link href="/auth/sign-in" className="underline font-medium">Sign in here</Link>
@@ -371,11 +381,11 @@ export default function RegisterPage() {
 
                   <div className="pt-6 text-center">
                     <div className="mb-2">
-                      <span className="text-lg text-gray-400 line-through font-semibold">$260</span>
+                      <span className="text-lg text-gray-400 line-through font-semibold">$310</span>
                       <span className="ml-2 text-[10px] font-bold text-rose-500 bg-rose-100 px-2 py-0.5 rounded-full">SAVE $25</span>
                     </div>
                     <p className="text-4xl font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-1">
-                      $235
+                      $285
                     </p>
                     <p className="text-xs text-burgundy/70 font-medium">per camper</p>
                     <p className="text-[11px] text-rose-600 font-bold mt-2">⏰ Limited Time - Register Early!</p>
@@ -414,7 +424,7 @@ export default function RegisterPage() {
                   <div className="pt-6 text-center">
                     <div className="mb-2 h-6"></div>
                     <p className="text-4xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent mb-1">
-                      $260
+                      $310
                     </p>
                     <p className="text-xs text-burgundy/70 font-medium">per camper</p>
                     <p className="text-[11px] text-emerald-700 font-bold mt-2">Standard Registration</p>
@@ -644,7 +654,7 @@ export default function RegisterPage() {
                       required={!alreadyLoggedIn}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 6 characters"
+                      placeholder="At least 8 characters"
                       className={inputClass}
                     />
                     <button

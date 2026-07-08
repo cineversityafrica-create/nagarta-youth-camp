@@ -130,8 +130,16 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+const PAY_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours to pay
+
 router.get('/my', authenticate, async (req: AuthRequest, res) => {
   try {
+    // Auto-close: delete UNPAID registrations older than the 24h payment window
+    const cutoff = new Date(Date.now() - PAY_WINDOW_MS);
+    await prisma.registration.deleteMany({
+      where: { userId: req.user!.userId, paymentStatus: 'UNPAID', createdAt: { lt: cutoff } },
+    });
+
     const regs = await prisma.registration.findMany({
       where: { userId: req.user!.userId },
       include: {

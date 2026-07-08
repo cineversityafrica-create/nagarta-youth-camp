@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { getMe, getAnnouncements, getMyRegistrations, submitRegistration, submitContactMessage, type User, type Announcement, type Registration } from '@/lib/api';
 import { getToken, getStoredUser, clearAuth } from '@/lib/auth';
 import BankDetails from '@/components/BankDetails';
+import { CAMP_FEE_GHS, formatGhs } from '@/lib/pricing';
+import { fileToCompressedDataUrl } from '@/lib/image';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
@@ -99,10 +101,9 @@ export default function ParentDashboard() {
 
     setPhotoError('');
     setNewChildPhotoPreview(URL.createObjectURL(file));
-    const reader = new FileReader();
-    reader.onloadend = () => setNewChildPhoto(reader.result as string);
-    reader.onerror = () => setPhotoError('Failed to read file');
-    reader.readAsDataURL(file);
+    fileToCompressedDataUrl(file)
+      .then((dataUrl) => setNewChildPhoto(dataUrl))
+      .catch(() => setPhotoError('Failed to process image. Please try another photo.'));
   }
 
   async function handleAddChild(e: React.FormEvent) {
@@ -255,26 +256,26 @@ export default function ParentDashboard() {
             </div>
           </div>
 
-          {/* summary stat cards — overlap bottom edge */}
-          <div className="grid grid-cols-3 gap-3 md:gap-4 -mb-10 pb-2">
+          {/* summary stat cards — sit inside the hero, fully visible on every screen */}
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4 pb-8">
             {[
               { label: 'Children', value: String(totalChildren), icon: '🧒', from: '#3b82f6', to: '#1d4ed8' },
-              { label: 'Total Paid', value: `GH₵ ${totalPaid.toLocaleString()}`, icon: '💰', from: '#10b981', to: '#047857' },
+              { label: 'Total Paid', value: formatGhs(totalPaid), icon: '💰', from: '#10b981', to: '#047857' },
               { label: 'Confirmed', value: String(confirmedCount), icon: '✅', from: '#f59e0b', to: '#d97706' },
             ].map((s) => (
-              <div key={s.label} className="rounded-2xl bg-white p-4 md:p-5 shadow-xl border border-white/60" style={{ boxShadow: '0 20px 40px -15px rgba(0,0,0,0.35)' }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-burgundy/50">{s.label}</span>
-                  <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-md" style={{ background: `linear-gradient(135deg, ${s.from}, ${s.to})` }}>{s.icon}</span>
+              <div key={s.label} className="rounded-2xl bg-white/95 backdrop-blur p-3 sm:p-5 shadow-xl border border-white/50" style={{ boxShadow: '0 18px 40px -18px rgba(0,0,0,0.45)' }}>
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
+                  <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-burgundy/50 truncate">{s.label}</span>
+                  <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm shadow-md flex-shrink-0" style={{ background: `linear-gradient(135deg, ${s.from}, ${s.to})` }}>{s.icon}</span>
                 </div>
-                <p className="text-lg md:text-2xl font-bold text-maroon leading-none truncate">{s.value}</p>
+                <p className="text-sm sm:text-2xl font-bold text-maroon leading-tight break-words">{s.value}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 pt-16 pb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-12">
         {/* Saved Form Reminder */}
         <SavedFormReminder />
 
@@ -374,10 +375,28 @@ export default function ParentDashboard() {
                       style={{ background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)' }}>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700/70">Amount Paid</span>
                       <span className="text-lg font-bold text-emerald-700">
-                        GH₵ {(reg.amountPaid || 0).toLocaleString()}
-                        <span className="text-[10px] text-emerald-600/70 font-semibold">.00</span>
+                        {formatGhs(reg.amountPaid || 0)}
                       </span>
                     </div>
+
+                    {/* Balance due + reminder — only when not fully paid */}
+                    {reg.paymentStatus !== 'PAID' && (() => {
+                      const balance = Math.max(0, CAMP_FEE_GHS - (reg.amountPaid || 0));
+                      return (
+                        <div className="mt-2.5">
+                          <div className="flex items-center justify-between rounded-xl px-4 py-3"
+                            style={{ background: 'linear-gradient(135deg,#fff7ed,#ffedd5)' }}>
+                            <div>
+                              <span className="block text-[11px] font-bold uppercase tracking-wider text-orange-700/70">Balance Due</span>
+                              <span className="block text-[10px] text-orange-700/60">Pay via bank transfer below</span>
+                            </div>
+                            <span className="text-lg font-bold text-orange-700">{formatGhs(balance)}</span>
+                          </div>
+
+                          {reg.paymentStatus === 'UNPAID' && <PayCountdown createdAt={reg.createdAt} />}
+                        </div>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
@@ -808,6 +827,59 @@ export default function ParentDashboard() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// 24-hour countdown to pay. When it hits zero the backend auto-releases the
+// unpaid spot on the next portal load, so this warns the parent in real time.
+const PAY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function PayCountdown({ createdAt }: { createdAt: string }) {
+  const deadline = new Date(createdAt).getTime() + PAY_WINDOW_MS;
+  const [remaining, setRemaining] = useState(() => deadline - Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setRemaining(deadline - Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [deadline]);
+
+  if (remaining <= 0) {
+    return (
+      <div className="mt-2.5 rounded-xl px-4 py-3 bg-red-50 border border-red-200 text-center">
+        <p className="text-xs font-bold text-red-700">⛔ Payment window closed</p>
+        <p className="text-[11px] text-red-600/80 mt-0.5">This unpaid spot will be cancelled and removed automatically.</p>
+      </div>
+    );
+  }
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const hours = Math.floor(remaining / 3_600_000);
+  const mins = Math.floor((remaining % 3_600_000) / 60_000);
+  const secs = Math.floor((remaining % 60_000) / 1000);
+  const urgent = remaining < 3_600_000; // under 1 hour
+
+  return (
+    <div className={`mt-2.5 rounded-xl px-4 py-3 border ${urgent ? 'bg-red-50 border-red-200' : 'bg-rose-50 border-rose-200'}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className={`text-[11px] font-bold uppercase tracking-wider ${urgent ? 'text-red-700' : 'text-rose-700'}`}>
+            ⏳ Pay within
+          </p>
+          <p className="text-[10px] text-rose-700/70 leading-tight">or this spot closes &amp; is deleted automatically</p>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {[{ v: hours, l: 'H' }, { v: mins, l: 'M' }, { v: secs, l: 'S' }].map((t, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <div className={`rounded-lg px-2 py-1 text-center ${urgent ? 'bg-red-600' : 'bg-rose-600'}`}>
+                <span className="block text-sm font-bold text-white tabular-nums leading-none">{pad(t.v)}</span>
+                <span className="block text-[8px] text-white/70 font-semibold">{t.l}</span>
+              </div>
+              {i < 2 && <span className="text-rose-400 font-bold">:</span>}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
