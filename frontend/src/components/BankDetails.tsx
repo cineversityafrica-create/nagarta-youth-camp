@@ -73,6 +73,20 @@ export default function BankDetails({ referenceCode, camperName }: BankDetailsPr
         </button>
       )}
 
+      {/* ── Bank transfer heading ────────────────────────── */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, #10b981, #0f766e)' }}>
+          <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-bold text-maroon leading-tight">Bank Transfer Details</p>
+          <p className="text-[11px] text-burgundy/60 leading-tight">Transfer to the account below — no card needed</p>
+        </div>
+      </div>
+
       {/* ── The bank card ────────────────────────────────── */}
       <div
         className="relative overflow-hidden rounded-3xl p-6 text-white"
@@ -92,24 +106,14 @@ export default function BankDetails({ referenceCode, camperName }: BankDetailsPr
 
         <div className="relative">
           {/* top row */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🌿</span>
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">Green Project</span>
-            </div>
+          <div className="flex items-start justify-between mb-5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-sm">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11" />
+              </svg>
+              Bank Transfer
+            </span>
             <span className="text-sm font-bold tracking-wide text-white drop-shadow-sm">{BANK_NAME}</span>
-          </div>
-
-          {/* chip + contactless */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-11 h-8 rounded-md relative overflow-hidden"
-              style={{ background: 'linear-gradient(135deg, #fde68a, #f59e0b)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)' }}>
-              <span className="absolute inset-y-1 left-1/2 -translate-x-1/2 w-px bg-black/25" />
-              <span className="absolute inset-x-1 top-1/2 -translate-y-1/2 h-px bg-black/25" />
-            </div>
-            <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeWidth={2} d="M8.5 8.5a5 5 0 010 7M11.5 6a9 9 0 010 12M14.5 3.5a13 13 0 010 17" />
-            </svg>
           </div>
 
           {/* account number */}
