@@ -205,8 +205,11 @@ export default function RegisterPage() {
           token = authResult.token;
         } catch (err: unknown) {
           const error = err as { message?: string };
-          if (error.message?.includes('already') || error.message?.includes('exists')) {
+          const msg = (error.message || '').toLowerCase();
+          if (msg.includes('already') || msg.includes('exists')) {
             setError('An account with this email already exists. Please sign in first, then register your camper.');
+          } else if (msg.includes('validation') || msg.includes('password') || msg.includes('email')) {
+            setError('Please check your details — the password must be at least 8 characters and the email must be valid.');
           } else {
             setError('Failed to create account. Please try again.');
           }
