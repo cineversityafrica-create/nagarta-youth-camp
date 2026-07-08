@@ -40,7 +40,7 @@ export function buildRegistrationConfirmationEmail(
 
     <div class="sec">Next Steps</div>
     <ol style="line-height:1.8;">
-      <li><strong>Complete Payment:</strong> Use your reference code to make payment via our secure portal or contact us at <strong>hello@nagartayouthcamp.com</strong></li>
+      <li><strong>Complete Payment:</strong> Use your reference code to make payment via our secure portal or contact us at <strong>info@nagartayouthcamp.tech</strong></li>
       <li><strong>Upload Documents:</strong> Log in to your parent dashboard to upload any required medical or emergency forms</li>
       <li><strong>Confirm Details:</strong> Review all attendee information in your dashboard</li>
       <li><strong>Track Progress:</strong> Check announcements and updates in your parent portal</li>
@@ -54,7 +54,7 @@ export function buildRegistrationConfirmationEmail(
     <div class="sec">Questions?</div>
     <p>If you have any questions about registration or the camp, please contact us at:</p>
     <p style="margin:8px 0;">
-      📧 <strong>Email:</strong> hello@nagartayouthcamp.com<br/>
+      📧 <strong>Email:</strong> info@nagartayouthcamp.tech<br/>
       📱 <strong>Phone:</strong> +233 (0) 123 456 789
     </p>
   </div>
@@ -180,7 +180,7 @@ export function buildStatusUpdateEmail(
       <strong>Camper:</strong> ${childName}
     </p>
 
-    <p style="margin-top:14px;">If you have any questions about this update, please contact us at hello@nagartayouthcamp.com.</p>
+    <p style="margin-top:14px;">If you have any questions about this update, please contact us at info@nagartayouthcamp.tech.</p>
   </div>
 
   <div class="footer">

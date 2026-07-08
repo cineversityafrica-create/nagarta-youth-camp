@@ -47,7 +47,7 @@ async function main() {
     // CTA Banner
     { key: 'cta_heading', value: 'Your spot is waiting.', label: 'CTA Banner Heading', group: 'cta' },
     // Contact
-    { key: 'contact_email', value: 'info@nagartacamp.com', label: 'Contact Email', group: 'contact' },
+    { key: 'contact_email', value: 'info@nagartayouthcamp.tech', label: 'Contact Email', group: 'contact' },
     { key: 'contact_phone', value: '+233 20 000 0000', label: 'Contact Phone', group: 'contact' },
     { key: 'contact_address', value: 'Accra, Ghana', label: 'Contact Address', group: 'contact' },
     // Social
@@ -105,7 +105,7 @@ async function main() {
   const announcements = [
     { title: 'Registration Now Open!', body: 'We are thrilled to announce that registration for NAGARTA Youth Camp 2026 is officially open. Spots are limited to 200 participants — secure your place today. Early registrants will receive a welcome kit upon arrival.', published: true, targetRole: null },
     { title: 'Packing List Released', body: 'The official NAGARTA 2026 packing list is now available. All campers and parents are advised to review the list carefully. Remember: comfortable athletic wear is required for Discipline & Drills sessions. The full list is attached to your registration confirmation.', published: true, targetRole: null },
-    { title: 'Scholarship Applications Open', body: 'A limited number of full and partial scholarships are available for deserving young leaders who demonstrate exceptional potential but face financial constraints. Contact us at scholarships@nagartacamp.com with a short motivation letter and an academic reference by 30 November 2026.', published: true, targetRole: null },
+    { title: 'Scholarship Applications Open', body: 'A limited number of full and partial scholarships are available for deserving young leaders who demonstrate exceptional potential but face financial constraints. Contact us at info@nagartayouthcamp.tech with a short motivation letter and an academic reference by 30 November 2026.', published: true, targetRole: null },
   ];
 
   await prisma.announcement.deleteMany();

@@ -783,8 +783,8 @@ export default function ParentDashboard() {
                   </svg>
                 </div>
                 <p className="text-xs text-burgundy/60 uppercase font-bold tracking-wide mb-1">Email Us</p>
-                <a href="mailto:info@nagartayouthcamp.com" className="text-sm text-maroon font-semibold hover:text-gold break-all">
-                  info@nagartayouthcamp.com
+                <a href="mailto:info@nagartayouthcamp.tech" className="text-sm text-maroon font-semibold hover:text-gold break-all">
+                  info@nagartayouthcamp.tech
                 </a>
               </div>
 

@@ -66,7 +66,7 @@ export default function Footer({ content }: FooterProps) {
             <div className="space-y-2 text-sm text-beige/70">
               <div>
                 <a href={`mailto:${content.contact_email}`} className="hover:text-gold transition-colors">
-                  {content.contact_email || 'info@nagartayouthcamp.com'}
+                  {content.contact_email || 'info@nagartayouthcamp.tech'}
                 </a>
               </div>
               <div className="space-y-1">

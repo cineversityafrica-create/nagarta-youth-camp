@@ -129,8 +129,8 @@ export default function ContactPage() {
               <div className="space-y-4">
                 <div>
                   <p className="label-caps text-gold/50 mb-1">Email</p>
-                  <a href="mailto:info@nagartayouthcamp.com" className="text-beige hover:text-gold transition-colors text-sm">
-                    info@nagartayouthcamp.com
+                  <a href="mailto:info@nagartayouthcamp.tech" className="text-beige hover:text-gold transition-colors text-sm">
+                    info@nagartayouthcamp.tech
                   </a>
                 </div>
                 <div>
