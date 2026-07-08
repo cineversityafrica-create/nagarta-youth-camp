@@ -63,7 +63,7 @@ export default function BankDetails({ referenceCode, camperName, compact = false
             </button>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-burgundy/60">Account Number</p>
               <p className="text-xl font-mono font-bold text-maroon tracking-wider">1028000006418</p>
@@ -74,6 +74,20 @@ export default function BankDetails({ referenceCode, camperName, compact = false
               className="text-xs text-emerald-600 font-semibold hover:text-emerald-800 flex-shrink-0"
             >
               {copied === 'number' ? '✅' : 'Copy'}
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-burgundy/60">Bank Name</p>
+              <p className="text-base font-bold text-maroon">ACCESS BANK</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => copy('ACCESS BANK', 'bank')}
+              className="text-xs text-emerald-600 font-semibold hover:text-emerald-800 flex-shrink-0"
+            >
+              {copied === 'bank' ? '✅' : 'Copy'}
             </button>
           </div>
         </div>
