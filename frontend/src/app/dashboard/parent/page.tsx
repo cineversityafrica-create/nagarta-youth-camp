@@ -11,7 +11,7 @@ import { fileToCompressedDataUrl } from '@/lib/image';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
-const emptyChild = { name: '', age: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContact: '' };
+const emptyChild = { name: '', age: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContactName: '', emergencyContactPhone: '' };
 
 export default function ParentDashboard() {
   const router = useRouter();
@@ -122,7 +122,12 @@ export default function ParentDashboard() {
     try {
       const payload: Record<string, unknown> = {
         type: 'CHILD',
-        child: { ...newChild, age: parseInt(newChild.age) || 0, photo: newChildPhoto || undefined },
+        child: {
+          ...newChild,
+          age: parseInt(newChild.age) || 0,
+          photo: newChildPhoto || undefined,
+          emergencyContact: [newChild.emergencyContactName, newChild.emergencyContactPhone].filter(Boolean).join(' — ') || undefined,
+        },
       };
 
       // Add mother's information if selected
@@ -502,9 +507,13 @@ export default function ParentDashboard() {
                         <label className={labelClass}>Medical Notes (if any)</label>
                         <textarea rows={2} value={newChild.medicalNotes} onChange={e => updateNewChild('medicalNotes', e.target.value)} placeholder="Any conditions the camp should know about..." className={inputClass} />
                       </div>
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Emergency Contact</label>
-                        <input type="text" value={newChild.emergencyContact} onChange={e => updateNewChild('emergencyContact', e.target.value)} placeholder="Name & phone number" className={inputClass} />
+                      <div>
+                        <label className={labelClass}>Emergency Contact Name</label>
+                        <input type="text" value={newChild.emergencyContactName} onChange={e => updateNewChild('emergencyContactName', e.target.value)} placeholder="e.g. Aunt Ama Mensah" className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Emergency Contact Number</label>
+                        <input type="tel" value={newChild.emergencyContactPhone} onChange={e => updateNewChild('emergencyContactPhone', e.target.value)} placeholder="+233 20 000 0000" className={inputClass} />
                       </div>
                     </div>
 

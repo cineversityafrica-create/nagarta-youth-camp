@@ -12,7 +12,7 @@ const SAVED_FORM_KEY = 'nagarta_saved_registration';
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
 
-const emptyChild = { name: '', age: '', gender: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContact: '' };
+const emptyChild = { name: '', age: '', gender: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContactName: '', emergencyContactPhone: '' };
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -216,7 +216,12 @@ export default function RegisterPage() {
       const payload: Record<string, unknown> = {
         type: 'CHILD',
         notes: childNotes,
-        child: { ...child, age: parseInt(child.age) || 0, photo: childPhoto || undefined },
+        child: {
+          ...child,
+          age: parseInt(child.age) || 0,
+          photo: childPhoto || undefined,
+          emergencyContact: [child.emergencyContactName, child.emergencyContactPhone].filter(Boolean).join(' — ') || undefined,
+        },
         parentName: parent.name || undefined,
         parentAddress: parent.address || undefined,
         parentPhone: parent.phone || undefined,
@@ -504,9 +509,13 @@ export default function RegisterPage() {
                     <label className={labelClass}>Medical Notes (if any)</label>
                     <textarea rows={2} value={child.medicalNotes} onChange={e => updateChild('medicalNotes', e.target.value)} placeholder="Any conditions the camp should know about..." className={inputClass} />
                   </div>
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Emergency Contact</label>
-                    <input type="text" value={child.emergencyContact} onChange={e => updateChild('emergencyContact', e.target.value)} placeholder="Name & phone number" className={inputClass} />
+                  <div>
+                    <label className={labelClass}>Emergency Contact Name</label>
+                    <input type="text" value={child.emergencyContactName} onChange={e => updateChild('emergencyContactName', e.target.value)} placeholder="e.g. Aunt Ama Mensah" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Emergency Contact Number</label>
+                    <input type="tel" value={child.emergencyContactPhone} onChange={e => updateChild('emergencyContactPhone', e.target.value)} placeholder="+233 20 000 0000" className={inputClass} />
                   </div>
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Additional Notes</label>
