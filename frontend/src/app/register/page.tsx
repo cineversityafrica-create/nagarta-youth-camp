@@ -257,10 +257,13 @@ export default function RegisterPage() {
         localStorage.removeItem(SAVED_FORM_KEY);
       }
 
-      // Redirect to bank-transfer details page with the child's reference
+      // Redirect to the payment page (online + bank transfer) with the child's
+      // reference and the selected package amount so we can charge the right fee.
       const paymentParams = new URLSearchParams({
         ref: result.referenceCode,
         camperName: child.name,
+        amount: packagePrice,
+        pkg: selectedPackage === 'Early Bird' ? 'Early Bird' : 'Regular',
       });
 
       // Show quick success message then redirect

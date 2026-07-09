@@ -21,6 +21,7 @@ import activitiesRouter from './routes/activities';
 import scheduleRouter from './routes/schedule';
 import registrationsRouter from './routes/registrations';
 import contactRouter from './routes/contact';
+import paystackRouter from './routes/paystack';
 import announcementsRouter from './routes/announcements';
 
 // Admin API routes
@@ -114,6 +115,7 @@ app.use('/api/site-content', siteContentRouter);
 app.use('/api/activities', activitiesRouter);
 app.use('/api/schedule', scheduleRouter);
 app.use('/api/registrations', registrationsRouter);
+app.use('/api/paystack', paystackRouter);
 app.use('/api/contact-messages', contactRouter);
 app.use('/api/announcements', announcementsRouter);
 
