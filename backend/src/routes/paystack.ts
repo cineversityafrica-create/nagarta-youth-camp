@@ -1,8 +1,29 @@
 import { Router } from 'express';
 import crypto from 'crypto';
+import https from 'https';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
+
+// GET the Paystack API using Node's built-in https so it works on any Node
+// version (older Node has no global fetch, which crashed the verify route).
+function paystackGet<T = unknown>(path: string, secret: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      { hostname: 'api.paystack.co', path, method: 'GET', headers: { Authorization: `Bearer ${secret}` } },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          try { resolve(JSON.parse(data) as T); } catch (e) { reject(e); }
+        });
+      },
+    );
+    req.on('error', reject);
+    req.setTimeout(20000, () => req.destroy(new Error('Paystack request timed out')));
+    req.end();
+  });
+}
 
 // Fees are quoted in USD but charged in cedis (rate $1 = GH₵12). These are the
 // server-authoritative amounts in pesewas (GH₵ × 100), used to decide whether a
@@ -72,10 +93,10 @@ router.post('/verify', async (req, res) => {
     const reference = (req.body?.reference || '').toString().trim();
     if (!reference) return res.status(400).json({ error: 'Missing payment reference' });
 
-    const resp = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-      headers: { Authorization: `Bearer ${secret}` },
-    });
-    const body = (await resp.json()) as { status?: boolean; data?: PaystackTx };
+    const body = await paystackGet<{ status?: boolean; data?: PaystackTx }>(
+      `/transaction/verify/${encodeURIComponent(reference)}`,
+      secret,
+    );
     const tx = body?.data;
     if (!body?.status || !tx || tx.status !== 'success') {
       return res.status(400).json({ error: 'Payment was not completed. If you were charged, please contact us.' });
@@ -92,7 +113,10 @@ router.post('/verify', async (req, res) => {
     });
   } catch (err) {
     console.error('[paystack/verify]', err);
-    return res.status(500).json({ error: 'We could not verify the payment. If you were charged, please contact us.' });
+    return res.status(500).json({
+      error: 'We could not verify the payment. If you were charged, please contact us.',
+      detail: (err as Error)?.message, // temporary: helps diagnose remotely
+    });
   }
 });
 
