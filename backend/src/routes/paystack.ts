@@ -3,14 +3,16 @@ import { prisma } from '../lib/prisma';
 
 const router = Router();
 
-// Server-authoritative prices in the smallest currency unit (USD cents).
-// Used to decide whether a verified payment fully covers the camp fee, so a
-// tampered client-side amount can never mark a registration as fully PAID.
-const PRICE_CENTS: Record<string, number> = {
-  'Early Bird': 285 * 100,
-  Regular: 310 * 100,
+// Fees are quoted in USD but charged in cedis (rate $1 = GH₵12). These are the
+// server-authoritative amounts in pesewas (GH₵ × 100), used to decide whether a
+// verified payment fully covers the camp fee, so a tampered client-side amount
+// can never mark a registration as fully PAID.
+const USD_TO_GHS = 12;
+const PRICE_PESEWAS: Record<string, number> = {
+  'Early Bird': 285 * USD_TO_GHS * 100,
+  Regular: 310 * USD_TO_GHS * 100,
 };
-const FULL_FEE_CENTS = PRICE_CENTS.Regular;
+const FULL_FEE_PESEWAS = PRICE_PESEWAS.Regular;
 
 // Verify a Paystack transaction and record it against the registration.
 // The frontend charges the card/MoMo via Paystack inline, then sends us the
@@ -57,8 +59,8 @@ router.post('/verify', async (req, res) => {
       await prisma.paymentTransaction.create({
         data: {
           registrationId: reg.id,
-          amount: tx.amount || 0, // smallest unit (cents)
-          currency: tx.currency || 'USD',
+          amount: tx.amount || 0, // smallest unit (pesewas)
+          currency: tx.currency || 'GHS',
           method: 'PAYSTACK',
           reference: tx.reference,
           note: `Paystack ${tx.channel || 'online'}`.trim(),
@@ -69,7 +71,7 @@ router.post('/verify', async (req, res) => {
     // Recompute total and mark PAID only if it covers the expected fee
     const txs = await prisma.paymentTransaction.findMany({ where: { registrationId: reg.id } });
     const totalPaid = txs.reduce((s, t) => s + t.amount, 0);
-    const expected = PRICE_CENTS[tx.metadata?.package || 'Regular'] || FULL_FEE_CENTS;
+    const expected = PRICE_PESEWAS[tx.metadata?.package || 'Regular'] || FULL_FEE_PESEWAS;
     const paymentStatus = totalPaid >= expected ? 'PAID' : 'PARTIAL';
     await prisma.registration.update({ where: { id: reg.id }, data: { paymentStatus } });
 
@@ -77,7 +79,7 @@ router.post('/verify', async (req, res) => {
       success: true,
       paymentStatus,
       amount: (tx.amount || 0) / 100,
-      currency: tx.currency || 'USD',
+      currency: tx.currency || 'GHS',
     });
   } catch (err) {
     console.error('[paystack/verify]', err);

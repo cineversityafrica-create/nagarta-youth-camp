@@ -65,7 +65,7 @@ function PaymentPageContent() {
                   packageName={pkg}
                   camperName={camperName}
                 />
-                <p className="mt-2 text-[11px] text-burgundy/50 text-center">Secure payment by card or mobile money via Paystack.</p>
+                <p className="mt-2 text-[11px] text-burgundy/50 text-center">Secure payment by card or mobile money via Paystack. Your ${amount} fee is charged in cedis at today&apos;s rate.</p>
 
                 <div className="flex items-center gap-3 my-6">
                   <div className="flex-1 h-px bg-beige" />

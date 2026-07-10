@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { USD_TO_GHS, formatGhs } from '@/lib/pricing';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
@@ -58,8 +59,8 @@ export default function PaystackButton({
     const handler = window.PaystackPop.setup({
       key: publicKey,
       email,
-      amount: Math.round(amountUsd * 100), // USD cents
-      currency: 'USD',
+      amount: Math.round(amountUsd * USD_TO_GHS * 100), // charged in cedis (pesewas)
+      currency: 'GHS',
       ref: `${referenceCode}_${Date.now()}`,
       metadata: {
         referenceCode,
@@ -113,7 +114,7 @@ export default function PaystackButton({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
-            Pay ${amountUsd} Online (Card / Mobile Money)
+            Pay {formatGhs(amountUsd * USD_TO_GHS)} Online (Card / Mobile Money)
           </>
         )}
       </button>
