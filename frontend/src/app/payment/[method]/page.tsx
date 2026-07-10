@@ -19,7 +19,12 @@ function PaymentPageContent() {
     if (u?.email) setEmail(u.email);
   }, []);
 
-  const paystackEnabled = Boolean(process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY) && amount > 0;
+  // Online payment is behind an explicit switch so it can be turned OFF until
+  // the Paystack backend key is confirmed working (otherwise parents could be
+  // charged without being credited). Set NEXT_PUBLIC_ENABLE_ONLINE_PAYMENT=true
+  // and rebuild the frontend to enable it.
+  const onlineEnabled = process.env.NEXT_PUBLIC_ENABLE_ONLINE_PAYMENT === 'true';
+  const paystackEnabled = onlineEnabled && Boolean(process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY) && amount > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-10 px-4">
