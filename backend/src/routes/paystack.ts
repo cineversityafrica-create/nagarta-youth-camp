@@ -1,9 +1,35 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import https from 'https';
+import fs from 'fs';
+import path from 'path';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
+
+// TEMPORARY diagnostic — tells us where the .env is and whether the key in the
+// file vs the key loaded into the process are correct. Remove once resolved.
+router.get('/debug', (_req, res) => {
+  const envPath = path.resolve(__dirname, '..', '.env');
+  let fileKeyLen = -1;
+  let fileExists = false;
+  try {
+    fileExists = fs.existsSync(envPath);
+    if (fileExists) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const line = content.split(/\r?\n/).find((l) => l.startsWith('PAYSTACK_SECRET_KEY='));
+      if (line) fileKeyLen = line.replace('PAYSTACK_SECRET_KEY=', '').replace(/[^A-Za-z0-9_]/g, '').length;
+    }
+  } catch { /* ignore */ }
+  const loaded = (process.env.PAYSTACK_SECRET_KEY || '').replace(/[^A-Za-z0-9_]/g, '');
+  res.json({
+    envPath,
+    fileExists,
+    fileKeyLen, // key length inside that .env file (48 = good, 8 = truncated)
+    loadedKeyLen: loaded.length, // key length actually loaded into the process
+    cwd: process.cwd(),
+  });
+});
 
 // Read the secret key defensively. Paystack keys only contain [A-Za-z0-9_], so
 // strip every other character anywhere in the value — this removes stray
