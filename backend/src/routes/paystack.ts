@@ -108,7 +108,16 @@ router.post('/verify', async (req, res) => {
     );
     const tx = body?.data;
     if (!body?.status || !tx || tx.status !== 'success') {
-      return res.status(400).json({ error: 'Payment was not completed. If you were charged, please contact us.' });
+      return res.status(400).json({
+        error: 'Payment was not completed. If you were charged, please contact us.',
+        debug: { // temporary diagnostics
+          paystackStatus: body?.status,
+          paystackMessage: (body as { message?: string })?.message,
+          dataStatus: tx?.status,
+          keyLen: secret.length,
+          keyTail: secret.slice(-4),
+        },
+      });
     }
 
     const result = await recordPayment(tx);
