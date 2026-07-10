@@ -5,6 +5,13 @@ import { prisma } from '../lib/prisma';
 
 const router = Router();
 
+// Read the secret key defensively: strip whitespace/newlines and surrounding
+// quotes that can sneak in when the key is added to .env, which otherwise makes
+// the Authorization header invalid and breaks webhook signature checks.
+function getSecret(): string {
+  return (process.env.PAYSTACK_SECRET_KEY || '').trim().replace(/^["']|["']$/g, '');
+}
+
 // GET the Paystack API using Node's built-in https so it works on any Node
 // version (older Node has no global fetch, which crashed the verify route).
 function paystackGet<T = unknown>(path: string, secret: string): Promise<T> {
@@ -85,7 +92,7 @@ async function recordPayment(tx: PaystackTx): Promise<{ ok: boolean; paymentStat
 // us the transaction reference; we confirm it with Paystack using the secret key.
 router.post('/verify', async (req, res) => {
   try {
-    const secret = process.env.PAYSTACK_SECRET_KEY;
+    const secret = getSecret();
     if (!secret) {
       return res.status(500).json({ error: 'Online payment is not configured. Please use bank transfer.' });
     }
@@ -125,7 +132,7 @@ router.post('/verify', async (req, res) => {
 // raw request body (captured by express.json's verify hook) before trusting it.
 router.post('/webhook', async (req, res) => {
   try {
-    const secret = process.env.PAYSTACK_SECRET_KEY;
+    const secret = getSecret();
     if (!secret) return res.sendStatus(200);
 
     const signature = req.headers['x-paystack-signature'] as string | undefined;
