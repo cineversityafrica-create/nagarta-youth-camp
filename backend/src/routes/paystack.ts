@@ -10,23 +10,28 @@ const router = Router();
 // TEMPORARY diagnostic — tells us where the .env is and whether the key in the
 // file vs the key loaded into the process are correct. Remove once resolved.
 router.get('/debug', (_req, res) => {
-  const envPath = path.resolve(__dirname, '..', '.env');
-  let fileKeyLen = -1;
+  const envPath = path.join(process.cwd(), '.env'); // the file the app actually reads
   let fileExists = false;
+  const keyLines: { len: number; head: string }[] = [];
   try {
     fileExists = fs.existsSync(envPath);
     if (fileExists) {
       const content = fs.readFileSync(envPath, 'utf8');
-      const line = content.split(/\r?\n/).find((l) => l.startsWith('PAYSTACK_SECRET_KEY='));
-      if (line) fileKeyLen = line.replace('PAYSTACK_SECRET_KEY=', '').replace(/[^A-Za-z0-9_]/g, '').length;
+      content.split(/\r?\n/).forEach((l) => {
+        if (l.startsWith('PAYSTACK_SECRET_KEY=')) {
+          const v = l.replace('PAYSTACK_SECRET_KEY=', '').replace(/[^A-Za-z0-9_]/g, '');
+          keyLines.push({ len: v.length, head: v.slice(0, 12) }); // head is just sk_test_ + a few
+        }
+      });
     }
   } catch { /* ignore */ }
   const loaded = (process.env.PAYSTACK_SECRET_KEY || '').replace(/[^A-Za-z0-9_]/g, '');
   res.json({
     envPath,
     fileExists,
-    fileKeyLen, // key length inside that .env file (48 = good, 8 = truncated)
-    loadedKeyLen: loaded.length, // key length actually loaded into the process
+    keyLineCount: keyLines.length, // >1 means duplicate lines
+    keyLines, // [{len, head}] — len 48 = good, 8 = truncated
+    loadedKeyLen: loaded.length,
     cwd: process.cwd(),
   });
 });
