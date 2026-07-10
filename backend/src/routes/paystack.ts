@@ -5,11 +5,13 @@ import { prisma } from '../lib/prisma';
 
 const router = Router();
 
-// Read the secret key defensively: strip whitespace/newlines and surrounding
-// quotes that can sneak in when the key is added to .env, which otherwise makes
-// the Authorization header invalid and breaks webhook signature checks.
+// Read the secret key defensively. Paystack keys only contain [A-Za-z0-9_], so
+// strip every other character anywhere in the value — this removes stray
+// whitespace, newlines, carriage returns, quotes or hidden characters that
+// sneak in via .env and otherwise make the Authorization header invalid and
+// break webhook signature checks.
 function getSecret(): string {
-  return (process.env.PAYSTACK_SECRET_KEY || '').trim().replace(/^["']|["']$/g, '');
+  return (process.env.PAYSTACK_SECRET_KEY || '').replace(/[^A-Za-z0-9_]/g, '');
 }
 
 // GET the Paystack API using Node's built-in https so it works on any Node
