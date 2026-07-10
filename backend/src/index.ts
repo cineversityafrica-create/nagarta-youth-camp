@@ -72,7 +72,11 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({
+  limit: '10mb',
+  // Capture the raw body so the Paystack webhook can verify its signature
+  verify: (req, _res, buf) => { (req as unknown as { rawBody?: Buffer }).rawBody = buf; },
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
