@@ -134,11 +134,22 @@ const PAY_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours to pay
 
 router.get('/my', authenticate, async (req: AuthRequest, res) => {
   try {
-    // Auto-close: delete UNPAID registrations older than the 24h payment window
+    // Auto-close: after the 24h payment window, remove UNPAID registrations (and
+    // their now-orphaned child records/photos) — but ALWAYS keep the parent's
+    // account so they can log back in and register again.
     const cutoff = new Date(Date.now() - PAY_WINDOW_MS);
-    await prisma.registration.deleteMany({
+    const expired = await prisma.registration.findMany({
       where: { userId: req.user!.userId, paymentStatus: 'UNPAID', createdAt: { lt: cutoff } },
+      select: { id: true, childId: true },
     });
+    if (expired.length) {
+      await prisma.registration.deleteMany({ where: { id: { in: expired.map((r) => r.id) } } });
+      const childIds = expired.map((r) => r.childId).filter((id): id is string => Boolean(id));
+      if (childIds.length) {
+        // Only delete children that no longer belong to any registration
+        await prisma.child.deleteMany({ where: { id: { in: childIds }, registrations: { none: {} } } });
+      }
+    }
 
     const regs = await prisma.registration.findMany({
       where: { userId: req.user!.userId },

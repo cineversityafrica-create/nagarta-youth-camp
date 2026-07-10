@@ -11,7 +11,7 @@ import { fileToCompressedDataUrl } from '@/lib/image';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
-const emptyChild = { name: '', age: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContactName: '', emergencyContactPhone: '' };
+const emptyChild = { name: '', age: '', gender: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContactName: '', emergencyContactPhone: '' };
 
 export default function ParentDashboard() {
   const router = useRouter();
@@ -70,7 +70,48 @@ export default function ParentDashboard() {
   }, [router]);
 
   function updateNewChild(field: string, val: string) {
-    setNewChild((p) => ({ ...p, [field]: val.toUpperCase() }));
+    // Block letters for data fields; leave the gender dropdown value untouched
+    setNewChild((p) => ({ ...p, [field]: field === 'gender' ? val : val.toUpperCase() }));
+  }
+
+  // Prefill the parent/guardian details from the most recent registration so a
+  // parent adding a sibling doesn't start from scratch. Child-specific fields
+  // (photo, name, gender, etc.) stay blank — each child is different.
+  function openAddChild() {
+    const last = registrations[0];
+    if (last) {
+      const hasMother = Boolean(last.motherName || last.motherPhone || last.motherEmail);
+      const hasFather = Boolean(last.fatherName || last.fatherPhone || last.fatherEmail);
+      if (hasMother) {
+        setMother({
+          name: last.motherName || '',
+          address: last.motherAddress || '',
+          phone: last.motherPhone || '',
+          email: last.motherEmail || '',
+          emergencyContact: last.motherEmergencyContact || '',
+        });
+      }
+      if (hasFather) {
+        setFather({
+          name: last.fatherName || '',
+          address: last.fatherAddress || '',
+          phone: last.fatherPhone || '',
+          email: last.fatherEmail || '',
+          emergencyContact: last.fatherEmergencyContact || '',
+        });
+      }
+      if (hasMother && hasFather) setParentType('both');
+      else if (hasFather) setParentType('father');
+      else if (hasMother) setParentType('mother');
+    }
+    // Child identity always starts fresh
+    setNewChild(emptyChild);
+    setNewChildPhoto('');
+    setNewChildPhotoPreview('');
+    setPhotoError('');
+    setAddChildError('');
+    setAddChildRef(null);
+    setShowAddChild(true);
   }
 
   function updateMother(field: string, val: string) {
@@ -174,15 +215,14 @@ export default function ParentDashboard() {
   }
 
   function addAnother() {
+    // Keep the parent/guardian details (same for siblings) — only reset the
+    // child's own fields (photo, name, gender, age, etc.).
     setNewChild(emptyChild);
     setNewChildPhoto('');
     setNewChildPhotoPreview('');
     setPhotoError('');
     setAddChildError('');
     setAddChildRef(null);
-    setParentType('both');
-    setMother({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
-    setFather({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
   }
 
   if (loading) {
@@ -309,7 +349,7 @@ export default function ParentDashboard() {
               <h2 className="font-serif text-xl font-semibold text-maroon">Registered Children</h2>
               {!showAddChild && (
                 <button
-                  onClick={() => setShowAddChild(true)}
+                  onClick={openAddChild}
                   className="flex items-center gap-2 bg-gold text-maroon px-5 py-2.5 rounded-full text-sm font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -497,6 +537,15 @@ export default function ParentDashboard() {
                         <input type="number" required min="12" max="18" value={newChild.age} onChange={e => updateNewChild('age', e.target.value)} placeholder="15" className={inputClass} />
                       </div>
                       <div>
+                        <label className={labelClass}>Gender</label>
+                        <select required value={newChild.gender} onChange={e => updateNewChild('gender', e.target.value)} className={inputClass}>
+                          <option value="" disabled>Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2">
                         <label className={labelClass}>School / Institution</label>
                         <input type="text" value={newChild.school} onChange={e => updateNewChild('school', e.target.value)} placeholder="Accra Academy" className={inputClass} />
                       </div>
