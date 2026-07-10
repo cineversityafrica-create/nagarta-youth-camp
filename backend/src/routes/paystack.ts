@@ -37,17 +37,10 @@ router.get('/debug', (_req, res) => {
 });
 
 // Read the secret key defensively. Paystack keys only contain [A-Za-z0-9_], so
-// strip every other character anywhere in the value.
-//
-// TEMPORARY: the server's .env key kept getting corrupted/truncated, so if the
-// env value is missing or clearly too short to be a real key, fall back to the
-// known TEST key. Once a valid LIVE key is set via env (length >= 20) it takes
-// over automatically. TODO: remove this fallback before going live for real.
-const TEST_KEY_FALLBACK = 'sk_test_4019db578636e18b0b1f7f783a7531e2e81f9b7b';
-
+// strip every other character anywhere in the value (handles stray whitespace,
+// newlines, carriage returns or quotes that sneak in via .env).
 function getSecret(): string {
-  const fromEnv = (process.env.PAYSTACK_SECRET_KEY || '').replace(/[^A-Za-z0-9_]/g, '');
-  return fromEnv.length >= 20 ? fromEnv : TEST_KEY_FALLBACK;
+  return (process.env.PAYSTACK_SECRET_KEY || '').replace(/[^A-Za-z0-9_]/g, '');
 }
 
 // GET the Paystack API using Node's built-in https so it works on any Node
