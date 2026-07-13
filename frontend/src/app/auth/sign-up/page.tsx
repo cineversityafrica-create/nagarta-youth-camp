@@ -6,11 +6,8 @@ import { useRouter } from 'next/navigation';
 import { register, ApiError } from '@/lib/api';
 import { saveAuth } from '@/lib/auth';
 
-type TabMode = 'PARENT' | 'CAMPER';
-
 export default function SignUpPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<TabMode>('PARENT');
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,12 +42,11 @@ export default function SignUpPage() {
         password: form.password,
         name: form.name,
         phone: form.phone || undefined,
-        role: tab,
+        role: 'PARENT',
       });
       clearTimeout(slowTimer);
       saveAuth(token, user);
-      if (user.role === 'PARENT') router.push('/dashboard/parent');
-      else router.push('/dashboard/camper');
+      router.push('/dashboard/parent');
     } catch (err: unknown) {
       clearTimeout(slowTimer);
       setSlowConnection(false);
@@ -87,19 +83,12 @@ export default function SignUpPage() {
           <h1 className="font-serif text-2xl font-semibold text-maroon mb-1 italic">Create an account</h1>
           <p className="text-sm text-burgundy mb-6">Join NAGARTA 2026</p>
 
-          {/* Tabs */}
-          <div className="flex border border-beige rounded-lg overflow-hidden mb-6">
-            {(['PARENT', 'CAMPER'] as TabMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setTab(mode)}
-                className={`flex-1 py-2.5 text-xs font-semibold tracking-wider uppercase transition-colors ${
-                  tab === mode ? 'bg-burgundy text-gold' : 'bg-white text-maroon/60 hover:bg-beige'
-                }`}
-              >
-                {mode === 'PARENT' ? "I'm a Parent" : "I'm a Camper"}
-              </button>
-            ))}
+          {/* Single account type */}
+          <div className="flex items-center justify-center gap-2 mb-6 py-2.5 rounded-lg bg-burgundy text-gold text-xs font-semibold tracking-wider uppercase">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-3-6.7" />
+            </svg>
+            Parent / Guardian Account
           </div>
 
           {error && (
@@ -117,7 +106,7 @@ export default function SignUpPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block label-caps text-burgundy mb-1.5">
-                {tab === 'PARENT' ? 'Full Name' : 'Your Name'}
+                Full Name
               </label>
               <input
                 type="text"
