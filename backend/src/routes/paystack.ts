@@ -69,7 +69,7 @@ function paystackGet<T = unknown>(path: string, secret: string): Promise<T> {
 // can never mark a registration as fully PAID.
 const USD_TO_GHS = 12;
 const PRICE_PESEWAS: Record<string, number> = {
-  'Early Bird': 20 * USD_TO_GHS * 100, // TEMPORARY: reduced for a live payment test (normally 285)
+  'Early Bird': 285 * USD_TO_GHS * 100,
   Regular: 310 * USD_TO_GHS * 100,
 };
 const FULL_FEE_PESEWAS = PRICE_PESEWAS.Regular;

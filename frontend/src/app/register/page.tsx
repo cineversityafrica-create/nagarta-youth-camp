@@ -395,10 +395,10 @@ export default function RegisterPage() {
                   <div className="pt-6 text-center">
                     <div className="mb-2">
                       <span className="text-lg text-gray-400 line-through font-semibold">$310</span>
-                      <span className="ml-2 text-[10px] font-bold text-rose-500 bg-rose-100 px-2 py-0.5 rounded-full">SAVE $290</span>
+                      <span className="ml-2 text-[10px] font-bold text-rose-500 bg-rose-100 px-2 py-0.5 rounded-full">SAVE $25</span>
                     </div>
                     <p className="text-4xl font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-1">
-                      $20
+                      $285
                     </p>
                     <p className="text-xs text-burgundy/70 font-medium">per camper</p>
                     <p className="text-[11px] text-rose-600 font-bold mt-2">⏰ Limited Time - Register Early!</p>
