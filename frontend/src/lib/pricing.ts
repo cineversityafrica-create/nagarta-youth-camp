@@ -2,7 +2,7 @@
 // Prices are quoted in USD on the register page; payment is by bank transfer in GH₵.
 export const USD_TO_GHS = 12;
 
-export const EARLY_BIRD_USD = 285;
+export const EARLY_BIRD_USD = 20; // TEMPORARY: reduced for a live payment test (normally 285)
 export const REGULAR_USD = 310;
 
 export const EARLY_BIRD_GHS = EARLY_BIRD_USD * USD_TO_GHS; // 3,420
