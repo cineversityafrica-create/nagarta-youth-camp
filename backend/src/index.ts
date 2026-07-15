@@ -309,29 +309,32 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
 
   res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>ID Card #${campId} — ${name}</title>
   <style>
-    @page { size:54mm 86mm; margin:0; }
+    @page { size:85.6mm 54mm; margin:0; }
     * { box-sizing:border-box; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     body { font-family:-apple-system,Segoe UI,Roboto,sans-serif; display:flex; flex-direction:column; align-items:center; gap:14px; padding:16px; background:#eef; }
-    .card { width:54mm; height:86mm; border-radius:4mm; overflow:hidden; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.25); display:flex; flex-direction:column; }
-    .top { background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; text-align:center; padding:3mm 2mm 2.5mm; }
-    .top img { height:9mm; object-fit:contain; margin-bottom:1mm; }
-    .top .org { font-size:3mm; font-weight:800; letter-spacing:.3mm; }
-    .top .role { font-size:2mm; text-transform:uppercase; letter-spacing:.6mm; opacity:.9; }
-    .num { text-align:center; background:#f4f1fa; color:#5e3a8c; font-weight:800; font-size:6mm; padding:1.5mm 0; letter-spacing:.3mm; border-bottom:.4mm solid #eee; }
-    .pic { width:34mm; height:34mm; object-fit:cover; border-radius:3mm; border:1mm solid #27c1ca; margin:3mm auto 2mm; display:block; }
-    .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
-    .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:1mm; }
-    .ref { text-align:center; font-family:monospace; font-size:2.4mm; color:#999; margin-top:auto; padding:2mm; border-top:.3mm dashed #ddd; }
+    .card { width:85.6mm; height:54mm; border-radius:3mm; overflow:hidden; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.25); display:flex; }
+    .left { width:32mm; flex-shrink:0; background:linear-gradient(160deg,#5e3a8c,#27c1ca); display:flex; align-items:center; justify-content:center; padding:2.5mm; }
+    .left img { width:100%; height:38mm; object-fit:cover; border-radius:2mm; border:.7mm solid #fff; }
+    .right { flex:1; padding:3mm 3.5mm; display:flex; flex-direction:column; min-width:0; }
+    .org { display:flex; align-items:center; gap:1.5mm; }
+    .org img { height:6mm; object-fit:contain; }
+    .org span { font-size:2.7mm; font-weight:800; color:#5e3a8c; line-height:1; }
+    .num { font-size:7mm; font-weight:800; color:#27c1ca; margin:1.5mm 0 .5mm; letter-spacing:.3mm; }
+    .nm { font-size:4.6mm; font-weight:800; color:#26203a; line-height:1.05; }
+    .mt { font-size:3mm; color:#666; margin-top:1mm; }
+    .ref { margin-top:auto; font-family:monospace; font-size:2.9mm; color:#777; border-top:.3mm dashed #ccc; padding-top:1.5mm; word-break:break-all; }
     button { padding:8px 22px; border:none; border-radius:8px; background:#5e3a8c; color:#fff; font-weight:700; cursor:pointer; }
     @media print { body { background:#fff; padding:0; gap:0; } button { display:none; } .card { box-shadow:none; } }
   </style></head><body>
     <div class="card">
-      <div class="top"><img src="/logo-full.png" alt="NAGARTA"/><div class="org">NAGARTA Youth Camp</div><div class="role">Camper ID</div></div>
-      <div class="num">#${campId}</div>
-      <img class="pic" src="${photo}" alt="${name}"/>
-      <div class="nm">${name}</div>
-      <div class="mt">${esc(meta)}</div>
-      <div class="ref">Ref: ${esc(reg.referenceCode)}</div>
+      <div class="left"><img src="${photo}" alt="${name}"/></div>
+      <div class="right">
+        <div class="org"><img src="/logo-full.png" alt="NAGARTA"/><span>NAGARTA<br/>Youth Camp</span></div>
+        <div class="num">#${campId}</div>
+        <div class="nm">${name}</div>
+        <div class="mt">${esc(meta)}</div>
+        <div class="ref">Ref: ${esc(reg.referenceCode)}</div>
+      </div>
     </div>
     <button onclick="window.print()">🖨️ Print ID Card</button>
     <script>setTimeout(function(){ window.print(); }, 500);</script>
