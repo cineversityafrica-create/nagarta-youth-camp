@@ -333,8 +333,23 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
       <div class="mt">${esc(meta)}</div>
       <div class="ref">Ref: ${esc(reg.referenceCode)}</div>
     </div>
-    <button onclick="window.print()">🖨️ Print ID Card</button>
-    <script>setTimeout(function(){ window.print(); }, 500);</script>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button onclick="window.print()">🖨️ Print</button>
+      <button onclick="downloadCard()" style="background:#27c1ca;color:#083b3e;">⬇️ Download</button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+      function downloadCard(){
+        var card=document.querySelector('.card');
+        if(!window.html2canvas){ alert('Download tool did not load. Use Print → "Save as PDF" instead.'); return; }
+        html2canvas(card,{scale:5,useCORS:true,backgroundColor:'#ffffff'}).then(function(canvas){
+          var a=document.createElement('a');
+          a.download='NAGARTA-ID-${campId}-${(reg.child?.name || 'Camper').replace(/[^A-Za-z0-9]/g, '_')}.png';
+          a.href=canvas.toDataURL('image/png');
+          document.body.appendChild(a); a.click(); a.remove();
+        }).catch(function(){ alert('Could not create the image. Use Print → "Save as PDF" instead.'); });
+      }
+    </script>
   </body></html>`);
 });
 
