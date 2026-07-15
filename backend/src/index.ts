@@ -319,11 +319,11 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     .logobox { height:24mm; overflow:hidden; }
     .logobox img { display:block; margin:0 auto; height:32mm; }
     .top .role { font-size:2.3mm; font-weight:800; text-transform:uppercase; letter-spacing:.6mm; color:#5e3a8c; }
-    .num { text-align:center; background:#f4f1fa; color:#5e3a8c; font-weight:800; font-size:5.5mm; padding:1mm 0; letter-spacing:.3mm; }
-    .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:2mm auto 1.5mm; display:block; }
+    .num { text-align:center; background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; font-weight:800; font-size:5.5mm; padding:1.4mm 0; letter-spacing:.3mm; }
+    .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:2mm auto 1mm; display:block; }
     .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
     .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:.8mm; }
-    .ref { text-align:center; font-family:monospace; font-size:2.7mm; color:#777; margin-top:auto; padding:1.8mm; border-top:.3mm dashed #ccc; word-break:break-all; }
+    .ref { text-align:center; font-family:monospace; font-size:2.7mm; color:#777; margin-top:2.2mm; padding-top:1.6mm; padding-bottom:1mm; border-top:.3mm dashed #ccc; word-break:break-all; }
     button { padding:8px 22px; border:none; border-radius:8px; background:#5e3a8c; color:#fff; font-weight:700; cursor:pointer; }
     @media print { body { background:#fff; padding:0; gap:0; } button { display:none; } .card { box-shadow:none; } }
   </style></head><body>
