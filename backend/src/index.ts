@@ -305,7 +305,7 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
   const name = esc(reg.child?.name || 'Camper');
   const photo = reg.child?.photo || '/logo-full.png';
-  const meta = [reg.child?.age != null ? `Age ${reg.child.age}` : '', reg.child?.gender || ''].filter(Boolean).join(' · ');
+  const meta = reg.child?.gender || '';
 
   res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>ID Card #${campId} — ${name}</title>
   <style>
@@ -319,7 +319,7 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     .logobox { height:24mm; overflow:hidden; }
     .logobox img { display:block; margin:0 auto; height:32mm; }
     .top .role { font-size:2.3mm; font-weight:800; text-transform:uppercase; letter-spacing:.6mm; color:#5e3a8c; }
-    .num { text-align:center; background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; font-weight:800; font-size:5.5mm; padding:1.4mm 0; letter-spacing:.3mm; }
+    .num { text-align:center; background:#FFA500; color:#fff; font-weight:800; font-size:5.5mm; padding:1.4mm 0; letter-spacing:.3mm; }
     .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:2mm auto 1mm; display:block; }
     .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
     .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:.8mm; }
