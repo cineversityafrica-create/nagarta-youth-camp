@@ -313,7 +313,7 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     * { box-sizing:border-box; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     body { font-family:-apple-system,Segoe UI,Roboto,sans-serif; display:flex; flex-direction:column; align-items:center; gap:14px; padding:16px; background:#eef; }
     .card { width:54mm; height:85.6mm; border-radius:3mm; overflow:hidden; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.25); display:flex; flex-direction:column; position:relative; }
-    .wm { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:150mm; height:83mm; max-width:none; object-fit:cover; object-position:top center; opacity:.09; z-index:0; pointer-events:none; }
+    .wm { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:104mm; height:58mm; max-width:none; object-fit:cover; object-position:top center; opacity:.09; z-index:0; pointer-events:none; }
     .card > *:not(.wm) { position:relative; z-index:1; }
     .top { background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; text-align:center; padding:2.5mm 2mm; }
     .top img { height:13mm; object-fit:contain; margin-bottom:.8mm; }
