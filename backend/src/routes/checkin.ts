@@ -5,6 +5,10 @@ import { AuthRequest } from '../middleware/authenticate';
 
 const router = Router();
 
+// Serve the standalone station page here (under /api/checkin so Nginx routes it
+// to the backend without any extra config). URL: /api/checkin/station
+router.get('/station', (_req, res) => res.render('checkin'));
+
 // The station unlocks once with a shared passcode (STAFF_PASSCODE); after that
 // guardians walk up and check their children in/out. Admins can also use it.
 function stationAuth(req: AuthRequest, res: Response, next: NextFunction) {
