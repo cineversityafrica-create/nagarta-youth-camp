@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { USD_TO_GHS, formatGhs } from '@/lib/pricing';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -27,7 +26,6 @@ export default function PaystackButton({
   camperName,
   onPaid,
 }: PaystackButtonProps) {
-  const router = useRouter();
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -81,7 +79,9 @@ export default function PaystackButton({
           .then((d) => {
             if (d?.success) {
               if (onPaid) onPaid();
-              else router.push('/dashboard/parent');
+              // Full page navigation (not client-side) so the Paystack popup
+              // overlay is torn down instead of lingering on top of the app.
+              else window.location.href = '/dashboard/parent';
             } else {
               setError(d?.error || 'We could not confirm your payment. If you were charged, please contact us.');
               setLoading(false);
