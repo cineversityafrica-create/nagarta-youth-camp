@@ -285,6 +285,59 @@ app.get('/admin/registrations/export', requireAdminSession, async (_req, res) =>
 });
 
 // Printable registration form (single registration) — with photo, print/PDF friendly
+// Printable camper ID card (standard CR80 portrait size) with the NAGARTA logo
+app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res) => {
+  const reg = await prisma.registration.findUnique({
+    where: { id: req.params.id },
+    include: { child: true },
+  });
+  if (!reg) return res.status(404).send('Registration not found');
+
+  // Assign the next camp ID number (1–1000) if this camper doesn't have one yet
+  let campId = reg.campId;
+  if (campId == null) {
+    const max = await prisma.registration.aggregate({ _max: { campId: true } });
+    campId = Math.min((max._max.campId || 0) + 1, 1000);
+    await prisma.registration.update({ where: { id: reg.id }, data: { campId } });
+  }
+
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+  const name = esc(reg.child?.name || 'Camper');
+  const photo = reg.child?.photo || '/logo-full.png';
+  const meta = [reg.child?.age != null ? `Age ${reg.child.age}` : '', reg.child?.gender || ''].filter(Boolean).join(' · ');
+
+  res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>ID Card #${campId} — ${name}</title>
+  <style>
+    @page { size:54mm 86mm; margin:0; }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body { font-family:-apple-system,Segoe UI,Roboto,sans-serif; display:flex; flex-direction:column; align-items:center; gap:14px; padding:16px; background:#eef; }
+    .card { width:54mm; height:86mm; border-radius:4mm; overflow:hidden; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.25); display:flex; flex-direction:column; }
+    .top { background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; text-align:center; padding:3mm 2mm 2.5mm; }
+    .top img { height:9mm; object-fit:contain; margin-bottom:1mm; }
+    .top .org { font-size:3mm; font-weight:800; letter-spacing:.3mm; }
+    .top .role { font-size:2mm; text-transform:uppercase; letter-spacing:.6mm; opacity:.9; }
+    .num { text-align:center; background:#f4f1fa; color:#5e3a8c; font-weight:800; font-size:6mm; padding:1.5mm 0; letter-spacing:.3mm; border-bottom:.4mm solid #eee; }
+    .pic { width:34mm; height:34mm; object-fit:cover; border-radius:3mm; border:1mm solid #27c1ca; margin:3mm auto 2mm; display:block; }
+    .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
+    .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:1mm; }
+    .ref { text-align:center; font-family:monospace; font-size:2.4mm; color:#999; margin-top:auto; padding:2mm; border-top:.3mm dashed #ddd; }
+    button { padding:8px 22px; border:none; border-radius:8px; background:#5e3a8c; color:#fff; font-weight:700; cursor:pointer; }
+    @media print { body { background:#fff; padding:0; gap:0; } button { display:none; } .card { box-shadow:none; } }
+  </style></head><body>
+    <div class="card">
+      <div class="top"><img src="/logo-full.png" alt="NAGARTA"/><div class="org">NAGARTA Youth Camp</div><div class="role">Camper ID</div></div>
+      <div class="num">#${campId}</div>
+      <img class="pic" src="${photo}" alt="${name}"/>
+      <div class="nm">${name}</div>
+      <div class="mt">${esc(meta)}</div>
+      <div class="ref">Ref: ${esc(reg.referenceCode)}</div>
+    </div>
+    <button onclick="window.print()">🖨️ Print ID Card</button>
+    <script>setTimeout(function(){ window.print(); }, 500);</script>
+  </body></html>`);
+});
+
 app.get('/admin/registrations/:id/print', requireAdminSession, async (req, res) => {
   const reg = await prisma.registration.findUnique({
     where: { id: req.params.id },
