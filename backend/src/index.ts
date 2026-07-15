@@ -320,7 +320,7 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     .logobox img { display:block; margin:0 auto; height:32mm; }
     .top .role { font-size:2.3mm; font-weight:800; text-transform:uppercase; letter-spacing:.6mm; color:#5e3a8c; }
     .num { text-align:center; background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; font-weight:800; font-size:5.5mm; padding:1mm 0; letter-spacing:.3mm; margin-top:-1mm; }
-    .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:.6mm auto .5mm; display:block; }
+    .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:0 auto .5mm; display:block; }
     .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
     .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:.4mm; }
     .ref { text-align:center; font-family:monospace; font-size:3.3mm; font-weight:700; color:#5e3a8c; margin-top:.6mm; word-break:break-all; }
