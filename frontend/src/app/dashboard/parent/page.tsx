@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { getMe, getAnnouncements, getMyRegistrations, submitRegistration, submitContactMessage, type User, type Announcement, type Registration } from '@/lib/api';
 import { getToken, getStoredUser, clearAuth } from '@/lib/auth';
 import BankDetails from '@/components/BankDetails';
+import Barcode from '@/components/Barcode';
 import { CAMP_FEE_GHS, formatGhs } from '@/lib/pricing';
 import { fileToCompressedDataUrl } from '@/lib/image';
 
@@ -443,6 +444,12 @@ export default function ParentDashboard() {
                         </div>
                       );
                     })()}
+
+                    {/* Check-in barcode — scan this at the camp gate */}
+                    <div className="mt-3 rounded-xl bg-white border border-beige/70 p-3 text-center">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-burgundy/50 mb-1">Check-In Pass — show at the gate</p>
+                      <Barcode value={reg.referenceCode} className="mx-auto max-w-full h-auto" />
+                    </div>
                   </div>
                 ))}
               </div>
