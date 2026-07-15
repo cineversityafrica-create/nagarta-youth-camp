@@ -318,8 +318,8 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     .top { background:#fff; color:#5e3a8c; text-align:center; padding:2.5mm 2mm 1.5mm; }
     .logobox { height:24mm; overflow:hidden; }
     .logobox img { display:block; margin:0 auto; height:32mm; }
-    .top .role { font-size:2.3mm; font-weight:800; text-transform:uppercase; letter-spacing:.6mm; color:#5e3a8c; }
-    .num { text-align:center; background:#FFA500; color:#fff; font-weight:800; font-size:5.5mm; padding:1.4mm 0; letter-spacing:.3mm; }
+    .band { background:#FFA500; color:#fff; text-align:center; font-weight:800; text-transform:uppercase; letter-spacing:.8mm; font-size:2.5mm; padding:1.4mm 0; }
+    .num { text-align:center; background:#f4f1fa; color:#5e3a8c; font-weight:800; font-size:5.5mm; padding:1.4mm 0; letter-spacing:.3mm; }
     .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:2mm auto 1mm; display:block; }
     .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
     .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:.8mm; }
@@ -329,7 +329,8 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
   </style></head><body>
     <div class="card">
       <img class="wm" src="/logo-full.png" alt=""/>
-      <div class="top"><div class="logobox"><img src="/logo-full.png" alt="NAGARTA"/></div><div class="role">Camper ID</div></div>
+      <div class="top"><div class="logobox"><img src="/logo-full.png" alt="NAGARTA"/></div></div>
+      <div class="band">Camper ID</div>
       <div class="num">#${campId}</div>
       <img class="pic" src="${photo}" alt="${name}"/>
       <div class="nm">${name}</div>
