@@ -315,11 +315,11 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     .card { width:54mm; height:85.6mm; border-radius:3mm; overflow:hidden; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.25); display:flex; flex-direction:column; position:relative; }
     .wm { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:150mm; height:83mm; max-width:none; object-fit:cover; object-position:top center; opacity:.09; z-index:0; pointer-events:none; }
     .card > *:not(.wm) { position:relative; z-index:1; }
-    .top { background:#fff; color:#5e3a8c; text-align:center; padding:2.5mm 2mm 1.5mm; }
-    .logobox { height:24mm; overflow:hidden; }
+    .top { background:#fff; color:#5e3a8c; text-align:center; padding:2.5mm 2mm 0; }
+    .logobox { height:23mm; overflow:hidden; }
     .logobox img { display:block; margin:0 auto; height:32mm; }
     .top .role { font-size:2.3mm; font-weight:800; text-transform:uppercase; letter-spacing:.6mm; color:#5e3a8c; }
-    .num { text-align:center; background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; font-weight:800; font-size:5.5mm; padding:1mm 0; letter-spacing:.3mm; }
+    .num { text-align:center; background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; font-weight:800; font-size:5.5mm; padding:1mm 0; letter-spacing:.3mm; margin-top:-1mm; }
     .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:.6mm auto .5mm; display:block; }
     .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
     .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:.4mm; }
