@@ -71,14 +71,34 @@ model Registration {
   fatherEmergencyContact String?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
+  campId           Int?                 @unique // printed ID-card number (1–1000), assigned at first check-in
   transactions     PaymentTransaction[]
   notifications    Notification[]
+  checkLogs        CheckLog[]
 
   @@index([status])
   @@index([paymentStatus])
   @@index([userId])
   @@index([createdAt])
   @@map("registrations")
+}
+
+// Camp gate check-in / check-out events with the guardian's details captured
+// at the point of arrival/pickup.
+model CheckLog {
+  id              String       @id @default(cuid())
+  registrationId  String
+  registration    Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  type            String       // IN | OUT
+  guardianName    String?
+  guardianAddress String?
+  guardianPhone   String?
+  ghanaCard       String?
+  createdAt       DateTime     @default(now())
+
+  @@index([registrationId])
+  @@index([createdAt])
+  @@map("check_logs")
 }
 
 model PaymentTransaction {

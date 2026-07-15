@@ -22,6 +22,7 @@ import scheduleRouter from './routes/schedule';
 import registrationsRouter from './routes/registrations';
 import contactRouter from './routes/contact';
 import paystackRouter from './routes/paystack';
+import checkinRouter from './routes/checkin';
 import announcementsRouter from './routes/announcements';
 
 // Admin API routes
@@ -120,6 +121,10 @@ app.use('/api/activities', activitiesRouter);
 app.use('/api/schedule', scheduleRouter);
 app.use('/api/registrations', registrationsRouter);
 app.use('/api/paystack', paystackRouter);
+app.use('/api/checkin', checkinRouter);
+
+// Standalone guardian check-in / check-out station page
+app.get('/checkin', (_req, res) => res.render('checkin'));
 app.use('/api/contact-messages', contactRouter);
 app.use('/api/announcements', announcementsRouter);
 

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>NAGARTA Youth Camp — Check In / Out</title>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <style>
+    :root { --purple:#5e3a8c; --cyan:#27c1ca; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      min-height:100vh; color:#fff;
+      background:linear-gradient(135deg,#5e3a8c 0%,#4a2f75 40%,#1f8f96 100%);
+      background-attachment:fixed;
+    }
+    .wrap { max-width:1100px; margin:0 auto; padding:24px 16px 60px; }
+
+    /* Header */
+    header { text-align:center; margin-bottom:26px; }
+    header img { height:70px; object-fit:contain; margin:0 auto 8px; display:block; filter:drop-shadow(0 4px 10px rgba(0,0,0,.3)); }
+    header h1 { font-size:26px; font-weight:800; letter-spacing:.5px; }
+    header p { font-size:12px; text-transform:uppercase; letter-spacing:3px; opacity:.8; margin-top:4px; }
+
+    /* Blurred rectangle */
+    .panel {
+      background:rgba(255,255,255,.12); backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.25); border-radius:24px;
+      box-shadow:0 30px 60px -20px rgba(0,0,0,.5);
+      display:grid; grid-template-columns:1fr 1px 1fr; gap:0; overflow:hidden;
+    }
+    .col { padding:28px 26px; }
+    .divider { background:linear-gradient(180deg,transparent,rgba(255,255,255,.5),transparent); }
+    .col h2 { font-size:14px; text-transform:uppercase; letter-spacing:2px; margin-bottom:16px; opacity:.9; display:flex; align-items:center; gap:8px; }
+
+    /* Scanner */
+    #reader { width:100%; border-radius:16px; overflow:hidden; background:rgba(0,0,0,.25); min-height:230px; }
+    #reader video { border-radius:16px; }
+    .scan-hint { font-size:12px; opacity:.75; margin-top:10px; text-align:center; }
+    .scan-btn {
+      width:100%; margin-top:12px; padding:12px; border-radius:12px; border:none; cursor:pointer;
+      background:var(--cyan); color:#083b3e; font-weight:800; letter-spacing:.5px; font-size:14px;
+    }
+
+    /* Reference form */
+    .ref-input {
+      width:100%; padding:16px; border-radius:14px; border:2px solid rgba(255,255,255,.3);
+      background:rgba(255,255,255,.15); color:#fff; font-size:20px; letter-spacing:2px;
+      text-align:center; text-transform:uppercase; font-weight:700; font-family:monospace;
+    }
+    .ref-input::placeholder { color:rgba(255,255,255,.5); letter-spacing:1px; }
+    .btn {
+      width:100%; margin-top:14px; padding:15px; border-radius:14px; border:none; cursor:pointer;
+      background:var(--purple); color:#fff; font-weight:800; font-size:16px; letter-spacing:.5px;
+      box-shadow:0 10px 20px -6px rgba(0,0,0,.4); transition:transform .15s;
+    }
+    .btn:hover { transform:translateY(-2px); }
+    .btn.cyan { background:var(--cyan); color:#083b3e; }
+    .btn.ghost { background:rgba(255,255,255,.15); }
+    .msg { margin-top:12px; font-size:14px; text-align:center; min-height:18px; }
+    .msg.err { color:#ffd0d0; }
+
+    /* Result / child card */
+    #result { display:none; margin-top:26px; }
+    .child-card {
+      background:rgba(255,255,255,.14); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.25);
+      border-radius:22px; padding:26px; display:flex; gap:26px; align-items:center; flex-wrap:wrap;
+    }
+    .child-photo {
+      width:190px; height:190px; border-radius:20px; object-fit:cover; flex-shrink:0;
+      border:4px solid var(--cyan); box-shadow:0 16px 30px -10px rgba(0,0,0,.5); background:#0003;
+    }
+    .child-info { flex:1; min-width:220px; }
+    .child-info .name { font-size:34px; font-weight:800; line-height:1.1; }
+    .child-info .meta { margin-top:8px; opacity:.85; font-size:15px; }
+    .pill { display:inline-block; padding:5px 14px; border-radius:999px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-top:14px; }
+    .pill.in { background:#22c55e; } .pill.out { background:#f59e0b; } .pill.none { background:rgba(255,255,255,.25); }
+
+    /* Modal */
+    .overlay { position:fixed; inset:0; background:rgba(20,10,40,.75); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; padding:16px; z-index:50; }
+    .overlay.open { display:flex; }
+    .modal { background:#fff; color:#26203a; border-radius:22px; width:100%; max-width:460px; padding:28px; max-height:92vh; overflow:auto; box-shadow:0 30px 60px rgba(0,0,0,.4); }
+    .modal h3 { font-size:20px; font-weight:800; margin-bottom:4px; color:var(--purple); }
+    .modal .sub { font-size:13px; color:#6b6480; margin-bottom:18px; }
+    .field { margin-bottom:14px; }
+    .field label { display:block; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#7c5cbf; margin-bottom:6px; }
+    .field input {
+      width:100%; padding:13px 14px; border-radius:12px; border:2px solid #e6e0f2; font-size:15px; color:#26203a;
+    }
+    .field input:focus { outline:none; border-color:var(--cyan); }
+    .actions { display:flex; gap:10px; margin-top:8px; }
+    .actions .btn { margin-top:0; }
+
+    @media (max-width:760px) {
+      .panel { grid-template-columns:1fr; }
+      .divider { height:1px; width:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent); }
+      .child-info .name { font-size:28px; }
+      .child-photo { width:150px; height:150px; }
+    }
+
+    /* Unlock */
+    #unlock { position:fixed; inset:0; background:linear-gradient(135deg,#5e3a8c,#1f8f96); display:flex; align-items:center; justify-content:center; z-index:100; padding:16px; }
+    #unlock .box { background:rgba(255,255,255,.12); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.25); border-radius:22px; padding:34px 30px; width:100%; max-width:380px; text-align:center; }
+    #unlock img { height:60px; margin-bottom:14px; }
+  </style>
+</head>
+<body>
+  <!-- Unlock station -->
+  <div id="unlock">
+    <div class="box">
+      <img src="/logo-full.png" alt="NAGARTA" />
+      <h1 style="font-size:20px;font-weight:800;margin-bottom:4px;">Check-In Station</h1>
+      <p style="font-size:12px;opacity:.8;margin-bottom:18px;">Enter the station passcode to begin</p>
+      <input id="passcode" class="ref-input" type="password" placeholder="Passcode" style="letter-spacing:3px;" />
+      <button class="btn cyan" onclick="unlock()">Unlock Station</button>
+      <div id="unlockMsg" class="msg err"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <img src="/logo-full.png" alt="NAGARTA Youth Camp" />
+      <h1>NAGARTA Youth Camp</h1>
+      <p>Check In &amp; Check Out</p>
+    </header>
+
+    <div class="panel">
+      <!-- LEFT: barcode scanner -->
+      <div class="col">
+        <h2>📷 Scan Barcode</h2>
+        <div id="reader"></div>
+        <button id="scanToggle" class="scan-btn" onclick="toggleScan()">Start Camera</button>
+        <p class="scan-hint">Point the camera at the barcode on the child's registration (from the portal or email).</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- RIGHT: reference id form -->
+      <div class="col">
+        <h2>⌨️ Enter Reference ID</h2>
+        <form onsubmit="lookupRef(event)">
+          <input id="refInput" class="ref-input" placeholder="NAG-XXXXX" autocomplete="off" />
+          <button class="btn" type="submit">Find Child</button>
+        </form>
+        <div id="refMsg" class="msg err"></div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="result">
+      <div class="child-card">
+        <img id="childPhoto" class="child-photo" alt="Child" />
+        <div class="child-info">
+          <div id="childName" class="name"></div>
+          <div id="childMeta" class="meta"></div>
+          <div><span id="statusPill" class="pill none">Not checked in</span></div>
+          <div class="actions" style="margin-top:18px;">
+            <button class="btn cyan" style="max-width:220px;" onclick="openGuardian()">Continue →</button>
+            <button class="btn ghost" style="max-width:140px;" onclick="resetAll()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guardian modal -->
+  <div id="guardianOverlay" class="overlay">
+    <div class="modal">
+      <h3>Guardian Details</h3>
+      <p class="sub">Please fill in your details to check <b id="gChild"></b> in or out.</p>
+      <div class="field"><label>Full Name *</label><input id="gName" /></div>
+      <div class="field"><label>Location / Address *</label><input id="gAddress" /></div>
+      <div class="field"><label>Contact Number *</label><input id="gPhone" type="tel" /></div>
+      <div class="field"><label>Ghana Card Number *</label><input id="gCard" placeholder="GHA-XXXXXXXXX-X" /></div>
+      <div id="gMsg" class="msg err"></div>
+      <div class="actions" style="margin-top:6px;">
+        <button class="btn cyan" onclick="proceedToAction()">OK / Continue</button>
+        <button class="btn ghost" style="max-width:120px;" onclick="closeGuardian()">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check in/out modal -->
+  <div id="actionOverlay" class="overlay">
+    <div class="modal" style="text-align:center;">
+      <h3 id="actionTitle">Check In or Out</h3>
+      <p class="sub" id="actionSub"></p>
+      <div class="actions" style="flex-direction:column;">
+        <button class="btn" style="background:#22c55e;" onclick="doCheck('IN')">✅ Check In</button>
+        <button class="btn" style="background:#f59e0b;" onclick="doCheck('OUT')">🚪 Check Out</button>
+        <button class="btn ghost" onclick="closeAction()">Cancel</button>
+      </div>
+      <div id="actionMsg" class="msg err"></div>
+    </div>
+  </div>
+
+  <script>
+    let TOKEN = sessionStorage.getItem('nag_station_token') || '';
+    let current = null;   // looked-up child
+    let html5Qr = null, scanning = false;
+
+    if (TOKEN) document.getElementById('unlock').style.display = 'none';
+
+    function unlock() {
+      const pass = document.getElementById('passcode').value;
+      fetch('/api/checkin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ passcode: pass }) })
+        .then(r => r.json()).then(d => {
+          if (d.token) { TOKEN = d.token; sessionStorage.setItem('nag_station_token', TOKEN); document.getElementById('unlock').style.display='none'; }
+          else document.getElementById('unlockMsg').textContent = d.error || 'Incorrect passcode.';
+        }).catch(() => document.getElementById('unlockMsg').textContent = 'Connection error.');
+    }
+    document.getElementById('passcode').addEventListener('keydown', e => { if (e.key==='Enter') unlock(); });
+
+    function authHeaders() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN }; }
+
+    function lookupRef(e) { if (e) e.preventDefault(); const ref = document.getElementById('refInput').value.trim(); if (ref) doLookup(ref); }
+
+    function doLookup(ref) {
+      document.getElementById('refMsg').textContent = '';
+      fetch('/api/checkin/lookup/' + encodeURIComponent(ref), { headers: authHeaders() })
+        .then(r => r.json().then(d => ({ ok:r.ok, d })))
+        .then(({ ok, d }) => {
+          if (!ok) { document.getElementById('refMsg').textContent = d.error || 'Not found.'; return; }
+          current = d;
+          showChild(d);
+        }).catch(() => document.getElementById('refMsg').textContent = 'Connection error.');
+    }
+
+    function showChild(d) {
+      document.getElementById('childPhoto').src = d.child.photo || '/logo-full.png';
+      document.getElementById('childName').textContent = d.child.name;
+      const bits = [];
+      if (d.child.age != null) bits.push('Age ' + d.child.age);
+      if (d.child.gender) bits.push(d.child.gender);
+      if (d.campId != null) bits.push('Camp ID #' + d.campId);
+      bits.push('Ref ' + d.referenceCode);
+      document.getElementById('childMeta').textContent = bits.join('  ·  ');
+      const pill = document.getElementById('statusPill');
+      if (d.currentlyIn) { pill.className='pill in'; pill.textContent='Currently checked IN'; }
+      else { pill.className='pill out'; pill.textContent='Currently OUT'; }
+      document.getElementById('result').style.display='block';
+      document.getElementById('result').scrollIntoView({ behavior:'smooth' });
+      if (scanning) toggleScan();
+    }
+
+    function openGuardian() {
+      document.getElementById('gChild').textContent = current.child.name;
+      document.getElementById('gMsg').textContent='';
+      document.getElementById('guardianOverlay').classList.add('open');
+    }
+    function closeGuardian() { document.getElementById('guardianOverlay').classList.remove('open'); }
+
+    let guardian = null;
+    function proceedToAction() {
+      const g = {
+        guardianName: document.getElementById('gName').value.trim(),
+        guardianAddress: document.getElementById('gAddress').value.trim(),
+        guardianPhone: document.getElementById('gPhone').value.trim(),
+        ghanaCard: document.getElementById('gCard').value.trim(),
+      };
+      if (!g.guardianName || !g.guardianAddress || !g.guardianPhone || !g.ghanaCard) {
+        document.getElementById('gMsg').textContent = 'All fields are required.'; return;
+      }
+      guardian = g;
+      closeGuardian();
+      document.getElementById('actionSub').textContent = current.child.name + ' — choose an action';
+      document.getElementById('actionMsg').textContent='';
+      document.getElementById('actionOverlay').classList.add('open');
+    }
+    function closeAction() { document.getElementById('actionOverlay').classList.remove('open'); }
+
+    function doCheck(type) {
+      fetch('/api/checkin/' + current.registrationId, { method:'POST', headers:authHeaders(), body:JSON.stringify(Object.assign({ type }, guardian)) })
+        .then(r => r.json().then(d => ({ ok:r.ok, d })))
+        .then(({ ok, d }) => {
+          if (!ok) { document.getElementById('actionMsg').textContent = d.error || 'Failed.'; return; }
+          closeAction();
+          printIdCard(d, type);
+          resetAll();
+        }).catch(() => document.getElementById('actionMsg').textContent = 'Connection error.');
+    }
+
+    function printIdCard(d, type) {
+      const w = window.open('', '_blank', 'width=420,height=640');
+      if (!w) { alert('Checked ' + type + '! (Allow pop-ups to print the ID card.)'); return; }
+      const photo = d.child.photo || '/logo-full.png';
+      w.document.write(`<html><head><title>ID Card #${d.campId}</title><style>
+        body{font-family:sans-serif;margin:0;padding:16px;display:flex;justify-content:center;}
+        .card{width:340px;border-radius:18px;overflow:hidden;border:2px solid #5e3a8c;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+        .top{background:linear-gradient(135deg,#5e3a8c,#27c1ca);color:#fff;padding:16px;text-align:center;}
+        .top h2{margin:0;font-size:18px;} .top p{margin:2px 0 0;font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.9;}
+        .num{font-size:40px;font-weight:800;margin:6px 0;}
+        .pic{width:150px;height:150px;object-fit:cover;border-radius:14px;border:4px solid #27c1ca;display:block;margin:16px auto 8px;}
+        .body{padding:0 18px 20px;text-align:center;}
+        .nm{font-size:22px;font-weight:800;color:#26203a;} .mt{color:#666;font-size:14px;margin-top:4px;}
+        .ref{margin-top:10px;font-family:monospace;font-size:12px;color:#888;}
+        @media print{ button{display:none;} }
+      </style></head><body><div class="card">
+        <div class="top"><h2>NAGARTA Youth Camp</h2><p>Camper ID</p><div class="num">#${d.campId}</div></div>
+        <img class="pic" src="${photo}"/>
+        <div class="body"><div class="nm">${d.child.name}</div>
+        <div class="mt">${d.child.age!=null?('Age '+d.child.age):''} ${d.child.gender?(' · '+d.child.gender):''}</div>
+        <div class="ref">Ref: ${d.referenceCode}</div></div>
+      </div><div style="text-align:center;margin-top:16px;"><button onclick="window.print()" style="padding:10px 20px;border:none;border-radius:10px;background:#5e3a8c;color:#fff;font-weight:700;cursor:pointer;">🖨️ Print ID Card</button></div>
+      <script>setTimeout(()=>window.print(),400);<\/script></body></html>`);
+      w.document.close();
+    }
+
+    function resetAll() {
+      current = null; guardian = null;
+      document.getElementById('result').style.display='none';
+      document.getElementById('refInput').value='';
+      document.getElementById('gName').value=''; document.getElementById('gAddress').value='';
+      document.getElementById('gPhone').value=''; document.getElementById('gCard').value='';
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    /* Barcode scanner (html5-qrcode supports QR + Code128 etc.) */
+    function toggleScan() {
+      const btn = document.getElementById('scanToggle');
+      if (scanning) { html5Qr.stop().then(()=>{ scanning=false; btn.textContent='Start Camera'; }); return; }
+      if (!window.Html5Qrcode) { alert('Scanner still loading, try again in a moment.'); return; }
+      html5Qr = html5Qr || new Html5Qrcode('reader');
+      const fmts = window.Html5QrcodeSupportedFormats ? [Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39] : undefined;
+      html5Qr.start({ facingMode:'environment' }, { fps:10, qrbox:{ width:250, height:150 }, formatsToSupport:fmts },
+        (text) => { const ref = String(text).trim().toUpperCase().replace(/[^A-Z0-9]/g,''); toggleScan(); doLookup(ref); },
+        () => {}
+      ).then(()=>{ scanning=true; btn.textContent='Stop Camera'; })
+       .catch(()=> alert('Could not start the camera. Use the reference form instead.'));
+    }
+  </script>
+</body>
+</html>
