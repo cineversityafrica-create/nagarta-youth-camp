@@ -305,7 +305,7 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
   const name = esc(reg.child?.name || 'Camper');
   const photo = reg.child?.photo || '/logo-full.png';
-  const meta = [reg.child?.age != null ? `Age ${reg.child.age}` : '', reg.child?.gender || ''].filter(Boolean).join(' · ');
+  const meta = reg.child?.gender || '';
 
   res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>ID Card #${campId} — ${name}</title>
   <style>
@@ -323,7 +323,7 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:2mm auto 1mm; display:block; }
     .nm { text-align:center; font-size:4mm; font-weight:800; color:#26203a; padding:0 2mm; line-height:1.1; }
     .mt { text-align:center; font-size:2.8mm; color:#666; margin-top:.8mm; }
-    .ref { text-align:center; font-family:monospace; font-size:2.7mm; color:#777; margin-top:2.2mm; padding-top:1.6mm; padding-bottom:1mm; border-top:.3mm dashed #ccc; word-break:break-all; }
+    .ref { text-align:center; font-family:monospace; font-size:3.3mm; font-weight:700; color:#5e3a8c; margin-top:1mm; word-break:break-all; }
     button { padding:8px 22px; border:none; border-radius:8px; background:#5e3a8c; color:#fff; font-weight:700; cursor:pointer; }
     @media print { body { background:#fff; padding:0; gap:0; } button { display:none; } .card { box-shadow:none; } }
   </style></head><body>
