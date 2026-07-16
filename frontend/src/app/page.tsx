@@ -8,6 +8,7 @@ import AboutSection from '@/components/AboutSection';
 import ScheduleSection from '@/components/ScheduleSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import CTASection from '@/components/CTASection';
+import VolunteerSection from '@/components/VolunteerSection';
 import GlowDivider from '@/components/GlowDivider';
 import Footer from '@/components/Footer';
 
@@ -110,6 +111,7 @@ export default async function HomePage() {
         <ScheduleSection days={schedule} />
         <GlowDivider />
         <TestimonialsSection />
+        <VolunteerSection />
         <GlowDivider />
         <CTASection heading={content.cta_heading} />
       </main>

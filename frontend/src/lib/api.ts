@@ -126,6 +126,10 @@ export async function submitContactMessage(data: unknown) {
   return apiFetch('/api/contact-messages', { method: 'POST', body: JSON.stringify(data) }, undefined, 30000);
 }
 
+export async function submitVolunteer(data: unknown) {
+  return apiFetch('/api/volunteers', { method: 'POST', body: JSON.stringify(data) }, undefined, 30000);
+}
+
 // ── Auth — 60 s timeout so Render has time to wake up ────────────────────────
 
 export async function login(email: string, password: string): Promise<AuthResponse> {

@@ -23,6 +23,7 @@ import registrationsRouter from './routes/registrations';
 import contactRouter from './routes/contact';
 import paystackRouter from './routes/paystack';
 import checkinRouter from './routes/checkin';
+import volunteersRouter from './routes/volunteers';
 import announcementsRouter from './routes/announcements';
 
 // Admin API routes
@@ -122,6 +123,7 @@ app.use('/api/schedule', scheduleRouter);
 app.use('/api/registrations', registrationsRouter);
 app.use('/api/paystack', paystackRouter);
 app.use('/api/checkin', checkinRouter);
+app.use('/api/volunteers', volunteersRouter);
 
 // Standalone guardian check-in / check-out station page
 app.get('/checkin', (_req, res) => res.render('checkin'));
@@ -561,6 +563,17 @@ app.post('/admin/schedule/:id', requireAdminSession, async (req, res) => {
 app.get('/admin/messages', requireAdminSession, async (_req, res) => {
   const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: 'desc' } });
   res.render('admin/messages', { messages });
+});
+
+app.get('/admin/volunteers', requireAdminSession, async (_req, res) => {
+  const volunteers = await prisma.volunteerApplication.findMany({ orderBy: { createdAt: 'desc' } });
+  res.render('admin/volunteers', { volunteers });
+});
+
+app.get('/admin/volunteers/:id/status', requireAdminSession, async (req, res) => {
+  const status = String(req.query.status || 'PENDING');
+  await prisma.volunteerApplication.update({ where: { id: req.params.id }, data: { status } });
+  res.redirect('/admin/volunteers');
 });
 
 app.get('/admin/messages/:id/resolve', requireAdminSession, async (req, res) => {

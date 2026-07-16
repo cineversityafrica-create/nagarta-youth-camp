@@ -180,6 +180,22 @@ model Testimonial {
   @@map("testimonials")
 }
 
+// Volunteer applications. Core identity fields are columns for quick admin
+// scanning; the full multi-section questionnaire is stored in `data` (JSON).
+model VolunteerApplication {
+  id        String   @id @default(cuid())
+  fullName  String
+  email     String
+  phone     String?
+  skills    String?  // comma-joined skills for quick scanning
+  data      Json     // the complete questionnaire (all sections)
+  status    String   @default("PENDING") // PENDING | REVIEWED | ACCEPTED | REJECTED
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("volunteer_applications")
+}
+
 model ContactMessage {
   id        String   @id @default(cuid())
   name      String
