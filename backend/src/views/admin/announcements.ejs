@@ -7,6 +7,10 @@
     <h2 class="font-serif text-3xl font-semibold text-maroon italic">Announcements</h2>
   </div>
 
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm"><%= error %></div>
+  <% } %>
+
   <!-- New Announcement Form -->
   <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
     <h3 class="font-serif text-xl font-semibold text-maroon mb-4">Post New Announcement</h3>
@@ -23,17 +27,39 @@
       </div>
       <div>
         <label class="block text-xs tracking-wider uppercase text-burgundy font-semibold mb-1">Audience</label>
-        <select name="targetRole" class="px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold">
+        <select name="targetRole" id="targetRole" onchange="toggleVolunteerNote()"
+          class="px-3 py-2 border border-beige rounded text-sm text-maroon focus:outline-none focus:ring-2 focus:ring-gold">
           <option value="">All Users</option>
           <option value="PARENT">Parents Only</option>
           <option value="CAMPER">Campers Only</option>
+          <option value="VOLUNTEER">Volunteers Only</option>
         </select>
+        <p class="text-xs text-burgundy/60 mt-1.5">Parents and campers see announcements in their portal. Volunteers have no portal, so theirs are emailed.</p>
+        <div id="volunteerNote" style="display:none"
+          class="mt-3 bg-amber-50 border border-amber-200 text-amber-800 rounded px-3 py-2 text-xs">
+          <strong>This sends real emails.</strong>
+          <%= volunteerCount %> volunteer<%= volunteerCount === 1 ? '' : 's' %> will be emailed as soon as you post
+          (everyone who applied, except those you marked Rejected). This cannot be undone.
+        </div>
       </div>
-      <button type="submit" class="bg-gold text-maroon px-5 py-2 rounded text-sm font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
+      <button type="submit" onclick="return confirmPost()"
+        class="bg-gold text-maroon px-5 py-2 rounded text-sm font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
         Post Announcement
       </button>
     </form>
   </div>
+
+  <script>
+    function toggleVolunteerNote() {
+      var isVolunteer = document.getElementById('targetRole').value === 'VOLUNTEER';
+      document.getElementById('volunteerNote').style.display = isVolunteer ? 'block' : 'none';
+    }
+    // Emailing volunteers is irreversible, so make the admin confirm it explicitly.
+    function confirmPost() {
+      if (document.getElementById('targetRole').value !== 'VOLUNTEER') return true;
+      return confirm('Email this announcement to <%= volunteerCount %> volunteer<%= volunteerCount === 1 ? "" : "s" %> now?');
+    }
+  </script>
 
   <!-- Existing announcements -->
   <div class="space-y-4">
@@ -42,7 +68,10 @@
         <div class="flex items-start justify-between">
           <div>
             <p class="font-semibold text-maroon"><%= ann.title %></p>
-            <% if (ann.targetRole) { %><span class="text-xs bg-beige text-burgundy px-2 py-0.5 rounded mt-1 inline-block"><%= ann.targetRole %></span><% } %>
+            <% if (ann.targetRole) { %>
+              <% const AUDIENCE = { PARENT: 'Parents', CAMPER: 'Campers', VOLUNTEER: 'Volunteers · emailed' }; %>
+              <span class="text-xs px-2 py-0.5 rounded mt-1 inline-block <%= ann.targetRole === 'VOLUNTEER' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-beige text-burgundy' %>"><%= AUDIENCE[ann.targetRole] || ann.targetRole %></span>
+            <% } %>
             <p class="text-sm text-maroon mt-2 leading-relaxed"><%= ann.body %></p>
             <p class="text-xs text-burgundy mt-2"><%= new Date(ann.createdAt).toLocaleDateString() %> — <%= ann.published ? 'Published' : 'Draft' %></p>
           </div>

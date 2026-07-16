@@ -28,7 +28,7 @@ class NotificationService {
     to: string,
     subject: string,
     html: string,
-    userId: string,
+    userId: string | null, // null for recipients without an account (e.g. volunteers)
     type: string,
     template: string,
     registrationId?: string
@@ -58,7 +58,9 @@ class NotificationService {
       console.error(`[NotificationService] Email failed: ${type} to ${to}:`, err.message);
     }
 
-    // Log to database
+    // Log to database. Notifications are keyed to a user account, so recipients
+    // without one (volunteers) are emailed but not logged here.
+    if (!userId) return;
     try {
       await prisma.notification.create({
         data: {
@@ -178,6 +180,48 @@ class NotificationService {
   }
 
   /**
+   * Email every volunteer applicant who has not been rejected.
+   *
+   * Volunteers are applications rather than user accounts: they have no login
+   * and no portal feed, so email is the only way to reach them.
+   */
+  private async _sendVolunteerAnnouncement(announcementId: string, title: string, body: string) {
+    const applications = await prisma.volunteerApplication.findMany({
+      where: { status: { not: 'REJECTED' } },
+      select: { fullName: true, email: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // One email per address, even if somebody applied more than once
+    const seen = new Set<string>();
+    const recipients = applications.filter((a) => {
+      const email = (a.email || '').trim().toLowerCase();
+      if (!email || !email.includes('@') || seen.has(email)) return false;
+      seen.add(email);
+      return true;
+    });
+
+    if (recipients.length === 0) {
+      console.log(`[NotificationService] No volunteers to notify for announcement ${announcementId}`);
+      return;
+    }
+
+    for (const r of recipients) {
+      const html = buildAnnouncementEmail(title, body, r.fullName, 'Volunteers');
+      await this._sendEmail(
+        r.email,
+        `NAGARTA Youth Camp 2026 — ${title}`,
+        html,
+        null, // no user account to log against
+        'ANNOUNCEMENT',
+        'announcement'
+      );
+    }
+
+    console.log(`[NotificationService] Announcement ${announcementId} sent to ${recipients.length} volunteers`);
+  }
+
+  /**
    * Send announcement to users by role
    * If targetRole is null, sends to all users
    */
@@ -188,6 +232,10 @@ class NotificationService {
     targetRole: string | null
   ) {
     try {
+      if (targetRole === 'VOLUNTEER') {
+        return await this._sendVolunteerAnnouncement(announcementId, title, body);
+      }
+
       // Build query based on target role
       const userQuery: { role?: string } = {};
       if (targetRole) {

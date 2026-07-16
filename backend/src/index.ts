@@ -586,14 +586,30 @@ app.get('/admin/messages/:id/delete', requireAdminSession, async (req, res) => {
   res.redirect('/admin/messages');
 });
 
-app.get('/admin/announcements', requireAdminSession, async (_req, res) => {
+app.get('/admin/announcements', requireAdminSession, async (req, res) => {
   const announcements = await prisma.announcement.findMany({ orderBy: { createdAt: 'desc' } });
-  res.render('admin/announcements', { announcements });
+  const volunteerCount = await prisma.volunteerApplication.count({ where: { status: { not: 'REJECTED' } } });
+  res.render('admin/announcements', { announcements, volunteerCount, error: (req.query.error as string) || '' });
 });
 
 app.post('/admin/announcements', requireAdminSession, async (req, res) => {
-  await prisma.announcement.create({ data: { title: req.body.title, body: req.body.body, published: true, targetRole: req.body.targetRole || null } });
-  res.redirect('/admin/announcements');
+  try {
+    const targetRole = (req.body.targetRole as string) || null;
+    const announcement = await prisma.announcement.create({
+      data: { title: req.body.title, body: req.body.body, published: true, targetRole },
+    });
+    // Parents and campers read announcements in their portal feed. Volunteers
+    // have no account and no feed, so a volunteer announcement is emailed out.
+    if (targetRole === 'VOLUNTEER') {
+      notificationService
+        .sendAnnouncement(announcement.id, announcement.title, announcement.body, 'VOLUNTEER')
+        .catch((err) => console.error('[admin/announcements] volunteer emails failed:', err));
+    }
+    res.redirect('/admin/announcements');
+  } catch (err) {
+    console.error('[admin/announcements/post]', err);
+    res.redirect('/admin/announcements?error=' + encodeURIComponent('Could not post that announcement. Please try again.'));
+  }
 });
 
 app.get('/admin/announcements/:id/delete', requireAdminSession, async (req, res) => {
