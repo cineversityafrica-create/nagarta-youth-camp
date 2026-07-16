@@ -4,17 +4,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { submitVolunteer } from '@/lib/api';
 
-const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
-const labelClass = 'block text-xs font-semibold tracking-wider uppercase text-burgundy mb-1.5';
+const inputClass = 'w-full px-4 py-3 border border-white/25 rounded-lg bg-white/10 text-cream text-sm focus:outline-none focus:ring-2 focus:ring-gold placeholder-cream/40';
+const labelClass = 'block text-xs font-semibold tracking-wider uppercase text-gold mb-1.5';
+const PAGE_BG = 'linear-gradient(135deg,#221738 0%,#2a2f45 50%,#3c7055 100%)';
 
 const SKILLS = ['Teaching','Youth Mentoring','Leadership Training','Public Speaking','Counselling','Event Management','First Aid','Nursing','Medicine','Psychology','Child Development','Media','Photography','Videography','Graphic Design','Marketing','Administration','Finance','IT Support','Security','Sports Coaching','Music','Drama','Dance','Entrepreneurship','Catering','Logistics','Driving','Other'];
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl border border-beige p-6 md:p-7 shadow-sm">
+    <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-6 md:p-8">
       <div className="flex items-center gap-3 mb-5">
-        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-maroon to-burgundy text-gold text-sm font-bold flex-shrink-0">{n}</span>
-        <h2 className="font-serif text-lg font-bold text-maroon">{title}</h2>
+        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gold text-maroon text-sm font-bold flex-shrink-0">{n}</span>
+        <h2 className="font-serif text-lg font-bold text-cream">{title}</h2>
       </div>
       {children}
     </div>
@@ -38,7 +39,7 @@ export default function VolunteerApplyPage() {
   const Radio = ({ name, opts = ['Yes', 'No'] }: { name: string; opts?: string[] }) => (
     <div className="flex gap-4 mt-1">
       {opts.map((o) => (
-        <label key={o} className="flex items-center gap-1.5 text-sm text-maroon cursor-pointer">
+        <label key={o} className="flex items-center gap-1.5 text-sm text-cream cursor-pointer">
           <input type="radio" name={name} checked={f[name] === o} onChange={() => setF((p) => ({ ...p, [name]: o }))} className="accent-gold w-4 h-4" />
           {o}
         </label>
@@ -66,13 +67,13 @@ export default function VolunteerApplyPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-beige p-8 text-center shadow-sm">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: PAGE_BG }}>
+        <div className="max-w-md w-full bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-8 text-center">
+          <div className="w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
           </div>
-          <h1 className="font-serif text-2xl font-bold text-maroon mb-2 italic">Application Received!</h1>
-          <p className="text-sm text-burgundy/70 mb-6">Thank you for offering to volunteer with NAGARTA. Our team will review your application and be in touch.</p>
+          <h1 className="font-serif text-2xl font-bold text-cream mb-2 italic">Application Received!</h1>
+          <p className="text-sm text-cream/70 mb-6">Thank you for offering to volunteer with NAGARTA. Our team will review your application and be in touch.</p>
           <Link href="/" className="inline-block bg-gold text-maroon px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">Back to Home</Link>
         </div>
       </div>
@@ -80,15 +81,15 @@ export default function VolunteerApplyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="bg-maroon py-3 px-6">
+    <div className="min-h-screen" style={{ background: PAGE_BG }}>
+      <div className="py-4 px-6">
         <Link href="/"><Image src="/logo-full.png" alt="NAGARTA" width={40} height={40} className="object-contain" /></Link>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         <div className="text-center mb-8">
           <p className="text-xs font-semibold tracking-widest uppercase text-gold mb-2">Join the Team</p>
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-maroon italic">Volunteer Application</h1>
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-cream italic">Volunteer Application</h1>
           <div className="w-16 h-0.5 bg-gold mx-auto mt-4" />
         </div>
 
@@ -99,7 +100,7 @@ export default function VolunteerApplyPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2"><Field label="Full Name *"><input className={inputClass} value={f.fullName || ''} onChange={set('fullName')} required /></Field></div>
               <Field label="Date of Birth"><input type="date" className={inputClass} value={f.dob || ''} onChange={set('dob')} /></Field>
-              <Field label="Gender"><select className={inputClass} value={f.gender || ''} onChange={set('gender')}><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></Field>
+              <Field label="Gender"><select className={`${inputClass} [&>option]:bg-white [&>option]:text-maroon`} value={f.gender || ''} onChange={set('gender')}><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></Field>
               <Field label="Nationality"><input className={inputClass} value={f.nationality || ''} onChange={set('nationality')} /></Field>
               <Field label="Region / City of Residence"><input className={inputClass} value={f.region || ''} onChange={set('region')} /></Field>
               <div className="sm:col-span-2"><Field label="Residential Address"><input className={inputClass} value={f.address || ''} onChange={set('address')} /></Field></div>
@@ -135,7 +136,7 @@ export default function VolunteerApplyPage() {
             <p className={`${labelClass} mt-6`}>Professional Skills — tick all that apply</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {SKILLS.map((s) => (
-                <label key={s} className={`flex items-center gap-2 text-sm cursor-pointer rounded-lg px-2.5 py-1.5 border ${skills.includes(s) ? 'bg-gold/15 border-gold text-maroon' : 'border-beige text-maroon/70 hover:bg-cream'}`}>
+                <label key={s} className={`flex items-center gap-2 text-sm cursor-pointer rounded-lg px-2.5 py-1.5 border ${skills.includes(s) ? 'bg-gold/25 border-gold text-cream' : 'border-white/20 text-cream/70 hover:bg-white/10'}`}>
                   <input type="checkbox" checked={skills.includes(s)} onChange={() => toggleSkill(s)} className="accent-gold w-4 h-4" />
                   {s}
                 </label>
@@ -155,7 +156,7 @@ export default function VolunteerApplyPage() {
           </Section>
 
           <Section n={5} title="Child Protection & Background">
-            <p className="text-xs text-burgundy/60 mb-4">Because this is a youth camp, safeguarding is extremely important.</p>
+            <p className="text-xs text-cream/60 mb-4">Because this is a youth camp, safeguarding is extremely important.</p>
             <div className="space-y-4">
               <div><label className={labelClass}>Have you ever worked with children?</label><Radio name="workedChildren" /></div>
               <div><label className={labelClass}>Do you have any safeguarding training?</label><Radio name="safeguardingTraining" /></div>
@@ -189,7 +190,7 @@ export default function VolunteerApplyPage() {
           <Section n={8} title="References">
             {[1, 2].map((r) => (
               <div key={r} className="mb-5 last:mb-0">
-                <p className="text-sm font-semibold text-maroon mb-3">Reference {r === 1 ? 'One' : 'Two'}</p>
+                <p className="text-sm font-semibold text-cream mb-3">Reference {r === 1 ? 'One' : 'Two'}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Name"><input className={inputClass} value={f[`ref${r}Name`] || ''} onChange={set(`ref${r}Name`)} /></Field>
                   <Field label="Position"><input className={inputClass} value={f[`ref${r}Position`] || ''} onChange={set(`ref${r}Position`)} /></Field>
@@ -209,7 +210,7 @@ export default function VolunteerApplyPage() {
                 'I understand that submitting an application does not guarantee selection.',
                 'I agree to uphold the values of NAGARTA and contribute to creating a safe, respectful, and positive environment for all participants.',
               ].map((t, i) => (
-                <label key={i} className="flex items-start gap-3 text-sm text-maroon cursor-pointer">
+                <label key={i} className="flex items-start gap-3 text-sm text-cream cursor-pointer">
                   <input type="checkbox" checked={decl[i]} onChange={() => setDecl((p) => p.map((v, j) => (j === i ? !v : v)))} className="accent-gold w-4 h-4 mt-0.5 flex-shrink-0" />
                   <span>{t}</span>
                 </label>
@@ -221,7 +222,7 @@ export default function VolunteerApplyPage() {
             </div>
           </Section>
 
-          <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-maroon to-burgundy text-gold font-bold py-4 rounded-xl tracking-widest uppercase text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg">
+          <button type="submit" disabled={loading} className="w-full bg-gold text-maroon font-bold py-4 rounded-xl tracking-widest uppercase text-sm hover:bg-amber-500 transition-colors disabled:opacity-50 shadow-lg">
             {loading ? 'Submitting…' : 'Submit Application'}
           </button>
         </form>
