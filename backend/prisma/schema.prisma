@@ -47,7 +47,10 @@ model Registration {
   id               String   @id @default(cuid())
   referenceCode    String   @unique @default(cuid())
   userId           String
-  user             User     @relation(fields: [userId], references: [id])
+  // Cascade: deleting a parent account must remove their registrations, which
+  // in turn cascade to payments and check-in logs. Without this the database
+  // refuses the delete and the admin Delete link fails.
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   childId          String?
   child            Child?   @relation(fields: [childId], references: [id])
   type             String   @default("SELF")    // SELF | CHILD

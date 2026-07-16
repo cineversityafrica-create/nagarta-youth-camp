@@ -7,6 +7,10 @@
     <h2 class="font-serif text-3xl font-semibold text-maroon italic">Users</h2>
   </div>
 
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm"><%= error %></div>
+  <% } %>
+
   <div class="bg-white rounded-lg shadow-sm overflow-hidden">
     <table class="w-full text-sm">
       <thead class="bg-gray-50 border-b border-gray-100">

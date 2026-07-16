@@ -601,9 +601,9 @@ app.get('/admin/announcements/:id/delete', requireAdminSession, async (req, res)
   res.redirect('/admin/announcements');
 });
 
-app.get('/admin/users', requireAdminSession, async (_req, res) => {
+app.get('/admin/users', requireAdminSession, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, email: true, name: true, phone: true, role: true, suspended: true, createdAt: true }, orderBy: { createdAt: 'desc' } });
-  res.render('admin/users', { users });
+  res.render('admin/users', { users, error: (req.query.error as string) || '' });
 });
 
 app.get('/admin/users/:id', requireAdminSession, async (req, res) => {
@@ -637,9 +637,18 @@ app.get('/admin/users/:id/unsuspend', requireAdminSession, async (req, res) => {
   res.redirect('/admin/users');
 });
 
+// Deleting a user cascades to their children, registrations, payments and
+// check-in logs. Errors are caught explicitly: Express 4 does not handle
+// rejected async handlers, so an uncaught throw here would hang the request
+// and the Delete link would silently do nothing.
 app.get('/admin/users/:id/delete', requireAdminSession, async (req, res) => {
-  await prisma.user.delete({ where: { id: req.params.id } });
-  res.redirect('/admin/users');
+  try {
+    await prisma.user.delete({ where: { id: req.params.id } });
+    res.redirect('/admin/users');
+  } catch (err) {
+    console.error('[admin/users/delete]', err);
+    res.redirect('/admin/users?error=' + encodeURIComponent('Could not delete that user. Please try again.'));
+  }
 });
 
 // ── Payment portal ───────────────────────────────────────────────────────────
