@@ -193,6 +193,12 @@ export default function HeroSection({ eyebrow, heading, subheading, urgency }: H
           >
             Learn More
           </Link>
+          <Link
+            href="/volunteer"
+            className="border border-gold/70 text-gold px-8 py-4 rounded-full text-sm tracking-widest uppercase hover:bg-gold/10 transition-all"
+          >
+            Volunteer
+          </Link>
         </div>
 
         <div className="label-caps text-gold/60 tracking-widest text-xs" suppressHydrationWarning>{urgency}</div>
