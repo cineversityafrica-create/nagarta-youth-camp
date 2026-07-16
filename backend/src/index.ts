@@ -316,8 +316,8 @@ app.get('/admin/registrations/:id/idcard', requireAdminSession, async (req, res)
     .wm { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:150mm; height:83mm; max-width:none; object-fit:cover; object-position:top center; opacity:.09; z-index:0; pointer-events:none; }
     .card > *:not(.wm) { position:relative; z-index:1; }
     .top { background:#fff; color:#5e3a8c; text-align:center; padding:2.5mm 2mm 0; }
-    .logobox { height:23mm; overflow:hidden; }
-    .logobox img { display:block; margin:0 auto; height:32mm; }
+    .logobox { height:21mm; overflow:hidden; }
+    .logobox img { display:block; margin:0 auto; height:29mm; }
     .top .role { font-size:2.3mm; font-weight:800; text-transform:uppercase; letter-spacing:.6mm; color:#5e3a8c; }
     .num { text-align:center; background:linear-gradient(135deg,#5e3a8c,#27c1ca); color:#fff; font-weight:800; font-size:5.5mm; padding:1mm 0; letter-spacing:.3mm; margin-top:-1mm; }
     .pic { width:28mm; height:28mm; object-fit:cover; border-radius:2.5mm; border:.8mm solid #27c1ca; margin:0 auto .5mm; display:block; }
