@@ -42,8 +42,19 @@
                   <a href="/admin/volunteers/<%= v.id %>/status?status=<%= s %>" class="text-xs px-3 py-1.5 rounded-full border border-beige text-maroon/70 hover:bg-white">Mark <%= s.charAt(0) + s.slice(1).toLowerCase() %></a>
                 <% }) %>
               </div>
+              <% const idPhoto = (v.data || {}).idPhoto; %>
+              <% if (idPhoto) { %>
+                <div class="mb-4">
+                  <p class="text-xs uppercase tracking-wider text-maroon/50 font-semibold mb-2">ID Photo</p>
+                  <a href="<%= idPhoto %>" target="_blank" rel="noopener">
+                    <img src="<%= idPhoto %>" alt="ID document" class="w-64 rounded-lg border border-beige hover:opacity-90 transition-opacity" />
+                  </a>
+                  <p class="text-[11px] text-maroon/40 mt-1">Click to open full size</p>
+                </div>
+              <% } %>
               <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
                 <% Object.entries(v.data || {}).forEach(([k, val]) => {
+                     if (k === 'idPhoto') return; // rendered as an image above
                      const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
                      let out = Array.isArray(val) ? val.join(', ') : (val && typeof val === 'object' ? JSON.stringify(val) : String(val ?? ''));
                      if (out === '' || out === 'null' || out === 'undefined') return; %>

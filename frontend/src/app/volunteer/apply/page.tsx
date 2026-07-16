@@ -1,12 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { submitVolunteer } from '@/lib/api';
+import { fileToCompressedDataUrl } from '@/lib/image';
 
 const inputClass = 'w-full px-4 py-3 border border-white/25 rounded-lg bg-white/10 text-cream text-sm focus:outline-none focus:ring-2 focus:ring-gold placeholder-cream/40';
+const selectClass = `${inputClass} [&>option]:bg-white [&>option]:text-maroon`;
 const labelClass = 'block text-xs font-semibold tracking-wider uppercase text-gold mb-1.5';
 const PAGE_BG = 'linear-gradient(135deg,#221738 0%,#2a2f45 50%,#3c7055 100%)';
+
+const ID_TYPES = ['Ghana Card', 'Passport', "Voter's ID", "Driver's Licence", 'NHIS Card', 'Other'];
 
 const SKILLS = ['Teaching','Youth Mentoring','Leadership Training','Public Speaking','Counselling','Event Management','First Aid','Nursing','Medicine','Psychology','Child Development','Media','Photography','Videography','Graphic Design','Marketing','Administration','Finance','IT Support','Security','Sports Coaching','Music','Drama','Dance','Entrepreneurship','Catering','Logistics','Driving','Other'];
 
@@ -29,11 +33,28 @@ export default function VolunteerApplyPage() {
   const [f, setF] = useState<Record<string, string>>({});
   const [skills, setSkills] = useState<string[]>([]);
   const [decl, setDecl] = useState<boolean[]>([false, false, false, false]);
+  const [idPhoto, setIdPhoto] = useState('');
+  const [photoErr, setPhotoErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
+
+  async function handleIdPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // let the same file be picked again after a removal
+    if (!file) return;
+    setPhotoErr('');
+    if (file.size > 15 * 1024 * 1024) { setPhotoErr('That image is over 15MB. Please choose a smaller one.'); return; }
+    try {
+      setIdPhoto(await fileToCompressedDataUrl(file, 1200, 0.8));
+    } catch {
+      setPhotoErr('Could not read that image. Please try another one.');
+    }
+  }
   const toggleSkill = (s: string) => setSkills((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
 
   const Radio = ({ name, opts = ['Yes', 'No'] }: { name: string; opts?: string[] }) => (
@@ -55,7 +76,7 @@ export default function VolunteerApplyPage() {
     if (!decl.every(Boolean)) { setError('Please tick all four declaration boxes to submit.'); return; }
     setLoading(true);
     try {
-      await submitVolunteer({ ...f, skills, declaration: decl.every(Boolean) });
+      await submitVolunteer({ ...f, skills, idPhoto, declaration: decl.every(Boolean) });
       setDone(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
@@ -100,7 +121,7 @@ export default function VolunteerApplyPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2"><Field label="Full Name *"><input className={inputClass} value={f.fullName || ''} onChange={set('fullName')} required /></Field></div>
               <Field label="Date of Birth"><input type="date" className={inputClass} value={f.dob || ''} onChange={set('dob')} /></Field>
-              <Field label="Gender"><select className={`${inputClass} [&>option]:bg-white [&>option]:text-maroon`} value={f.gender || ''} onChange={set('gender')}><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></Field>
+              <Field label="Gender"><select className={selectClass} value={f.gender || ''} onChange={set('gender')}><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></Field>
               <Field label="Nationality"><input className={inputClass} value={f.nationality || ''} onChange={set('nationality')} /></Field>
               <Field label="Region / City of Residence"><input className={inputClass} value={f.region || ''} onChange={set('region')} /></Field>
               <div className="sm:col-span-2"><Field label="Residential Address"><input className={inputClass} value={f.address || ''} onChange={set('address')} /></Field></div>
@@ -110,6 +131,49 @@ export default function VolunteerApplyPage() {
               <Field label="Occupation"><input className={inputClass} value={f.occupation || ''} onChange={set('occupation')} /></Field>
               <Field label="Employer / Institution"><input className={inputClass} value={f.employer || ''} onChange={set('employer')} /></Field>
               <Field label="Highest Educational Qualification"><input className={inputClass} value={f.education || ''} onChange={set('education')} /></Field>
+            </div>
+
+            <div className="border-t border-white/15 mt-6 pt-5">
+              <p className="text-sm font-semibold text-cream mb-4">Identification</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="ID Type">
+                  <select className={selectClass} value={f.idType || ''} onChange={set('idType')}>
+                    <option value="">Select</option>
+                    {ID_TYPES.map((t) => <option key={t}>{t}</option>)}
+                  </select>
+                </Field>
+                <Field label="ID Number"><input className={inputClass} value={f.idNumber || ''} onChange={set('idNumber')} /></Field>
+              </div>
+
+              <div className="mt-4">
+                <label className={labelClass}>ID Photo</label>
+                <input ref={uploadRef} type="file" accept="image/*" onChange={handleIdPhoto} className="hidden" />
+                <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleIdPhoto} className="hidden" />
+
+                {idPhoto ? (
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={idPhoto} alt="ID preview" className="w-44 h-28 object-cover rounded-lg border border-white/25" />
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => uploadRef.current?.click()} className="text-xs px-4 py-2 rounded-full border border-white/25 text-cream/80 hover:bg-white/10 transition-colors">Replace</button>
+                      <button type="button" onClick={() => setIdPhoto('')} className="text-xs px-4 py-2 rounded-full border border-white/25 text-cream/60 hover:bg-white/10 transition-colors">Remove</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button type="button" onClick={() => uploadRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-white/30 text-cream/80 text-sm hover:bg-white/10 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                      Upload ID
+                    </button>
+                    <button type="button" onClick={() => cameraRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-white/30 text-cream/80 text-sm hover:bg-white/10 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      Take Photo
+                    </button>
+                  </div>
+                )}
+                {photoErr && <p className="text-xs text-red-300 mt-2">{photoErr}</p>}
+                <p className="text-[11px] text-cream/40 mt-2">A clear photo of the ID you selected above. Max 15MB.</p>
+              </div>
             </div>
           </Section>
 
