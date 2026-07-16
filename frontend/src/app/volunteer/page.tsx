@@ -34,11 +34,11 @@ export default function VolunteerPage() {
           <h1 className="font-serif text-3xl md:text-4xl font-semibold text-cream italic">Why Volunteer with NAGARTA?</h1>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-6 md:p-8 mb-10">
+        <div className="bg-white rounded-2xl border border-beige p-6 md:p-7 shadow-sm mb-10">
           <ul className="space-y-3.5">
             {BENEFITS.map((b, i) => (
-              <li key={i} className="flex items-start gap-3 text-cream/90 text-sm md:text-base">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/20 text-gold flex items-center justify-center mt-0.5">
+              <li key={i} className="flex items-start gap-3 text-maroon/80 text-sm md:text-base">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/25 text-amber-700 flex items-center justify-center mt-0.5">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                 </span>
                 {b}
