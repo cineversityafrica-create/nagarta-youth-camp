@@ -22,7 +22,7 @@ export default function VolunteerPage() {
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg,#301317 0%,#531c22 55%,#3b1f14 100%)' }}>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg,#221738 0%,#2a2f45 50%,#3c7055 100%)' }}>
       <div className="py-4 px-6">
         <Link href="/"><Image src="/logo-full.png" alt="NAGARTA" width={44} height={44} className="object-contain" /></Link>
       </div>
