@@ -39,9 +39,13 @@ router.post('/login', (req, res) => {
 // GET /api/checkin/lookup/:ref -> child card + current in/out status
 router.get('/lookup/:ref', stationAuth, async (req, res) => {
   try {
-    const ref = (req.params.ref || '').trim().toUpperCase();
-    const reg = await prisma.registration.findUnique({
-      where: { referenceCode: ref },
+    // Match case-insensitively rather than upper-casing the input. Codes from
+    // generateRefCode() are upper-case, but the schema falls back to a
+    // lower-case cuid() when one is not supplied, and older rows carry those.
+    // Upper-casing such a code finds nothing, so its QR fails at the gate.
+    const ref = (req.params.ref || '').trim();
+    const reg = await prisma.registration.findFirst({
+      where: { referenceCode: { equals: ref, mode: 'insensitive' } },
       include: { child: true, user: true, checkLogs: { orderBy: { createdAt: 'desc' }, take: 6 } },
     });
     if (!reg) return res.status(404).json({ error: 'No camper found for that code.' });
