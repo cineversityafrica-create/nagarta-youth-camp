@@ -7,6 +7,7 @@ import { submitRegistration, register as registerAccount } from '@/lib/api';
 import { getToken, isLoggedIn, saveAuth } from '@/lib/auth';
 import { EARLY_BIRD_USD, REGULAR_USD } from '@/lib/pricing';
 import { fileToCompressedDataUrl } from '@/lib/image';
+import CheckinQR from '@/components/CheckinQR';
 const SAVED_FORM_KEY = 'nagarta_saved_registration';
 
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
@@ -311,10 +312,20 @@ export default function RegisterPage() {
                 <p className="font-semibold text-maroon text-sm">
                   {`${success.name} is registered!`}
                 </p>
-                <p className="text-xs text-burgundy mt-0.5 mb-2">Spot reserved. Confirmation will be sent to your email.</p>
-                <div className="bg-beige rounded px-3 py-2 inline-block">
-                  <p className="label-caps text-burgundy text-xs mb-0.5">Reference Code</p>
-                  <p className="font-mono text-maroon text-xs font-semibold break-all">{success.referenceCode}</p>
+                <p className="text-xs text-burgundy mt-0.5 mb-3">Spot reserved. Confirmation will be sent to your email.</p>
+
+                {/* Check-in pass — the QR and the code are interchangeable at the gate */}
+                <div className="bg-white border border-beige rounded-xl p-4 inline-flex items-center gap-4">
+                  <div className="flex-shrink-0">
+                    <CheckinQR value={success.referenceCode} size={104} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="label-caps text-burgundy text-xs mb-0.5">Reference Code</p>
+                    <p className="font-mono text-maroon text-sm font-bold break-all">{success.referenceCode}</p>
+                    <p className="text-[11px] text-burgundy/70 mt-1.5 leading-snug max-w-[15rem]">
+                      Show this QR at the gate to check in or out — or just give the code. Either works.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

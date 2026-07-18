@@ -240,7 +240,13 @@
 
     function authHeaders() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN }; }
 
-    function lookupRef(e) { if (e) e.preventDefault(); const ref = document.getElementById('refInput').value.trim(); if (ref) doLookup(ref); }
+    /* Scanning a QR and typing the code by hand must behave identically, so both
+       paths normalise the same way: strip surrounding whitespace only. Case is
+       handled server-side, and stripping inner characters would break any code
+       that is not purely alphanumeric. */
+    function normalizeRef(raw) { return String(raw == null ? '' : raw).replace(/\s+/g, ''); }
+
+    function lookupRef(e) { if (e) e.preventDefault(); const ref = normalizeRef(document.getElementById('refInput').value); if (ref) doLookup(ref); }
 
     function doLookup(ref) {
       document.getElementById('refMsg').textContent = '';
@@ -331,7 +337,7 @@
       html5Qr = html5Qr || new Html5Qrcode('reader');
       const fmts = window.Html5QrcodeSupportedFormats ? [Html5QrcodeSupportedFormats.QR_CODE] : undefined;
       html5Qr.start({ facingMode:'environment' }, { fps:10, qrbox:{ width:230, height:230 }, formatsToSupport:fmts },
-        (text) => { const ref = String(text).trim().toUpperCase().replace(/[^A-Z0-9]/g,''); toggleScan(); doLookup(ref); },
+        (text) => { const ref = normalizeRef(text); toggleScan(); if (ref) doLookup(ref); },
         () => {}
       ).then(()=>{ scanning=true; btn.textContent='Stop Camera'; })
        .catch(()=> alert('Could not start the camera. Use the reference form instead.'));
