@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { submitVolunteer } from '@/lib/api';
 import PhotoCapture from '@/components/PhotoCapture';
+import CheckinQR from '@/components/CheckinQR';
 
 const inputClass = 'w-full px-4 py-3 border border-white/25 rounded-lg bg-white/10 text-cream text-sm focus:outline-none focus:ring-2 focus:ring-gold placeholder-cream/40';
 const selectClass = `${inputClass} [&>option]:bg-white [&>option]:text-maroon`;
@@ -39,6 +40,7 @@ export default function VolunteerApplyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [refCode, setRefCode] = useState('');
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
   const toggleSkill = (s: string) => setSkills((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
@@ -62,7 +64,10 @@ export default function VolunteerApplyPage() {
     if (!decl.every(Boolean)) { setError('Please tick all four declaration boxes to submit.'); return; }
     setLoading(true);
     try {
-      await submitVolunteer({ ...f, skills, idFront, idBack, photo, declaration: decl.every(Boolean) });
+      const res = (await submitVolunteer({ ...f, skills, idFront, idBack, photo, declaration: decl.every(Boolean) })) as
+        | { referenceCode?: string | null }
+        | undefined;
+      setRefCode(res?.referenceCode || '');
       setDone(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
@@ -80,7 +85,20 @@ export default function VolunteerApplyPage() {
             <svg className="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
           </div>
           <h1 className="font-serif text-2xl font-bold text-cream mb-2 italic">Application Received!</h1>
-          <p className="text-sm text-cream/70 mb-6">Thank you for offering to volunteer with NAGARTA. Our team will review your application and be in touch.</p>
+          <p className="text-sm text-cream/70 mb-5">Thank you for offering to volunteer with NAGARTA. Our team will review your application and be in touch.</p>
+
+          {refCode && (
+            <div className="bg-white rounded-xl p-5 mb-6">
+              <p className="label-caps text-burgundy text-[11px] mb-2 tracking-wider uppercase font-semibold">Your Volunteer Pass</p>
+              <div className="flex justify-center mb-3">
+                <CheckinQR value={refCode} size={140} />
+              </div>
+              <p className="font-mono text-maroon text-sm font-bold break-all">{refCode}</p>
+              <p className="text-[11px] text-burgundy/70 mt-2 leading-snug">
+                Save this. Show the QR at the gate to sign in or out — or just give the code. Either works.
+              </p>
+            </div>
+          )}
           <Link href="/" className="inline-block bg-gold text-maroon px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">Back to Home</Link>
         </div>
       </div>

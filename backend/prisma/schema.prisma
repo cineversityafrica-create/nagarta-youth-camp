@@ -88,18 +88,24 @@ model Registration {
 
 // Camp gate check-in / check-out events with the guardian's details captured
 // at the point of arrival/pickup.
+// A check event for either a camper (registrationId) or a volunteer
+// (volunteerId). Exactly one of the two is set; this is enforced in the route,
+// since Prisma cannot express the constraint.
 model CheckLog {
-  id              String       @id @default(cuid())
-  registrationId  String
-  registration    Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  type            String       // IN | OUT
+  id              String                @id @default(cuid())
+  registrationId  String?
+  registration    Registration?         @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  volunteerId     String?
+  volunteer       VolunteerApplication? @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  type            String                // IN | OUT
   guardianName    String?
   guardianAddress String?
   guardianPhone   String?
   ghanaCard       String?
-  createdAt       DateTime     @default(now())
+  createdAt       DateTime              @default(now())
 
   @@index([registrationId])
+  @@index([volunteerId])
   @@index([createdAt])
   @@map("check_logs")
 }
@@ -186,14 +192,19 @@ model Testimonial {
 // Volunteer applications. Core identity fields are columns for quick admin
 // scanning; the full multi-section questionnaire is stored in `data` (JSON).
 model VolunteerApplication {
-  id        String   @id @default(cuid())
-  fullName  String
-  email     String
-  phone     String?
-  skills    String?  // comma-joined skills for quick scanning
-  data      Json     // the complete questionnaire (all sections)
-  status    String   @default("PENDING") // PENDING | REVIEWED | ACCEPTED | REJECTED
-  createdAt DateTime @default(now())
+  id            String     @id @default(cuid())
+  // Scanned or typed at the check-in station, exactly like a camper's code.
+  // Nullable so applications submitted before this existed remain valid.
+  referenceCode String?    @unique
+  campId        Int?       @unique // badge number, assigned on first check-in
+  fullName      String
+  email         String
+  phone         String?
+  skills        String?    // comma-joined skills for quick scanning
+  data          Json       // the complete questionnaire (all sections)
+  status        String     @default("PENDING") // PENDING | REVIEWED | ACCEPTED | REJECTED
+  createdAt     DateTime   @default(now())
+  checkLogs     CheckLog[]
 
   @@index([createdAt])
   @@map("volunteer_applications")

@@ -262,12 +262,18 @@
     function showChild(d) {
       document.getElementById('childPhoto').src = d.child.photo || '/logo-full.png';
       document.getElementById('childName').textContent = d.child.name;
+      const isVol = d.kind === 'VOLUNTEER';
       const bits = [];
+      if (isVol) bits.push('VOLUNTEER');
       if (d.child.age != null) bits.push('Age ' + d.child.age);
       if (d.child.gender) bits.push(d.child.gender);
-      if (d.campId != null) bits.push('Camp ID #' + d.campId);
+      if (d.campId != null) bits.push((isVol ? 'Badge #' : 'Camp ID #') + d.campId);
       bits.push('Ref ' + d.referenceCode);
       document.getElementById('childMeta').textContent = bits.join('  ·  ');
+      // Volunteers who have not been accepted yet should not be waved through
+      // without the staff member noticing.
+      const nameEl = document.getElementById('childName');
+      nameEl.textContent = d.child.name + (isVol && d.status && d.status !== 'ACCEPTED' ? '  (' + d.status + ')' : '');
       const pill = document.getElementById('statusPill');
       if (d.currentlyIn) { pill.className='pill in'; pill.textContent='Currently checked IN'; }
       else { pill.className='pill out'; pill.textContent='Currently OUT'; }
@@ -276,7 +282,16 @@
       if (scanning) toggleScan();
     }
 
+    /* Campers are released to a guardian, whose details we record. Volunteers
+       sign themselves in and out, so they skip straight to the action step. */
     function openGuardian() {
+      if (current && current.kind === 'VOLUNTEER') {
+        guardian = null;
+        document.getElementById('actionSub').textContent = current.child.name + ' — choose an action';
+        document.getElementById('actionMsg').textContent = '';
+        document.getElementById('actionOverlay').classList.add('open');
+        return;
+      }
       document.getElementById('gChild').textContent = current.child.name;
       document.getElementById('gMsg').textContent='';
       document.getElementById('guardianOverlay').classList.add('open');
@@ -310,7 +325,8 @@
     }
 
     function doCheck(type) {
-      fetch('/api/checkin/' + current.registrationId, { method:'POST', headers:authHeaders(), body:JSON.stringify(Object.assign({ type }, guardian)) })
+      const id = current.kind === 'VOLUNTEER' ? current.volunteerId : current.registrationId;
+      fetch('/api/checkin/' + id, { method:'POST', headers:authHeaders(), body:JSON.stringify(Object.assign({ type }, guardian || {})) })
         .then(r => r.json().then(d => ({ ok:r.ok, d })))
         .then(({ ok, d }) => {
           if (!ok) { document.getElementById('actionMsg').textContent = d.error || 'Failed.'; return; }

@@ -48,10 +48,40 @@ router.get('/lookup/:ref', stationAuth, async (req, res) => {
       where: { referenceCode: { equals: ref, mode: 'insensitive' } },
       include: { child: true, user: true, checkLogs: { orderBy: { createdAt: 'desc' }, take: 6 } },
     });
-    if (!reg) return res.status(404).json({ error: 'No camper found for that code.' });
+
+    if (!reg) {
+      // Not a camper — try the volunteers, who scan the same way.
+      const vol = await prisma.volunteerApplication.findFirst({
+        where: { referenceCode: { equals: ref, mode: 'insensitive' } },
+        include: { checkLogs: { orderBy: { createdAt: 'desc' }, take: 6 } },
+      });
+      if (!vol) return res.status(404).json({ error: 'No camper or volunteer found for that code.' });
+
+      const d = (vol.data || {}) as Record<string, unknown>;
+      const str = (k: string) => (typeof d[k] === 'string' ? (d[k] as string) : null);
+      const lastVol = vol.checkLogs[0];
+      return res.json({
+        kind: 'VOLUNTEER',
+        volunteerId: vol.id,
+        referenceCode: vol.referenceCode,
+        campId: vol.campId,
+        status: vol.status,
+        child: {
+          name: vol.fullName,
+          age: null,
+          gender: str('gender'),
+          school: vol.skills || null, // the station shows this line beneath the name
+          photo: str('photo'),
+        },
+        onFile: { parentName: str('emgName'), parentPhone: str('emgPhone') || vol.phone },
+        currentlyIn: lastVol?.type === 'IN',
+        lastEvent: lastVol ? { type: lastVol.type, at: lastVol.createdAt } : null,
+      });
+    }
 
     const last = reg.checkLogs[0];
     return res.json({
+      kind: 'CAMPER',
       registrationId: reg.id,
       referenceCode: reg.referenceCode,
       campId: reg.campId,
@@ -83,12 +113,43 @@ router.post('/:registrationId', stationAuth, async (req, res) => {
   try {
     const { type, guardianName, guardianAddress, guardianPhone, ghanaCard } = req.body || {};
     if (type !== 'IN' && type !== 'OUT') return res.status(400).json({ error: 'type must be IN or OUT' });
+
+    const reg = await prisma.registration.findUnique({ where: { id: req.params.registrationId }, include: { child: true } });
+
+    // Volunteers sign themselves in and out, so no guardian details are taken.
+    if (!reg) {
+      const vol = await prisma.volunteerApplication.findUnique({ where: { id: req.params.registrationId } });
+      if (!vol) return res.status(404).json({ error: 'Registration not found' });
+
+      let volCampId = vol.campId;
+      if (volCampId == null) {
+        const maxVol = await prisma.volunteerApplication.aggregate({ _max: { campId: true } });
+        volCampId = Math.min((maxVol._max.campId || 0) + 1, 1000);
+        await prisma.volunteerApplication.update({ where: { id: vol.id }, data: { campId: volCampId } });
+      }
+
+      await prisma.checkLog.create({ data: { volunteerId: vol.id, type } });
+
+      const vd = (vol.data || {}) as Record<string, unknown>;
+      return res.status(201).json({
+        success: true,
+        kind: 'VOLUNTEER',
+        type,
+        campId: volCampId,
+        referenceCode: vol.referenceCode,
+        child: {
+          name: vol.fullName,
+          age: null,
+          gender: typeof vd.gender === 'string' ? vd.gender : null,
+          photo: typeof vd.photo === 'string' ? vd.photo : null,
+        },
+      });
+    }
+
+    // Campers are released to a guardian, whose details are recorded.
     if (!guardianName || !guardianAddress || !guardianPhone || !ghanaCard) {
       return res.status(400).json({ error: 'Full name, address, contact number and Ghana Card are all required.' });
     }
-
-    const reg = await prisma.registration.findUnique({ where: { id: req.params.registrationId }, include: { child: true } });
-    if (!reg) return res.status(404).json({ error: 'Registration not found' });
 
     // Assign the next camp ID number if this camper doesn't have one yet
     let campId = reg.campId;
@@ -111,6 +172,7 @@ router.post('/:registrationId', stationAuth, async (req, res) => {
 
     return res.status(201).json({
       success: true,
+      kind: 'CAMPER',
       type,
       campId,
       referenceCode: reg.referenceCode,
@@ -133,18 +195,19 @@ router.get('/logs', stationAuth, async (_req, res) => {
     const logs = await prisma.checkLog.findMany({
       orderBy: { createdAt: 'desc' },
       take: 200,
-      include: { registration: { include: { child: true } } },
+      include: { registration: { include: { child: true } }, volunteer: true },
     });
     return res.json(
       logs.map((l) => ({
         id: l.id,
         type: l.type,
         at: l.createdAt,
+        kind: l.volunteerId ? 'VOLUNTEER' : 'CAMPER',
         guardianName: l.guardianName,
         guardianPhone: l.guardianPhone,
-        camper: l.registration.child?.name || 'Camper',
-        campId: l.registration.campId,
-        referenceCode: l.registration.referenceCode,
+        camper: l.volunteer ? l.volunteer.fullName : l.registration?.child?.name || 'Camper',
+        campId: l.volunteer ? l.volunteer.campId : l.registration?.campId ?? null,
+        referenceCode: l.volunteer ? l.volunteer.referenceCode : l.registration?.referenceCode ?? null,
       })),
     );
   } catch (err) {
