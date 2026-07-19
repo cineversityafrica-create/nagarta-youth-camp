@@ -6,11 +6,6 @@
     <div>
       <p class="text-xs tracking-widest uppercase text-gold font-semibold mb-1">Manage</p>
       <h2 class="font-serif text-3xl font-semibold text-maroon italic">Registrations</h2>
-      <% if (typeof total !== 'undefined') { %>
-        <p class="text-sm text-maroon/50 mt-1">
-          <%= total %> total<% if (pageCount > 1) { %> — page <%= page %> of <%= pageCount %><% } %>
-        </p>
-      <% } %>
     </div>
     <a href="/admin/registrations/export"
       class="bg-gold text-maroon px-5 py-2 rounded text-sm font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
@@ -37,9 +32,8 @@
         <% registrations.forEach(reg => { %>
           <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer" onclick="toggleDetails('<%= reg.id %>')" title="Click to view details">
             <td class="px-4 py-3">
-              <% if (reg.child) { %>
-                <img src="/admin/registrations/<%= reg.id %>/photo" alt="Attendee" loading="lazy"
-                  onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs',textContent:'—'}))"
+              <% if (reg.child && reg.child.photo) { %>
+                <img src="<%= reg.child.photo %>" alt="Attendee"
                   class="w-10 h-10 rounded-full object-cover border border-beige" />
               <% } else { %>
                 <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs">—</div>
@@ -90,14 +84,12 @@
                 <!-- Photo + view + download -->
                 <div>
                   <p class="text-xs tracking-wider uppercase text-gray-400 font-semibold mb-2">Attendee Photo</p>
-                  <% if (reg.child) { %>
-                    <% const photoUrl = '/admin/registrations/' + reg.id + '/photo'; %>
-                    <img src="<%= photoUrl %>" alt="Attendee" loading="lazy"
+                  <% if (reg.child && reg.child.photo) { %>
+                    <img src="<%= reg.child.photo %>" alt="Attendee"
                       class="w-32 h-32 rounded-lg object-cover border border-beige mb-3 cursor-pointer hover:opacity-90 transition-opacity"
-                      onerror="this.closest('div').innerHTML='<p class=&quot;text-xs text-burgundy/50 italic&quot;>No photo uploaded.</p>'"
                       onclick="openPhotoModal(this.src)" title="Click to enlarge" />
                     <div class="flex flex-col gap-2">
-                      <button type="button" onclick="openPhotoModal('<%= photoUrl %>')"
+                      <button type="button" onclick="openPhotoModal('<%= reg.child.photo %>')"
                         class="inline-flex items-center gap-1.5 bg-maroon text-gold px-3 py-1.5 rounded text-xs font-semibold tracking-wider uppercase hover:bg-burgundy transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -105,7 +97,7 @@
                         </svg>
                         View Photo
                       </button>
-                      <a href="<%= photoUrl %>"
+                      <a href="<%= reg.child.photo %>"
                         download="attendee-<%= (reg.child.name || 'photo').replace(/[^a-z0-9]/gi, '_') %>.jpg"
                         class="inline-flex items-center gap-1.5 bg-gold text-maroon px-3 py-1.5 rounded text-xs font-semibold tracking-wider uppercase hover:bg-amber-500 transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,27 +156,6 @@
       <p class="text-center py-12 text-burgundy text-sm italic">No registrations yet.</p>
     <% } %>
   </div>
-
-  <% if (typeof pageCount !== 'undefined' && pageCount > 1) { %>
-    <div class="flex items-center justify-center gap-2 mt-6">
-      <% if (page > 1) { %>
-        <a href="?page=<%= page - 1 %>" class="px-3 py-1.5 rounded border border-beige text-sm text-maroon hover:bg-white">&larr; Prev</a>
-      <% } %>
-      <%
-        const win = 2;
-        const from = Math.max(1, page - win);
-        const to = Math.min(pageCount, page + win);
-      %>
-      <% if (from > 1) { %><a href="?page=1" class="px-3 py-1.5 rounded border border-beige text-sm text-maroon hover:bg-white">1</a><span class="text-maroon/30">…</span><% } %>
-      <% for (let i = from; i <= to; i++) { %>
-        <a href="?page=<%= i %>" class="px-3 py-1.5 rounded border text-sm <%= i === page ? 'bg-maroon text-gold border-maroon font-semibold' : 'border-beige text-maroon hover:bg-white' %>"><%= i %></a>
-      <% } %>
-      <% if (to < pageCount) { %><span class="text-maroon/30">…</span><a href="?page=<%= pageCount %>" class="px-3 py-1.5 rounded border border-beige text-sm text-maroon hover:bg-white"><%= pageCount %></a><% } %>
-      <% if (page < pageCount) { %>
-        <a href="?page=<%= page + 1 %>" class="px-3 py-1.5 rounded border border-beige text-sm text-maroon hover:bg-white">Next &rarr;</a>
-      <% } %>
-    </div>
-  <% } %>
 </main>
 
 <!-- Photo lightbox modal -->
