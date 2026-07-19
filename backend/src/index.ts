@@ -1,4 +1,8 @@
 import './loadEnv';
+// Patches Express 4 so a rejected async handler reaches the error middleware
+// below. Without it such a rejection is swallowed and the request hangs until
+// the client gives up. Must be imported before any route is defined.
+import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -253,14 +257,62 @@ app.get('/admin', requireAdminSession, async (_req, res) => {
   }
 });
 
-app.get('/admin/registrations', requireAdminSession, async (_req, res) => {
-  const registrations = await prisma.registration.findMany({ include: { user: { select: { name: true, email: true, phone: true } }, child: true }, orderBy: { createdAt: 'desc' } });
-  res.render('admin/registrations', { registrations });
+const REGISTRATIONS_PER_PAGE = 50;
+
+// Photos are stored as base64 data URLs. Embedding one in the list HTML costs
+// ~3 MB per camper per occurrence, so the list selects every child field EXCEPT
+// photo and points <img> at this route instead. Browsers then fetch thumbnails
+// lazily and in parallel, and the page stays small no matter how many campers.
+const CHILD_FIELDS_WITHOUT_PHOTO = {
+  id: true, name: true, age: true, gender: true, school: true,
+  dietaryNeeds: true, medicalNotes: true, emergencyContact: true,
+} as const;
+
+app.get('/admin/registrations/:id/photo', requireAdminSession, async (req, res) => {
+  const reg = await prisma.registration.findUnique({
+    where: { id: req.params.id },
+    select: { child: { select: { photo: true } } },
+  });
+  const photo = reg?.child?.photo;
+  if (!photo) return res.status(404).end();
+
+  const m = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/.exec(photo);
+  if (!m) return res.status(404).end();
+  const buf = Buffer.from(m[2], 'base64');
+  res.setHeader('Content-Type', m[1]);
+  res.setHeader('Cache-Control', 'private, max-age=3600');
+  return res.end(buf);
+});
+
+app.get('/admin/registrations', requireAdminSession, async (req, res) => {
+  const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+  const total = await prisma.registration.count();
+  const pageCount = Math.max(1, Math.ceil(total / REGISTRATIONS_PER_PAGE));
+  const current = Math.min(page, pageCount);
+
+  const registrations = await prisma.registration.findMany({
+    include: {
+      user: { select: { name: true, email: true, phone: true } },
+      child: { select: CHILD_FIELDS_WITHOUT_PHOTO },
+    },
+    orderBy: { createdAt: 'desc' },
+    skip: (current - 1) * REGISTRATIONS_PER_PAGE,
+    take: REGISTRATIONS_PER_PAGE,
+  });
+
+  res.render('admin/registrations', { registrations, page: current, pageCount, total });
 });
 
 app.get('/admin/registrations/export', requireAdminSession, async (_req, res) => {
   const { stringify } = await import('csv-stringify/sync');
-  const registrations = await prisma.registration.findMany({ include: { user: { select: { name: true, email: true, phone: true } }, child: true }, orderBy: { createdAt: 'desc' } });
+  // No photo column in the CSV, so don't drag megabytes of base64 out of the DB.
+  const registrations = await prisma.registration.findMany({
+    include: {
+      user: { select: { name: true, email: true, phone: true } },
+      child: { select: CHILD_FIELDS_WITHOUT_PHOTO },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
   const rows = registrations.map((r) => ({
     Reference: r.referenceCode,
     Type: r.type,
@@ -844,9 +896,22 @@ app.get('/api/reset-admin', async (req, res) => {
 // 404
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
-// Error handler
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+// Error handler. Reached by async route failures too, thanks to
+// express-async-errors above — previously those hung the request instead.
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err.stack);
+  if (res.headersSent) return; // response already streaming; nothing safe to add
+  // Admin pages are HTML, so a JSON blob would be unreadable there.
+  if (req.path.startsWith('/admin')) {
+    return res
+      .status(500)
+      .send(
+        '<div style="font-family:system-ui;max-width:34rem;margin:12vh auto;padding:2rem;border:1px solid #e5d9c3;border-radius:12px">' +
+          '<h1 style="font-size:1.1rem;margin:0 0 .5rem">Something went wrong</h1>' +
+          '<p style="color:#555;font-size:.9rem;margin:0 0 1.25rem">That page could not be loaded. The error has been logged.</p>' +
+          '<a href="/admin" style="font-size:.85rem;color:#531c22">&larr; Back to dashboard</a></div>',
+      );
+  }
   res.status(500).json({ error: 'Internal server error' });
 });
 
