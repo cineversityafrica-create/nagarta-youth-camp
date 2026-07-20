@@ -57,6 +57,10 @@ model Registration {
   status           String   @default("PENDING") // PENDING | CONFIRMED | WAITLISTED | CANCELLED
   paymentStatus    String   @default("UNPAID")  // UNPAID | PARTIAL | PAID
   notes            String?
+  // "How did you hear about NAGARTA?" — heardFromDetail holds the free text
+  // typed when the answer is Other.
+  heardFrom        String?
+  heardFromDetail  String?
   parentName       String?
   parentAddress    String?
   parentPhone      String?

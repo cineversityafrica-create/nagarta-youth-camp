@@ -13,6 +13,23 @@ const SAVED_FORM_KEY = 'nagarta_saved_registration';
 const inputClass = 'w-full px-4 py-3 border border-beige rounded-lg bg-white text-maroon text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block label-caps text-burgundy mb-1.5';
 
+// "How did you hear about NAGARTA?" — tappable options rather than a dropdown,
+// which is easier on a phone and gets answered far more often.
+const HEARD_FROM_OPTIONS = [
+  { value: 'Facebook', icon: '📘' },
+  { value: 'Instagram', icon: '📸' },
+  { value: 'WhatsApp', icon: '💬' },
+  { value: 'TikTok', icon: '🎵' },
+  { value: 'Friend or Family', icon: '👨‍👩‍👧' },
+  { value: 'Church', icon: '⛪' },
+  { value: 'School', icon: '🏫' },
+  { value: 'Radio or TV', icon: '📻' },
+  { value: 'Flyer or Poster', icon: '📄' },
+  { value: 'Google Search', icon: '🔍' },
+  { value: 'Someone from NAGARTA', icon: '⭐' },
+  { value: 'Other', icon: '✏️' },
+];
+
 const emptyChild = { name: '', age: '', gender: '', school: '', dietaryNeeds: '', medicalNotes: '', emergencyContactName: '', emergencyContactPhone: '' };
 
 export default function RegisterPage() {
@@ -30,6 +47,8 @@ export default function RegisterPage() {
   const [photoPreview, setPhotoPreview] = useState('');
   const [photoError, setPhotoError] = useState('');
   const [parent, setParent] = useState({ name: '', address: '', phone: '' });
+  const [heardFrom, setHeardFrom] = useState('');
+  const [heardFromDetail, setHeardFromDetail] = useState('');
   const [parentType, setParentType] = useState<'mother' | 'father' | 'both'>('both');
   const [mother, setMother] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
   const [father, setFather] = useState({ name: '', address: '', phone: '', email: '', emergencyContact: '' });
@@ -231,6 +250,8 @@ export default function RegisterPage() {
         parentName: parent.name || undefined,
         parentAddress: parent.address || undefined,
         parentPhone: parent.phone || undefined,
+        heardFrom: heardFrom || undefined,
+        heardFromDetail: (heardFrom === 'Other' ? heardFromDetail : '') || undefined,
       };
 
       // Add mother's information if selected
@@ -718,6 +739,44 @@ export default function RegisterPage() {
                 </div>
               </div>
             )}
+
+            {/* How did you hear about us — helps NAGARTA know which outreach works */}
+            <div className="bg-white rounded-xl border border-beige p-4 sm:p-5">
+              <p className="text-sm text-burgundy font-semibold mb-1">How did you hear about NAGARTA?</p>
+              <p className="text-xs text-maroon/50 mb-4">Optional — it helps us know where to reach more families.</p>
+
+              <div className="flex flex-wrap gap-2">
+                {HEARD_FROM_OPTIONS.map((opt) => {
+                  const active = heardFrom === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setHeardFrom(active ? '' : opt.value)}
+                      aria-pressed={active}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2.5 min-h-[40px] rounded-full border text-[11px] sm:text-xs transition-colors ${
+                        active
+                          ? 'bg-gold/20 border-gold text-maroon font-semibold'
+                          : 'bg-white border-beige text-maroon/70 hover:border-gold/50 hover:bg-gold/5'
+                      }`}
+                    >
+                      <span aria-hidden="true">{opt.icon}</span>
+                      {opt.value}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {heardFrom === 'Other' && (
+                <input
+                  value={heardFromDetail}
+                  onChange={(e) => setHeardFromDetail(e.target.value.toUpperCase())}
+                  placeholder="PLEASE TELL US WHERE"
+                  maxLength={120}
+                  className={`${inputClass} mt-3`}
+                />
+              )}
+            </div>
 
             <div className="pt-2 space-y-3">
               <button

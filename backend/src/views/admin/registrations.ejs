@@ -124,6 +124,11 @@
                     <div><span class="text-burgundy/50">Emergency contact:</span> <%= reg.child && reg.child.emergencyContact ? reg.child.emergencyContact : '—' %></div>
                     <div><span class="text-burgundy/50">Reference:</span> <span class="font-mono"><%= reg.referenceCode %></span></div>
                     <% if (reg.notes) { %><div><span class="text-burgundy/50">Notes:</span> <%= reg.notes %></div><% } %>
+                    <% if (reg.heardFrom) { %>
+                      <div><span class="text-burgundy/50">Heard about us via:</span>
+                        <%= reg.heardFrom %><% if (reg.heardFromDetail) { %> — <%= reg.heardFromDetail %><% } %>
+                      </div>
+                    <% } %>
                   </dl>
                 </div>
 

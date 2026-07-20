@@ -202,6 +202,22 @@ app.get('/admin', requireAdminSession, async (_req, res) => {
     ]);
     const capacity = parseInt(capacityContent?.value || '1000');
 
+    // "How did you hear about NAGARTA?" — grouped in the database rather than
+    // pulled row by row, so this stays cheap as registrations grow.
+    const heardRows = await prisma.registration.groupBy({
+      by: ['heardFrom'],
+      _count: { _all: true },
+      where: { heardFrom: { not: null } },
+    });
+    const heardTotal = heardRows.reduce((sum, r) => sum + r._count._all, 0);
+    const heardStats = heardRows
+      .map((r) => ({
+        source: r.heardFrom as string,
+        count: r._count._all,
+        percent: heardTotal ? Math.round((r._count._all / heardTotal) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+
     // Age statistics — group by individual age
     const ageStats: Record<string, number> = {};
     for (let age = 12; age <= 18; age++) ageStats[age.toString()] = 0;
@@ -244,6 +260,8 @@ app.get('/admin', requireAdminSession, async (_req, res) => {
         ageStats,
         genderStats,
         schoolStats,
+        heardStats,
+        heardTotal,
         totalAttendees: allChildren.length,
       },
     });
@@ -277,6 +295,8 @@ app.get('/admin/registrations/export', requireAdminSession, async (_req, res) =>
     'Parent Address': r.parentAddress || '',
     'Parent Phone': r.parentPhone || r.user.phone || '',
     'Account Email': r.user.email,
+    'Heard About Us Via': r.heardFrom || '',
+    'Heard About Us Detail': r.heardFromDetail || '',
     Notes: r.notes || '',
     Date: r.createdAt.toISOString(),
   }));

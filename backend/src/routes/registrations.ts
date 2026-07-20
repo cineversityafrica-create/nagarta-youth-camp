@@ -45,6 +45,10 @@ const childSchema = z.object({
   fatherPhone: z.string().optional(),
   fatherEmail: z.string().optional(),
   fatherEmergencyContact: z.string().optional(),
+  // "How did you hear about NAGARTA?" — optional so an older client that does
+  // not send it can still register.
+  heardFrom: z.string().optional(),
+  heardFromDetail: z.string().optional(),
 });
 
 const registrationSchema = z.discriminatedUnion('type', [selfSchema, childSchema]);
@@ -108,6 +112,8 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         fatherPhone: data.fatherPhone,
         fatherEmail: data.fatherEmail,
         fatherEmergencyContact: data.fatherEmergencyContact,
+        heardFrom: data.heardFrom,
+        heardFromDetail: data.heardFromDetail,
         referenceCode: generateRefCode(),
       },
     });
