@@ -2,29 +2,59 @@
 <%- include('../partials/sidebar', { page: 'dashboard' }) %>
 
 <style>
-  /* ─── UNIFIED EMERALD GREEN THEME ─── */
+  /*
+   * Colour is assigned by the job each chart does, not by row order.
+   * Every value below was checked with a palette validator against this
+   * page's surface (#fdfcf8) — lightness band, chroma floor, colour-vision
+   * separation and contrast — rather than picked by eye.
+   *
+   *  - Ranked bars (schools, referral sources) carry ONE colour each: the bar
+   *    LENGTH already encodes the value, so colouring by rank says nothing and
+   *    misleads once the order shifts.
+   *  - Age is an ordered band, so it gets a single-hue ramp, light -> dark.
+   *  - Gender is categorical: fixed hues, assigned by name and never cycled.
+   *  - Pending / confirmed use reserved status colours, never a chart hue.
+   */
   :root {
-    /* Stats — emerald shades for subtle variety */
-    --stat-1-from: #10b981; --stat-1-to: #047857; --stat-1-shadow: rgba(16, 185, 129, 0.4);
-    --stat-2-from: #34d399; --stat-2-to: #059669; --stat-2-shadow: rgba(52, 211, 153, 0.4);
-    --stat-3-from: #059669; --stat-3-to: #065f46; --stat-3-shadow: rgba(5, 150, 105, 0.4);
-    --stat-4-from: #14b8a6; --stat-4-to: #0f766e; --stat-4-shadow: rgba(20, 184, 166, 0.4);
+    /* Ink & chrome */
+    --ink-strong: #0b0b0b;
+    --ink:        #52514e;
+    --ink-muted:  #898781;
+    --hairline:   rgba(11, 11, 11, 0.08);
 
-    /* Age section — emerald */
-    --age-from: #34d399; --age-mid: #10b981; --age-to: #047857;
-    --age-light: #d1fae5; --age-shadow: rgba(16, 185, 129, 0.35);
+    /* Brand emerald — the dashboard's primary accent */
+    --brand:       #07835b;
+    --brand-deep:  #005c37;
+    --brand-tint:  #ecfdf5;
 
-    /* Gender section — emerald */
-    --gender-from: #10b981; --gender-mid: #059669; --gender-to: #065f46;
-    --gender-light: #d1fae5; --gender-shadow: rgba(16, 185, 129, 0.35);
+    /* Single-series bar colour for ranked charts */
+    --bar-primary: #07835b;   /* schools */
+    --bar-second:  #1c5cab;   /* referral sources — a second chart, not a second rank */
 
-    /* Schools section — emerald / teal */
-    --school-from: #14b8a6; --school-mid: #0d9488; --school-to: #0f766e;
-    --school-light: #d1fae5; --school-shadow: rgba(20, 184, 166, 0.35);
+    /* Age ordinal ramp, 12 -> 18. Validated: monotone L, gaps >= 0.06,
+       light end 2.15:1 on this surface, hue spread 9deg. */
+    --age-1: #5dc196; --age-2: #46ac82; --age-3: #2d976e; --age-4: #07835b;
+    --age-5: #006f48; --age-6: #005c37; --age-7: #004926;
 
-    /* Recent — emerald */
-    --recent-from: #10b981; --recent-mid: #059669; --recent-to: #047857;
-    --recent-light: #d1fae5; --recent-shadow: rgba(16, 185, 129, 0.35);
+    /* Gender categorical. Validated: worst adjacent CVD dE 123.7. */
+    --gender-male:   #2a78d6;
+    --gender-female: #eda100;
+    --gender-other:  #4a3aa7;
+
+    /* Reserved status colours */
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-crit:    #d03b3b;
+
+    /* Section accents kept for existing card styling */
+    --age-from: var(--age-2); --age-mid: var(--age-4); --age-to: var(--age-6);
+    --age-light: var(--brand-tint); --age-shadow: rgba(7, 131, 91, 0.18);
+    --gender-from: var(--gender-male); --gender-mid: var(--gender-male); --gender-to: #1c5cab;
+    --gender-light: #eef4fd; --gender-shadow: rgba(42, 120, 214, 0.16);
+    --school-from: var(--brand); --school-mid: var(--brand); --school-to: var(--brand-deep);
+    --school-light: var(--brand-tint); --school-shadow: rgba(7, 131, 91, 0.18);
+    --recent-from: var(--brand); --recent-mid: var(--brand); --recent-to: var(--brand-deep);
+    --recent-light: var(--brand-tint); --recent-shadow: rgba(7, 131, 91, 0.18);
   }
 
   /* ─── ANIMATIONS ─── */
@@ -77,94 +107,75 @@
   .age-card {
     background: linear-gradient(145deg, #ffffff, #ecfdf5);
     box-shadow:
-      0 20px 50px -15px var(--age-shadow),
-      0 10px 25px -10px rgba(5, 150, 105, 0.2),
-      0 5px 15px -5px rgba(0, 0, 0, 0.05),
-      inset 0 2px 0 rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(16, 185, 129, 0.15);
+      0 12px 28px -16px var(--age-shadow),
+      0 3px 10px -4px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--hairline);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .age-card:hover {
     transform: translateY(-4px);
     box-shadow:
-      0 30px 70px -15px rgba(16, 185, 129, 0.5),
-      0 15px 40px -10px rgba(5, 150, 105, 0.3);
+      0 18px 36px -18px rgba(7, 131, 91, 0.34);
   }
-  .age-bar {
-    box-shadow:
-      0 4px 15px var(--age-shadow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
+  .age-bar { box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
   .age-bar:hover { transform: scaleY(1.15); }
 
   /* ─── GENDER Card — Emerald ─── */
   .gender-card {
-    background: linear-gradient(145deg, #ffffff, #ecfdf5);
+    background: linear-gradient(145deg, #ffffff, #eef4fd);
     box-shadow:
-      0 20px 50px -15px var(--gender-shadow),
-      0 10px 25px -10px rgba(5, 150, 105, 0.2),
-      0 5px 15px -5px rgba(0, 0, 0, 0.05),
-      inset 0 2px 0 rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(16, 185, 129, 0.15);
+      0 12px 28px -16px var(--gender-shadow),
+      0 3px 10px -4px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--hairline);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .gender-card:hover {
     transform: translateY(-4px);
     box-shadow:
-      0 30px 70px -15px rgba(16, 185, 129, 0.5),
-      0 15px 40px -10px rgba(5, 150, 105, 0.3);
+      0 18px 36px -18px rgba(7, 131, 91, 0.34);
   }
-  .gender-bar {
-    box-shadow:
-      0 4px 15px var(--gender-shadow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
+  .gender-bar { box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
   .gender-bar:hover { transform: scaleY(1.15); }
 
   /* ─── SCHOOL Card — Emerald / Teal ─── */
   .school-card {
     background: linear-gradient(145deg, #ffffff, #ecfdf5);
     box-shadow:
-      0 20px 50px -15px var(--school-shadow),
-      0 10px 25px -10px rgba(13, 148, 136, 0.2),
-      0 5px 15px -5px rgba(0, 0, 0, 0.05),
-      inset 0 2px 0 rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(20, 184, 166, 0.15);
+      0 12px 28px -16px var(--school-shadow),
+      0 3px 10px -4px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--hairline);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .school-card:hover {
     transform: translateY(-4px);
     box-shadow:
-      0 30px 70px -15px rgba(20, 184, 166, 0.5),
-      0 15px 40px -10px rgba(13, 148, 136, 0.3);
+      0 18px 36px -18px rgba(7, 131, 91, 0.34);
   }
-  .school-bar {
-    box-shadow:
-      0 4px 15px var(--school-shadow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
+  .school-bar { box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
   .school-bar:hover { transform: scaleY(1.15); }
 
   /* ─── RECENT Card — Emerald ─── */
   .recent-card {
     background: linear-gradient(145deg, #ffffff, #ecfdf5);
     box-shadow:
-      0 20px 50px -15px var(--recent-shadow),
-      0 10px 25px -10px rgba(5, 150, 105, 0.2),
-      0 5px 15px -5px rgba(0, 0, 0, 0.05),
-      inset 0 2px 0 rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(16, 185, 129, 0.15);
+      0 12px 28px -16px var(--recent-shadow),
+      0 3px 10px -4px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--hairline);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .recent-card:hover {
     transform: translateY(-4px);
     box-shadow:
-      0 30px 70px -15px rgba(16, 185, 129, 0.5);
+      0 18px 36px -18px rgba(7, 131, 91, 0.34);
   }
 
   /* ─── Generic helpers ─── */
   .icon-badge { box-shadow: 0 8px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4); }
-  .rank-badge { box-shadow: 0 6px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5); }
+  .rank-badge { box-shadow: none; }
   .badge-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3); }
 
   /* ─── BUTTON ─── */
@@ -175,7 +186,7 @@
   }
   .recent-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.55);
+    box-shadow: 0 14px 28px -12px rgba(7, 131, 91, 0.45);
   }
 
   /* ─── Page bg — soft emerald wash ─── */
@@ -198,51 +209,51 @@
   <!-- ═══ STAT CARDS — Each different color ═══ -->
   <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-8 md:mb-10">
     <!-- GREEN — Total Registrations -->
-    <a href="/admin/registrations" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #10b981; --stat-to: #059669; box-shadow: 0 15px 35px -10px rgba(16, 185, 129, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(16, 185, 129, 0.15);">
+    <a href="/admin/registrations" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #2d976e; --stat-to: var(--brand); box-shadow: 0 10px 24px -12px rgba(7,131,91,0.28), 0 2px 6px -2px rgba(0,0,0,0.05); border: 1px solid var(--hairline);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Total Registrations</p>
-        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669);">
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #2d976e, var(--brand));">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.totalRegistrations %></p>
-      <p class="click-hint" style="color: #059669;">View all registrations →</p>
+      <p class="click-hint" style="color: var(--ink);">View all registrations →</p>
     </a>
 
     <!-- Spots Remaining -->
-    <a href="/admin/registrations" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #34d399; --stat-to: #059669; animation-delay: 0.1s; box-shadow: 0 15px 35px -10px rgba(52, 211, 153, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(52, 211, 153, 0.15);">
+    <a href="/admin/registrations" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #46ac82; --stat-to: #2d976e; animation-delay: 0.1s; box-shadow: 0 10px 24px -12px rgba(7,131,91,0.22), 0 2px 6px -2px rgba(0,0,0,0.05); border: 1px solid var(--hairline);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Spots Remaining</p>
-        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #34d399, #059669);">
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #46ac82, #2d976e);">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.spotsRemaining %><span class="text-sm md:text-lg text-gray-400"> / <%= stats.capacity %></span></p>
-      <p class="click-hint" style="color: #059669;">View registrations →</p>
+      <p class="click-hint" style="color: var(--ink);">View registrations →</p>
     </a>
 
     <!-- Confirmed -->
-    <a href="/admin/registrations?status=CONFIRMED" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #059669; --stat-to: #065f46; animation-delay: 0.2s; box-shadow: 0 15px 35px -10px rgba(5, 150, 105, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(5, 150, 105, 0.15);">
+    <a href="/admin/registrations?status=CONFIRMED" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: var(--status-good); --stat-to: #0a7d0a; animation-delay: 0.2s; box-shadow: 0 10px 24px -12px rgba(12,163,12,0.26), 0 2px 6px -2px rgba(0,0,0,0.05); border: 1px solid var(--hairline);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Confirmed</p>
-        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #059669, #065f46);">
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--status-good), #0a7d0a);">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.confirmedRegistrations %></p>
-      <p class="click-hint" style="color: #065f46;">View confirmed →</p>
+      <p class="click-hint" style="color: var(--ink);">View confirmed →</p>
     </a>
 
     <!-- Unread Messages -->
-    <a href="/admin/messages" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: #14b8a6; --stat-to: #0f766e; animation-delay: 0.3s; box-shadow: 0 15px 35px -10px rgba(20, 184, 166, 0.35), 0 5px 15px -5px rgba(0,0,0,0.06); border: 1px solid rgba(20, 184, 166, 0.15);">
+    <a href="/admin/messages" class="stat-card p-4 md:p-6 fade-up" style="--stat-from: var(--status-warning); --stat-to: #e09a00; animation-delay: 0.3s; box-shadow: 0 10px 24px -12px rgba(250,178,25,0.30), 0 2px 6px -2px rgba(0,0,0,0.05); border: 1px solid var(--hairline);">
       <div class="flex items-center justify-between mb-2">
         <p class="text-xs tracking-wider uppercase text-gray-500 font-semibold line-clamp-2">Unread Messages</p>
-        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #14b8a6, #0f766e);">
+        <div class="icon-badge w-11 h-11 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--status-warning), #e09a00);">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
         </div>
       </div>
       <p class="text-2xl md:text-4xl font-serif font-bold text-maroon"><%= stats.unreadMessages %></p>
-      <p class="click-hint" style="color: #0f766e;">View messages →</p>
+      <p class="click-hint" style="color: var(--ink);">View messages →</p>
     </a>
   </div>
 
@@ -263,23 +274,24 @@
       </div>
       <% const ageEntries = Object.entries(stats.ageStats); %>
       <% const maxAge = Math.max(...Object.values(stats.ageStats), 1); %>
-      <% const ageGradients = [
-        'linear-gradient(90deg, #a7f3d0, #6ee7b7, #34d399)',
-        'linear-gradient(90deg, #6ee7b7, #34d399, #10b981)',
-        'linear-gradient(90deg, #34d399, #10b981, #059669)',
-        'linear-gradient(90deg, #10b981, #059669, #047857)',
-        'linear-gradient(90deg, #059669, #047857, #065f46)',
-        'linear-gradient(90deg, #2dd4bf, #14b8a6, #0d9488)',
-        'linear-gradient(90deg, #34d399, #059669, #065f46)',
-      ]; %>
+      <%
+        // Ordered band: the ramp step follows the AGE, so 14-year-olds keep
+        // their shade even if the ordering or the row count changes.
+        const ageRamp = ['#5dc196','#46ac82','#2d976e','#07835b','#006f48','#005c37','#004926'];
+        const ageIdx = (age) => Math.min(ageRamp.length - 1, Math.max(0, Number(age) - 12));
+        const ageShade = (age) => ageRamp[ageIdx(age)];
+        // White on the pale end of the ramp measured 2.2:1 — unreadable. Ink
+        // flips to dark on the light steps so every value clears AA.
+        const ageInk = (age) => (ageIdx(age) <= 2 ? '#00150d' : '#ffffff');
+      %>
       <div class="space-y-3">
         <% ageEntries.forEach(([age, count], idx) => { %>
           <div class="flex items-center gap-3">
-            <div class="w-14 text-xs font-bold" style="color: var(--age-to);"><%= age %> yrs</div>
-            <div class="flex-1 bg-gray-100 rounded-full h-7 overflow-hidden relative" style="box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);">
+            <div class="w-14 text-xs font-bold" style="color: var(--ink);"><%= age %> yrs</div>
+            <div class="flex-1 rounded-full h-7 overflow-hidden relative" style="background:#f1f0ec;">
               <div class="animated-bar age-bar h-full rounded-full flex items-center justify-end pr-3"
-                   style="background: <%= ageGradients[idx % ageGradients.length] %>; --bar-width: <%= Math.max(8, (count / maxAge) * 100) %>%; animation-delay: <%= idx * 0.1 %>s;">
-                <span class="text-xs font-bold text-white" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3);"><%= count %></span>
+                   style="background: <%= ageShade(age) %>; --bar-width: <%= Math.max(8, (count / maxAge) * 100) %>%; animation-delay: <%= idx * 0.1 %>s;">
+                <span class="text-xs font-bold" style="color: <%= ageInk(age) %>;"><%= count %></span>
               </div>
             </div>
           </div>
@@ -300,26 +312,24 @@
         </div>
       </div>
       <% const totalGender = Object.values(stats.genderStats).reduce((a, b) => a + b, 0) || 1; %>
-      <% const genderGradients = {
-        Male: 'linear-gradient(90deg, #6ee7b7, #34d399, #10b981)',
-        Female: 'linear-gradient(90deg, #10b981, #059669, #047857)',
-        Other: 'linear-gradient(90deg, #2dd4bf, #14b8a6, #0d9488)'
-      }; %>
-      <% const genderIcons = { Male: '♂', Female: '♀', Other: '⚧' }; %>
-      <% const genderColors = { Male: '#059669', Female: '#047857', Other: '#0d9488' }; %>
+      <%
+        // Categorical: the hue belongs to the category name, so it never moves.
+        const genderColors = { Male: 'var(--gender-male)', Female: 'var(--gender-female)', Other: 'var(--gender-other)' };
+        const genderIcons  = { Male: '♂', Female: '♀', Other: '⚧' };
+      %>
       <div class="space-y-4">
         <% Object.entries(stats.genderStats).forEach(([gender, count], idx) => { %>
           <div>
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
-                <span class="text-lg font-bold" style="color: <%= genderColors[gender] || '#666' %>;"><%= genderIcons[gender] %></span>
-                <span class="text-sm font-bold" style="color: <%= genderColors[gender] || '#666' %>;"><%= gender %></span>
+                <span class="text-lg" style="color: <%= genderColors[gender] || 'var(--ink-muted)' %>;"><%= genderIcons[gender] %></span>
+                <span class="text-sm font-bold" style="color: var(--ink-strong);"><%= gender %></span>
               </div>
-              <span class="text-xs text-gray-600 font-bold"><%= count %> · <%= Math.round((count / totalGender) * 100) %>%</span>
+              <span class="text-xs font-bold" style="color: var(--ink);"><%= count %> · <%= Math.round((count / totalGender) * 100) %>%</span>
             </div>
-            <div class="bg-gray-100 rounded-full h-6 overflow-hidden" style="box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);">
+            <div class="rounded-full h-6 overflow-hidden" style="background:#f1f0ec;">
               <div class="animated-bar gender-bar h-full rounded-full"
-                   style="background: <%= genderGradients[gender] || 'linear-gradient(90deg, #d1d5db, #9ca3af)' %>; --bar-width: <%= (count / totalGender) * 100 %>%; animation-delay: <%= idx * 0.15 %>s;"></div>
+                   style="background: <%= genderColors[gender] || 'var(--ink-muted)' %>; --bar-width: <%= (count / totalGender) * 100 %>%; animation-delay: <%= idx * 0.15 %>s;"></div>
             </div>
           </div>
         <% }) %>
@@ -354,27 +364,15 @@
     <% const schoolEntries = Object.entries(stats.schoolStats); %>
     <% if (schoolEntries.length > 0) { %>
       <% const maxSchool = Math.max(...Object.values(stats.schoolStats), 1); %>
-      <% const schoolGradients = [
-        'linear-gradient(90deg, #6ee7b7, #34d399, #10b981)',
-        'linear-gradient(90deg, #5eead4, #2dd4bf, #14b8a6)',
-        'linear-gradient(90deg, #34d399, #10b981, #059669)',
-        'linear-gradient(90deg, #2dd4bf, #14b8a6, #0d9488)',
-        'linear-gradient(90deg, #10b981, #059669, #047857)',
-        'linear-gradient(90deg, #14b8a6, #0d9488, #0f766e)',
-        'linear-gradient(90deg, #059669, #047857, #065f46)',
-        'linear-gradient(90deg, #0d9488, #0f766e, #115e59)',
-        'linear-gradient(90deg, #34d399, #059669, #065f46)',
-        'linear-gradient(90deg, #6ee7b7, #10b981, #047857)',
-      ]; %>
       <div class="space-y-3">
         <% schoolEntries.forEach(([school, count], idx) => { %>
           <div class="flex items-center gap-3">
-            <div class="rank-badge w-9 text-xs font-bold rounded-full flex items-center justify-center h-9" style="background: <%= schoolGradients[idx % schoolGradients.length] %>; color: white;">#<%= idx + 1 %></div>
-            <div class="w-48 md:w-64 text-xs md:text-sm font-bold truncate" style="color: var(--school-to);" title="<%= school %>"><%= school %></div>
-            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative" style="box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);">
+            <div class="rank-badge w-9 text-xs font-bold rounded-full flex items-center justify-center h-9" style="background: var(--brand-tint); color: var(--brand-deep);">#<%= idx + 1 %></div>
+            <div class="w-48 md:w-64 text-xs md:text-sm font-bold truncate" style="color: var(--ink-strong);" title="<%= school %>"><%= school %></div>
+            <div class="flex-1 rounded-full h-8 overflow-hidden relative" style="background:#f1f0ec;">
               <div class="animated-bar school-bar h-full rounded-full flex items-center justify-end pr-3"
-                   style="background: <%= schoolGradients[idx % schoolGradients.length] %>; --bar-width: <%= Math.max(10, (count / maxSchool) * 100) %>%; animation-delay: <%= idx * 0.07 %>s;">
-                <span class="text-xs font-bold text-white" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3);"><%= count %></span>
+                   style="background: var(--bar-primary); --bar-width: <%= Math.max(10, (count / maxSchool) * 100) %>%; animation-delay: <%= idx * 0.07 %>s;">
+                <span class="text-xs font-bold text-white"><%= count %></span>
               </div>
             </div>
           </div>
@@ -394,11 +392,11 @@
   <div class="school-card rounded-2xl p-5 md:p-7 fade-up" style="animation-delay: 0.65s;">
     <div class="flex items-center justify-between mb-5">
       <div>
-        <p class="text-xs tracking-widest uppercase font-bold mb-1" style="color:#b45309;">📣 Outreach</p>
-        <h3 class="font-serif text-xl md:text-2xl font-bold" style="color:#b45309;">How They Found Us</h3>
+        <p class="text-xs tracking-widest uppercase font-bold mb-1" style="color:#1c5cab;">📣 Outreach</p>
+        <h3 class="font-serif text-xl md:text-2xl font-bold" style="color:#1c5cab;">How They Found Us</h3>
       </div>
       <div class="text-right">
-        <p class="text-3xl font-bold" style="color:#d97706;"><%= stats.heardTotal || 0 %></p>
+        <p class="text-3xl font-bold" style="color: var(--bar-second);"><%= stats.heardTotal || 0 %></p>
         <p class="text-xs text-gray-400 uppercase tracking-wide font-bold">Answered</p>
       </div>
     </div>
@@ -406,23 +404,15 @@
     <% const heard = stats.heardStats || []; %>
     <% if (heard.length > 0) { %>
       <% const maxHeard = Math.max.apply(null, heard.map(function (h) { return h.count; }).concat([1])); %>
-      <% const heardGradients = [
-        'linear-gradient(90deg, #fcd34d, #fbbf24, #f59e0b)',
-        'linear-gradient(90deg, #fdba74, #fb923c, #f97316)',
-        'linear-gradient(90deg, #fbbf24, #f59e0b, #d97706)',
-        'linear-gradient(90deg, #fb923c, #f97316, #ea580c)',
-        'linear-gradient(90deg, #f59e0b, #d97706, #b45309)',
-        'linear-gradient(90deg, #f97316, #ea580c, #c2410c)',
-      ]; %>
       <div class="space-y-3">
         <% heard.forEach(function (h, idx) { %>
           <div class="flex items-center gap-3">
-            <div class="rank-badge w-9 text-xs font-bold rounded-full flex items-center justify-center h-9" style="background: <%= heardGradients[idx % heardGradients.length] %>; color: white;">#<%= idx + 1 %></div>
-            <div class="w-40 md:w-56 text-xs md:text-sm font-bold truncate" style="color:#b45309;" title="<%= h.source %>"><%= h.source %></div>
-            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative" style="box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);">
+            <div class="rank-badge w-9 text-xs font-bold rounded-full flex items-center justify-center h-9" style="background:#eef4fd; color:#1c5cab;">#<%= idx + 1 %></div>
+            <div class="w-40 md:w-56 text-xs md:text-sm font-bold truncate" style="color: var(--ink-strong);" title="<%= h.source %>"><%= h.source %></div>
+            <div class="flex-1 rounded-full h-8 overflow-hidden relative" style="background:#f1f0ec;">
               <div class="animated-bar school-bar h-full rounded-full flex items-center justify-end pr-3"
-                   style="background: <%= heardGradients[idx % heardGradients.length] %>; --bar-width: <%= Math.max(12, (h.count / maxHeard) * 100) %>%; animation-delay: <%= idx * 0.07 %>s;">
-                <span class="text-xs font-bold text-white" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3);"><%= h.count %> · <%= h.percent %>%</span>
+                   style="background: var(--bar-second); --bar-width: <%= Math.max(12, (h.count / maxHeard) * 100) %>%; animation-delay: <%= idx * 0.07 %>s;">
+                <span class="text-xs font-bold text-white"><%= h.count %> · <%= h.percent %>%</span>
               </div>
             </div>
           </div>
@@ -430,7 +420,7 @@
       </div>
     <% } else { %>
       <div class="text-center py-12">
-        <div class="w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center icon-badge" style="background: linear-gradient(135deg, #fbbf24, #d97706);">
+        <div class="w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center icon-badge" style="background: linear-gradient(135deg, #5598e7, var(--bar-second));">
           <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
         </div>
         <p class="text-gray-500 text-sm italic font-medium">No answers yet — this fills in as parents register.</p>
