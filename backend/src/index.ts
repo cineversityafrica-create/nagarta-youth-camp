@@ -80,6 +80,20 @@ app.use(express.json({
   verify: (req, _res, buf) => { (req as unknown as { rawBody?: Buffer }).rawBody = buf; },
 }));
 app.use(express.urlencoded({ extended: true }));
+
+// A body that isn't valid JSON is the caller's mistake, not a server fault.
+// Without this the parser's SyntaxError reaches the generic handler and comes
+// back as 500, which hides real faults in the logs behind client noise.
+app.use((err: Error & { status?: number; type?: string }, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Malformed JSON in request body.' });
+  }
+  if (err?.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'That upload is too large.' });
+  }
+  return next(err);
+});
+
 app.use(methodOverride('_method'));
 
 // Serve shared static assets (logo, etc.)

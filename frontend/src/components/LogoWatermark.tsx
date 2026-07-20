@@ -15,8 +15,12 @@ export default function LogoWatermark() {
 
     function onScroll() {
       const heroHeight = window.innerHeight;
-      const scroll = window.scrollY;
-      setOpacity(Math.max(0, 0.10 * (1 - scroll / heroHeight)));
+      // innerHeight can be 0 during hydration or in a hidden tab. That makes
+      // scroll/heroHeight 0/0 = NaN, and Math.max(0, NaN) is NaN — which React
+      // then writes out as `opacity: NaN`. Bail out while the height is unusable.
+      if (!heroHeight) return;
+      const next = 0.1 * (1 - window.scrollY / heroHeight);
+      setOpacity(Number.isFinite(next) ? Math.min(0.1, Math.max(0, next)) : 0);
     }
 
     calculateSize();

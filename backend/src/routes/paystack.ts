@@ -1,40 +1,9 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import https from 'https';
-import fs from 'fs';
-import path from 'path';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
-
-// TEMPORARY diagnostic — tells us where the .env is and whether the key in the
-// file vs the key loaded into the process are correct. Remove once resolved.
-router.get('/debug', (_req, res) => {
-  const envPath = path.join(process.cwd(), '.env'); // the file the app actually reads
-  let fileExists = false;
-  const keyLines: { len: number; head: string }[] = [];
-  try {
-    fileExists = fs.existsSync(envPath);
-    if (fileExists) {
-      const content = fs.readFileSync(envPath, 'utf8');
-      content.split(/\r?\n/).forEach((l) => {
-        if (l.startsWith('PAYSTACK_SECRET_KEY=')) {
-          const v = l.replace('PAYSTACK_SECRET_KEY=', '').replace(/[^A-Za-z0-9_]/g, '');
-          keyLines.push({ len: v.length, head: v.slice(0, 12) }); // head is just sk_test_ + a few
-        }
-      });
-    }
-  } catch { /* ignore */ }
-  const loaded = (process.env.PAYSTACK_SECRET_KEY || '').replace(/[^A-Za-z0-9_]/g, '');
-  res.json({
-    envPath,
-    fileExists,
-    keyLineCount: keyLines.length, // >1 means duplicate lines
-    keyLines, // [{len, head}] — len 48 = good, 8 = truncated
-    loadedKeyLen: loaded.length,
-    cwd: process.cwd(),
-  });
-});
 
 // Read the secret key defensively. Paystack keys only contain [A-Za-z0-9_], so
 // strip every other character anywhere in the value (handles stray whitespace,
@@ -137,15 +106,15 @@ router.post('/verify', async (req, res) => {
     );
     const tx = body?.data;
     if (!body?.status || !tx || tx.status !== 'success') {
+      // Diagnostics stay in the server log. They previously went back in the
+      // response, which exposed the tail of the live secret key to any caller.
+      console.warn('[paystack/verify] not successful', {
+        paystackStatus: body?.status,
+        paystackMessage: (body as { message?: string })?.message,
+        dataStatus: tx?.status,
+      });
       return res.status(400).json({
         error: 'Payment was not completed. If you were charged, please contact us.',
-        debug: { // temporary diagnostics
-          paystackStatus: body?.status,
-          paystackMessage: (body as { message?: string })?.message,
-          dataStatus: tx?.status,
-          keyLen: secret.length,
-          keyTail: secret.slice(-4),
-        },
       });
     }
 
@@ -162,7 +131,6 @@ router.post('/verify', async (req, res) => {
     console.error('[paystack/verify]', err);
     return res.status(500).json({
       error: 'We could not verify the payment. If you were charged, please contact us.',
-      detail: (err as Error)?.message, // temporary: helps diagnose remotely
     });
   }
 });
