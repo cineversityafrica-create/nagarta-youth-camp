@@ -149,6 +149,13 @@
               </span>
             </div>
 
+            <!-- Payment countdown — mirrors the parent dashboard. Shown only
+                 while UNPAID; the 24h window runs from the registration time and
+                 the same auto-delete removes the spot when it expires. -->
+            <% if (reg.paymentStatus === 'UNPAID') { %>
+              <div class="pay-countdown mt-2" data-created="<%= new Date(reg.createdAt).toISOString() %>"></div>
+            <% } %>
+
             <!-- Print button -->
             <div class="mt-3 pt-3 border-t border-gray-100">
               <button type="button"
@@ -315,6 +322,56 @@
     win.focus();
     win.onload = function() { win.print(); };
   }
+
+  // Live payment countdown, mirroring the parent dashboard. The 24h window runs
+  // from the registration time; when it lapses the spot is auto-deleted, so the
+  // expired state matches what the parent sees.
+  (function () {
+    var WINDOW_MS = 24 * 60 * 60 * 1000;
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.pay-countdown'));
+    if (!boxes.length) return;
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function segment(v, l, urgent) {
+      return '<div style="background:' + (urgent ? '#dc2626' : '#e11d48') + ';border-radius:8px;padding:2px 7px;text-align:center;min-width:30px">'
+        + '<span style="display:block;font-size:14px;font-weight:700;color:#fff;line-height:1;font-variant-numeric:tabular-nums">' + pad(v) + '</span>'
+        + '<span style="display:block;font-size:8px;color:rgba(255,255,255,.7);font-weight:600">' + l + '</span></div>';
+    }
+
+    function render(box) {
+      var created = new Date(box.getAttribute('data-created')).getTime();
+      var remaining = created + WINDOW_MS - Date.now();
+      if (isNaN(created)) { box.style.display = 'none'; return true; }
+
+      if (remaining <= 0) {
+        box.innerHTML = '<div style="border-radius:12px;padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;text-align:center">'
+          + '<p style="font-size:11px;font-weight:700;color:#b91c1c;margin:0">⛔ Payment window closed</p>'
+          + '<p style="font-size:10px;color:rgba(185,28,28,.8);margin:2px 0 0">This unpaid spot will be cancelled and removed automatically.</p></div>';
+        return true; // done — stop ticking this one
+      }
+
+      var urgent = remaining < 3600000;
+      var h = Math.floor(remaining / 3600000);
+      var m = Math.floor((remaining % 3600000) / 60000);
+      var s = Math.floor((remaining % 60000) / 1000);
+      box.innerHTML = '<div style="border-radius:12px;padding:8px 12px;border:1px solid ' + (urgent ? '#fecaca' : '#fecdd3') + ';background:' + (urgent ? '#fef2f2' : '#fff1f2') + '">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+        + '<div style="min-width:0"><p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:' + (urgent ? '#b91c1c' : '#be123c') + ';margin:0">⏳ Pay within</p>'
+        + '<p style="font-size:10px;color:rgba(190,18,60,.7);margin:1px 0 0;line-height:1.2">or this spot closes &amp; is deleted automatically</p></div>'
+        + '<div style="display:flex;align-items:center;gap:3px;flex-shrink:0">'
+        + segment(h, 'H', urgent) + '<span style="color:#fb7185;font-weight:700">:</span>'
+        + segment(m, 'M', urgent) + '<span style="color:#fb7185;font-weight:700">:</span>'
+        + segment(s, 'S', urgent) + '</div></div></div>';
+      return false;
+    }
+
+    boxes = boxes.filter(function (box) { return !render(box); });
+    if (boxes.length) {
+      setInterval(function () {
+        boxes = boxes.filter(function (box) { return !render(box); });
+      }, 1000);
+    }
+  })();
 </script>
 </body>
 </html>
