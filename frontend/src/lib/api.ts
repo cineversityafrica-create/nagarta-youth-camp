@@ -164,6 +164,14 @@ export async function getMyRegistrations(token: string): Promise<Registration[]>
   return apiFetch('/api/registrations/my', { headers: { Authorization: `Bearer ${token}` } }, undefined, 30000);
 }
 
+export async function getPortalMessages(token: string): Promise<PortalMessage[]> {
+  return apiFetch('/api/portal-messages', { headers: { Authorization: `Bearer ${token}` } }, undefined, 30000);
+}
+
+export async function markPortalMessageRead(id: string, token: string): Promise<{ success: boolean }> {
+  return apiFetch(`/api/portal-messages/${id}/read`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }, undefined, 30000);
+}
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface Activity {
@@ -208,6 +216,14 @@ export interface Announcement {
   id: string;
   title: string;
   body: string;
+  createdAt: string;
+}
+
+export interface PortalMessage {
+  id: string;
+  title: string;
+  body: string;
+  readAt: string | null;
   createdAt: string;
 }
 

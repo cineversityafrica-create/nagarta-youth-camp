@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getMe, getAnnouncements, getMyRegistrations, submitRegistration, submitContactMessage, type User, type Announcement, type Registration } from '@/lib/api';
+import { getMe, getAnnouncements, getMyRegistrations, getPortalMessages, markPortalMessageRead, submitRegistration, submitContactMessage, type User, type Announcement, type Registration, type PortalMessage } from '@/lib/api';
 import { getToken, getStoredUser, clearAuth } from '@/lib/auth';
 import BankDetails from '@/components/BankDetails';
 import CheckinQR from '@/components/CheckinQR';
@@ -18,8 +18,9 @@ export default function ParentDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [portalMessages, setPortalMessages] = useState<PortalMessage[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'announcements' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'inbox' | 'announcements' | 'messages'>('overview');
 
   // Messages state
   const [messageForm, setMessageForm] = useState({ subject: '', message: '' });
@@ -53,14 +54,16 @@ export default function ParentDashboard() {
 
     (async () => {
       try {
-        const [me, anns, regs] = await Promise.all([
+        const [me, anns, regs, msgs] = await Promise.all([
           getMe(token!),
           getAnnouncements(token!).catch(() => [] as Announcement[]),
           getMyRegistrations(token!).catch(() => [] as Registration[]),
+          getPortalMessages(token!).catch(() => [] as PortalMessage[]),
         ]);
         setUser(me);
         setAnnouncements(anns);
         setRegistrations(regs);
+        setPortalMessages(msgs);
       } catch {
         clearAuth();
         router.push('/auth/sign-in');
@@ -266,11 +269,20 @@ export default function ParentDashboard() {
   const confirmedCount = registrations.filter((r) => r.status === 'CONFIRMED').length;
   const firstName = (user?.name || 'Parent').split(' ')[0];
 
+  const unreadInbox = portalMessages.filter((m) => !m.readAt).length;
   const tabs = [
     { key: 'overview', label: '🏠 Overview' },
+    { key: 'inbox', label: `📬 Inbox${unreadInbox ? ` (${unreadInbox})` : ''}` },
     { key: 'announcements', label: `📢 News (${announcements.length})` },
     { key: 'messages', label: '💬 Messages' },
   ] as const;
+
+  async function openMessage(m: PortalMessage) {
+    if (m.readAt) return;
+    setPortalMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, readAt: new Date().toISOString() } : x)));
+    const token = getToken();
+    if (token) markPortalMessageRead(m.id, token).catch(() => { /* best-effort */ });
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'radial-gradient(circle at 12% 0%, rgba(203,163,107,0.12), transparent 45%), radial-gradient(circle at 88% 8%, rgba(16,185,129,0.10), transparent 45%), #f6f1ea' }}>
@@ -712,6 +724,50 @@ export default function ParentDashboard() {
         )}
 
         {/* News/Announcements tab */}
+        {activeTab === 'inbox' && (
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-maroon/5 to-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-6">
+              <h2 className="font-serif text-2xl font-bold text-maroon mb-1">📬 Your Inbox</h2>
+              <p className="text-sm text-burgundy/70">Personal messages from the NAGARTA team about your registration.</p>
+            </div>
+
+            {portalMessages.length === 0 ? (
+              <div className="bg-white border border-beige rounded-2xl p-10 text-center">
+                <p className="text-4xl mb-3">📭</p>
+                <p className="text-maroon/50 text-sm">No messages yet. You&apos;ll hear from us here once your spot is confirmed.</p>
+              </div>
+            ) : (
+              portalMessages.map((m) => {
+                const unread = !m.readAt;
+                return (
+                  <details
+                    key={m.id}
+                    onToggle={(e) => { if ((e.target as HTMLDetailsElement).open) openMessage(m); }}
+                    className={`group rounded-2xl border overflow-hidden transition-colors ${unread ? 'bg-emerald-50/60 border-emerald-200' : 'bg-white border-beige'}`}
+                  >
+                    <summary className="flex items-start gap-3 p-5 cursor-pointer list-none">
+                      <span className={`mt-0.5 flex-shrink-0 w-2.5 h-2.5 rounded-full ${unread ? 'bg-emerald-500' : 'bg-transparent border border-beige'}`} aria-hidden="true" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={`text-sm ${unread ? 'font-bold text-maroon' : 'font-semibold text-maroon/80'}`}>{m.title}</p>
+                          {unread && <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white px-2 py-0.5 rounded-full">New</span>}
+                        </div>
+                        <p className="text-[11px] text-burgundy/50 mt-0.5">
+                          {new Date(m.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <svg className="w-4 h-4 text-burgundy/40 mt-1 flex-shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    </summary>
+                    <div className="px-5 pb-5 pl-[2.8rem]">
+                      <p className="text-sm text-maroon/80 leading-relaxed whitespace-pre-wrap border-t border-beige/70 pt-4">{m.body}</p>
+                    </div>
+                  </details>
+                );
+              })
+            )}
+          </div>
+        )}
+
         {activeTab === 'announcements' && (
           <div className="space-y-4">
             <div className="bg-gradient-to-r from-gold/10 to-amber-100 border border-gold/30 rounded-2xl p-6 mb-6">

@@ -227,3 +227,83 @@ export function buildAnnouncementEmail(
   </div>
   </body></html>`;
 }
+
+/**
+ * Camp Welcome — sent once when a registration is both paid and confirmed.
+ * The message text is shared so the email and the portal inbox stay identical.
+ */
+export const WELCOME_TITLE = 'Welcome to the NAGARTA family! 🎉';
+
+// Ordered paragraphs of the welcome message. The pack list is rendered as a
+// bulleted list in both the email and the portal.
+export const WELCOME_PARAGRAPHS: string[] = [
+  'Congratulations and welcome to the NAGARTA Leadership Youth Camp 2026 family!',
+  'We are delighted to confirm that your registration and payment have been successfully received. Thank you for choosing to invest in your child’s leadership journey by entrusting them to NAGARTA.',
+  'Your child is now part of a transformational experience designed to inspire purpose, strengthen character, cultivate leadership and build resilience. Under this year’s theme, “Arise & Lead,” participants will engage in an exciting five-day residential programme filled with leadership development, outdoor challenges, mentorship, teamwork, personal growth and unforgettable experiences.',
+];
+
+export const WELCOME_PACK_INTRO =
+  'Over the coming weeks, we will keep you informed every step of the way. Before camp begins, you will receive a comprehensive Parent Information Pack, which will include:';
+
+export const WELCOME_PACK_ITEMS: string[] = [
+  'Registration confirmation details',
+  'Camper team and accommodation allocation',
+  'Arrival and check-in procedures',
+  'Drop-off and pick-up information',
+  'Parking and access arrangements',
+  'Packing guide',
+  'Camp programme and daily schedule',
+  'Health and safeguarding information',
+  'Emergency contact details',
+  'Frequently Asked Questions',
+];
+
+export const WELCOME_CLOSING: string[] = [
+  'To safeguard the security and wellbeing of all participants, detailed operational and logistical information is shared only with registered families. We appreciate your understanding as we maintain a safe and well-organised environment for every camper.',
+  'If you have any questions before camp, please do not hesitate to contact our team. We will be delighted to assist you.',
+  'Thank you once again for placing your confidence in NAGARTA. We look forward to welcoming your child this December for what promises to be an inspiring, challenging and life-changing experience.',
+];
+
+// Plain-text body stored on the portal message (rendered with line breaks).
+export function buildWelcomePortalBody(parentName: string): string {
+  const lines: string[] = [];
+  lines.push(`Dear ${parentName || 'Parent/Guardian'},`, '');
+  WELCOME_PARAGRAPHS.forEach((p) => lines.push(p, ''));
+  lines.push('What happens next?', '', WELCOME_PACK_INTRO, '');
+  WELCOME_PACK_ITEMS.forEach((i) => lines.push(`• ${i}`));
+  lines.push('');
+  WELCOME_CLOSING.forEach((p) => lines.push(p, ''));
+  lines.push('Warm regards,', 'NAGARTA Team', 'NAGARTA Leadership Youth Camp', '', 'Theme: Arise & Lead', 'Raising Purpose-Driven Leaders with Integrity, Vision and Impact.');
+  return lines.join('\n');
+}
+
+export function buildWelcomeEmail(parentName: string, childName: string): string {
+  const paras = WELCOME_PARAGRAPHS.map((p) => `<p>${p}</p>`).join('');
+  const packItems = WELCOME_PACK_ITEMS.map((i) => `<li>${i}</li>`).join('');
+  const closing = WELCOME_CLOSING.map((p) => `<p>${p}</p>`).join('');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Welcome to NAGARTA</title>
+  <style>body{font-family:Georgia,serif;padding:28px;color:#301317;background:#fff;font-size:12px;}
+  .hdr{background:#301317;color:#cba36b;padding:14px 20px;border-radius:8px;margin-bottom:18px;}
+  .hdr h1{margin:0;font-size:19px;letter-spacing:2px;} .hdr p{margin:2px 0 0;font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:.65;}
+  .sec{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#531c22;font-family:Arial,sans-serif;border-bottom:1px solid #decbb2;padding-bottom:3px;margin:16px 0 6px;}
+  .content{line-height:1.6;margin:14px 0;} .content p{margin:0 0 10px;}
+  ul{line-height:1.8;margin:6px 0 6px 18px;padding:0;}
+  .footer{margin-top:20px;border-top:1px solid #decbb2;padding-top:12px;font-size:10px;color:#aaa;text-align:center;}</style>
+  </head><body>
+  <div class="hdr"><h1>NAGARTA Youth Camp 2026</h1><p>Welcome — Arise &amp; Lead</p></div>
+  <div class="content">
+    <p>Dear ${parentName || 'Parent/Guardian'},</p>
+    ${paras}
+    ${childName ? `<p style="font-size:11px;color:#666;">Camper: <strong>${childName}</strong></p>` : ''}
+    <div class="sec">What happens next?</div>
+    <p>${WELCOME_PACK_INTRO}</p>
+    <ul>${packItems}</ul>
+    ${closing}
+    <p style="margin-top:16px;">Warm regards,<br/><strong>NAGARTA Team</strong><br/>NAGARTA Leadership Youth Camp</p>
+  </div>
+  <div class="footer">
+    NAGARTA Youth Camp 2026 • Arise &amp; Lead<br/>
+    Raising Purpose-Driven Leaders with Integrity, Vision and Impact.
+  </div>
+  </body></html>`;
+}

@@ -25,6 +25,7 @@ import paystackRouter from './routes/paystack';
 import checkinRouter from './routes/checkin';
 import volunteersRouter from './routes/volunteers';
 import announcementsRouter from './routes/announcements';
+import portalMessagesRouter from './routes/portalMessages';
 
 // Admin API routes
 import {
@@ -143,6 +144,7 @@ app.use('/api/volunteers', volunteersRouter);
 app.get('/checkin', (_req, res) => res.render('checkin'));
 app.use('/api/contact-messages', contactRouter);
 app.use('/api/announcements', announcementsRouter);
+app.use('/api/portal-messages', portalMessagesRouter);
 
 // ── Admin REST API ───────────────────────────────────────────────────────────
 app.use('/api/admin/stats', statsRouter);
@@ -547,11 +549,13 @@ app.get('/admin/registrations/:id/print', requireAdminSession, async (req, res) 
 
 app.post('/admin/registrations/:id/status', requireAdminSession, async (req, res) => {
   await prisma.registration.update({ where: { id: req.params.id }, data: { status: req.body.status } });
+  await notificationService.sendCampWelcomeIfReady(req.params.id);
   res.redirect('/admin/registrations');
 });
 
 app.post('/admin/registrations/:id/payment', requireAdminSession, async (req, res) => {
   await prisma.registration.update({ where: { id: req.params.id }, data: { paymentStatus: req.body.paymentStatus } });
+  await notificationService.sendCampWelcomeIfReady(req.params.id);
   res.redirect('/admin/registrations');
 });
 
@@ -825,6 +829,9 @@ app.post('/admin/payments/:id/record', requireAdminSession, async (req, res) => 
     reg.id,
     paystackRef
   ).catch(err => console.error('[payments/record] Failed to send payment confirmation email:', err));
+
+  // Recording payment can complete the paid+confirmed pair.
+  await notificationService.sendCampWelcomeIfReady(req.params.id);
 
   res.redirect(`/admin/payments?ref=${reg.referenceCode}&success=Payment recorded successfully`);
 });

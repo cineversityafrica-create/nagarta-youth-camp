@@ -5,6 +5,9 @@ import {
   buildPaymentConfirmationEmail,
   buildStatusUpdateEmail,
   buildAnnouncementEmail,
+  buildWelcomeEmail,
+  buildWelcomePortalBody,
+  WELCOME_TITLE,
 } from './emailTemplates';
 
 /**
@@ -143,6 +146,75 @@ class NotificationService {
       'payment_confirmation',
       registrationId
     );
+  }
+
+  /**
+   * Send the camp-welcome exactly once, when a registration is both CONFIRMED
+   * and PAID. The updateMany claims the send atomically on welcomeSentAt, so
+   * whichever path completes the pair second wins and neither double-sends.
+   * Safe to call from anywhere that changes status or payment; never throws.
+   */
+  async sendCampWelcomeIfReady(registrationId: string): Promise<void> {
+    try {
+      const claimed = await prisma.registration.updateMany({
+        where: { id: registrationId, status: 'CONFIRMED', paymentStatus: 'PAID', welcomeSentAt: null },
+        data: { welcomeSentAt: new Date() },
+      });
+      if (claimed.count === 0) return; // not eligible yet, or already sent
+
+      const reg = await prisma.registration.findUnique({
+        where: { id: registrationId },
+        include: { user: { select: { id: true, name: true, email: true } }, child: { select: { name: true } } },
+      });
+      if (!reg) return;
+      await this.sendCampWelcome(
+        reg.user.id,
+        reg.parentName || reg.user.name,
+        reg.child?.name || reg.user.name,
+        reg.user.email,
+        reg.id,
+      );
+    } catch (err) {
+      console.error('[notifications/welcome] send-if-ready failed:', err);
+    }
+  }
+
+  /**
+   * Send the "welcome to camp" message: portal inbox + email, one shared body.
+   */
+  async sendCampWelcome(
+    userId: string,
+    parentName: string,
+    childName: string,
+    parentEmail: string,
+    registrationId: string,
+  ) {
+    // Portal inbox copy — always created, even if email later fails.
+    try {
+      await prisma.portalMessage.create({
+        data: {
+          userId,
+          registrationId,
+          title: WELCOME_TITLE,
+          body: buildWelcomePortalBody(parentName),
+        },
+      });
+    } catch (err) {
+      console.error('[notifications/welcome] portal message failed:', err);
+    }
+
+    if (parentEmail) {
+      const html = buildWelcomeEmail(parentName, childName);
+      await this._sendEmail(
+        parentEmail,
+        'Welcome to NAGARTA Leadership Youth Camp 2026',
+        html,
+        userId,
+        'REGISTRATION_CONFIRMATION',
+        'camp_welcome',
+        registrationId,
+      );
+    }
   }
 
   /**

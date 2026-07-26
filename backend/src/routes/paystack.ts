@@ -2,6 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import https from 'https';
 import { prisma } from '../lib/prisma';
+import { notificationService } from '../services/NotificationService';
 
 const router = Router();
 
@@ -55,7 +56,7 @@ interface PaystackTx {
 // Record a successful, verified Paystack transaction against its registration.
 // Idempotent (keyed on the Paystack reference) so the client verify call AND the
 // webhook can both call it without double-charging or double-recording.
-async function recordPayment(tx: PaystackTx): Promise<{ ok: boolean; paymentStatus?: string }> {
+async function recordPayment(tx: PaystackTx): Promise<{ ok: boolean; paymentStatus?: string; registrationId?: string }> {
   const refCode = tx.metadata?.referenceCode;
   if (!refCode) return { ok: false };
 
@@ -85,7 +86,7 @@ async function recordPayment(tx: PaystackTx): Promise<{ ok: boolean; paymentStat
   const paymentStatus = totalPaid >= expected ? 'PAID' : 'PARTIAL';
   await prisma.registration.update({ where: { id: reg.id }, data: { paymentStatus } });
 
-  return { ok: true, paymentStatus };
+  return { ok: true, paymentStatus, registrationId: reg.id };
 }
 
 // Client-initiated verify: the browser charges via Paystack inline, then sends
@@ -120,6 +121,7 @@ router.post('/verify', async (req, res) => {
 
     const result = await recordPayment(tx);
     if (!result.ok) return res.status(404).json({ error: 'We could not match this payment to a registration.' });
+    if (result.registrationId) await notificationService.sendCampWelcomeIfReady(result.registrationId);
 
     return res.json({
       success: true,
@@ -152,7 +154,13 @@ router.post('/webhook', async (req, res) => {
 
     const event = req.body as { event?: string; data?: PaystackTx };
     if (event?.event === 'charge.success' && event?.data?.status === 'success') {
-      await recordPayment(event.data).catch((e) => console.error('[paystack/webhook] record failed', e));
+      const result = await recordPayment(event.data).catch((e) => {
+        console.error('[paystack/webhook] record failed', e);
+        return { ok: false } as { ok: boolean; registrationId?: string };
+      });
+      if (result.ok && result.registrationId) {
+        await notificationService.sendCampWelcomeIfReady(result.registrationId);
+      }
     }
 
     // Always 200 for a valid signature so Paystack does not retry a handled event

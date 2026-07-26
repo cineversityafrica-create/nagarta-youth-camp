@@ -20,7 +20,24 @@ model User {
   registrations Registration[]
   children      Child[]
   notifications Notification[]
+  portalMessages PortalMessage[]
   @@map("users")
+}
+
+// A personal message shown in the parent's portal inbox. Distinct from
+// Announcement (broadcast by role) and Notification (an email send-log).
+model PortalMessage {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrationId String?
+  title          String
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@map("portal_messages")
 }
 
 model Child {
@@ -61,6 +78,9 @@ model Registration {
   // typed when the answer is Other.
   heardFrom        String?
   heardFromDetail  String?
+  // Set when the "welcome to camp" message has been sent, so confirming a
+  // registration more than once never sends it twice.
+  welcomeSentAt    DateTime?
   parentName       String?
   parentAddress    String?
   parentPhone      String?
