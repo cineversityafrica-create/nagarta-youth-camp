@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://nagartayouthcamp.tech/p/arise',
     siteName: 'NAGARTA Youth Camp',
-    images: [{ url: IMAGE, alt: TITLE }],
+    images: [{ url: IMAGE, width: 853, height: 1280, alt: TITLE }],
   },
   twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [IMAGE] },
 };

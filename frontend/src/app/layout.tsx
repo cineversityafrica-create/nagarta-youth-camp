@@ -42,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
       url: 'https://nagartayouthcamp.tech',
       siteName: 'NAGARTA Youth Camp',
-      images: [{ url: '/poster-arise.jpg', alt: 'NAGARTA Youth Camp 2026 — Arise & Lead' }],
+      images: [{ url: '/poster-arise.jpg', width: 853, height: 1280, alt: 'NAGARTA Youth Camp 2026 — Arise & Lead' }],
     },
     twitter: {
       card: 'summary_large_image',
