@@ -9,11 +9,11 @@ export default function SharePoster({ image, alt }: { image: string; alt: string
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-8" style={{ background: 'linear-gradient(160deg,#301317 0%,#1a0a0e 70%,#0d0508 100%)' }}>
       <div className="w-full max-w-md flex flex-col items-center">
-        {/* Poster */}
-        <div className="w-full rounded-2xl overflow-hidden shadow-2xl border border-gold/20">
+        {/* Poster — the whole image is a link into registration */}
+        <Link href="/register" aria-label="Reserve a spot at NAGARTA Youth Camp" className="w-full block rounded-2xl overflow-hidden shadow-2xl border border-gold/20 transition-transform hover:scale-[1.01]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt={alt} className="w-full h-auto block" />
-        </div>
+        </Link>
 
         {/* Actions */}
         <div className="w-full mt-6 flex flex-col gap-3">
