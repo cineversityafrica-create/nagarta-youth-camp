@@ -28,13 +28,27 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContent().catch(() => ({} as Record<string, string>));
+  const title = content.meta_title || 'NAGARTA Youth Camp 2026 — Arise & Lead';
+  const description = content.meta_description || 'A transformative 5-day leadership camp for youths aged 12–18. 19–23 December 2026, Accra, Ghana.';
   return {
-    title: content.meta_title || 'NAGARTA Youth Camp 2026 — Arise & Lead',
-    description: content.meta_description || 'A transformative 5-day leadership camp. 19–23 December 2026, Accra, Ghana.',
+    // Required so relative OG/Twitter image paths resolve to absolute URLs —
+    // without it, WhatsApp/Facebook/etc. cannot fetch the preview image.
+    metadataBase: new URL('https://nagartayouthcamp.tech'),
+    title,
+    description,
     openGraph: {
-      title: content.meta_title || 'NAGARTA Youth Camp 2026',
-      description: content.meta_description || 'Arise & Lead. A transformative 5-day experience.',
+      title,
+      description,
       type: 'website',
+      url: 'https://nagartayouthcamp.tech',
+      siteName: 'NAGARTA Youth Camp',
+      images: [{ url: '/poster-arise.jpg', alt: 'NAGARTA Youth Camp 2026 — Arise & Lead' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/poster-arise.jpg'],
     },
   };
 }
