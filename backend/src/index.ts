@@ -655,6 +655,30 @@ app.get('/admin/announcements/:id/delete', requireAdminSession, async (req, res)
   res.redirect('/admin/announcements');
 });
 
+app.get('/admin/checkins', requireAdminSession, async (_req, res) => {
+  const logs = await prisma.checkLog.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 300,
+    include: { registration: { include: { child: true } }, volunteer: true },
+  });
+  const rows = logs.map((l) => ({
+    id: l.id,
+    type: l.type,
+    at: l.createdAt,
+    kind: l.volunteerId ? 'VOLUNTEER' : 'CAMPER',
+    who: l.volunteer ? l.volunteer.fullName : l.registration?.child?.name || 'Camper',
+    referenceCode: l.volunteer ? l.volunteer.referenceCode : l.registration?.referenceCode ?? null,
+    campId: l.volunteer ? l.volunteer.campId : l.registration?.campId ?? null,
+    guardianName: l.guardianName,
+    guardianAddress: l.guardianAddress,
+    guardianPhone: l.guardianPhone,
+    ghanaCard: l.ghanaCard,
+    ghanaCardFront: l.ghanaCardFront,
+    ghanaCardBack: l.ghanaCardBack,
+  }));
+  res.render('admin/checkins', { logs: rows });
+});
+
 app.get('/admin/users', requireAdminSession, async (req, res) => {
   const users = await prisma.user.findMany({ select: { id: true, email: true, name: true, phone: true, role: true, suspended: true, createdAt: true }, orderBy: { createdAt: 'desc' } });
   res.render('admin/users', { users, error: (req.query.error as string) || '' });

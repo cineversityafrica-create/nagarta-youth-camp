@@ -104,6 +104,18 @@
     .field input:focus { outline:none; border-color:var(--cyan); background:rgba(255,255,255,.22); box-shadow:0 0 0 3px rgba(39,193,202,.25); }
     .actions { display:flex; gap:10px; margin-top:8px; }
     .actions .btn { margin-top:0; }
+    .cardshots { display:flex; gap:12px; }
+    .cardshot { flex:1; }
+    .shotbox {
+      position:relative; aspect-ratio:16/10; border-radius:14px; overflow:hidden; cursor:pointer;
+      border:2px dashed rgba(255,255,255,.35); background:rgba(255,255,255,.10);
+      display:flex; align-items:center; justify-content:center; text-align:center;
+    }
+    .shotbox.filled { border-style:solid; border-color:var(--cyan); }
+    .shotbox img { width:100%; height:100%; object-fit:cover; display:block; }
+    .shothint { font-size:12px; line-height:1.5; color:rgba(255,255,255,.75); }
+    .shothint b { color:var(--cyan); font-size:13px; letter-spacing:1px; text-transform:uppercase; }
+    .shotbox .retake { position:absolute; top:5px; right:5px; background:rgba(0,0,0,.6); color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; }
 
     @media (max-width:1200px) {
       .stage { flex-direction:column; }
@@ -199,6 +211,25 @@
       <div class="field"><label>Location / Address *</label><input id="gAddress" /></div>
       <div class="field"><label>Contact Number *</label><input id="gPhone" type="tel" /></div>
       <div class="field"><label>Ghana Card Number *</label><input id="gCard" placeholder="GHA-XXXXXXXXX-X" /></div>
+
+      <div class="field">
+        <label>Ghana Card Photo *</label>
+        <div class="cardshots">
+          <div class="cardshot">
+            <div id="frontPreview" class="shotbox" onclick="document.getElementById('gFrontInput').click()">
+              <span class="shothint"><b>Front</b><br>tap to photograph</span>
+            </div>
+            <input id="gFrontInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="captureCard(event,'front')" />
+          </div>
+          <div class="cardshot">
+            <div id="backPreview" class="shotbox" onclick="document.getElementById('gBackInput').click()">
+              <span class="shothint"><b>Back</b><br>tap to photograph</span>
+            </div>
+            <input id="gBackInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="captureCard(event,'back')" />
+          </div>
+        </div>
+      </div>
+
       <div id="gMsg" class="msg err"></div>
       <div class="actions" style="margin-top:6px;">
         <button class="btn cyan" onclick="proceedToAction()">OK / Continue</button>
@@ -298,6 +329,33 @@
     }
     function closeGuardian() { document.getElementById('guardianOverlay').classList.remove('open'); }
 
+    /* Ghana card photos, captured with the device camera and downscaled in the
+       browser so two images fit comfortably in one request. */
+    let cardFront = '', cardBack = '';
+    function captureCard(ev, side) {
+      const file = ev.target.files && ev.target.files[0];
+      ev.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function () {
+        const img = new Image();
+        img.onload = function () {
+          const max = 1280;
+          let w = img.naturalWidth, h = img.naturalHeight;
+          if (w > max || h > max) { if (w >= h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          let data; try { data = c.toDataURL('image/jpeg', 0.8); } catch (e) { data = reader.result; }
+          if (side === 'front') cardFront = data; else cardBack = data;
+          const box = document.getElementById(side + 'Preview');
+          box.classList.add('filled');
+          box.innerHTML = '<img src="' + data + '" alt="' + side + '"/><span class="retake">Retake</span>';
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
     let guardian = null;
     function proceedToAction() {
       const g = {
@@ -309,6 +367,11 @@
       if (!g.guardianName || !g.guardianAddress || !g.guardianPhone || !g.ghanaCard) {
         document.getElementById('gMsg').textContent = 'All fields are required.'; return;
       }
+      if (!cardFront || !cardBack) {
+        document.getElementById('gMsg').textContent = 'Please photograph both the front and back of the Ghana Card.'; return;
+      }
+      g.ghanaCardFront = cardFront;
+      g.ghanaCardBack = cardBack;
       guardian = g;
       closeGuardian();
       document.getElementById('actionSub').textContent = current.child.name + ' — choose an action';
@@ -342,6 +405,12 @@
       document.getElementById('refInput').value='';
       document.getElementById('gName').value=''; document.getElementById('gAddress').value='';
       document.getElementById('gPhone').value=''; document.getElementById('gCard').value='';
+      cardFront=''; cardBack='';
+      ['front','back'].forEach(function(side){
+        var box=document.getElementById(side+'Preview');
+        box.classList.remove('filled');
+        box.innerHTML='<span class="shothint"><b>'+(side==='front'?'Front':'Back')+'</b><br>tap to photograph</span>';
+      });
       window.scrollTo({ top:0, behavior:'smooth' });
     }
 

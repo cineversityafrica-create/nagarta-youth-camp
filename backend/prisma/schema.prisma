@@ -126,6 +126,8 @@ model CheckLog {
   guardianAddress String?
   guardianPhone   String?
   ghanaCard       String?
+  ghanaCardFront  String?               // compressed photo (data URL) of the card front
+  ghanaCardBack   String?               // compressed photo (data URL) of the card back
   createdAt       DateTime              @default(now())
 
   @@index([registrationId])

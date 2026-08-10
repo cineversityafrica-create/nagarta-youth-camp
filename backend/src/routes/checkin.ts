@@ -111,8 +111,11 @@ router.get('/lookup/:ref', stationAuth, async (req, res) => {
 // returns the ID-card data for printing.
 router.post('/:registrationId', stationAuth, async (req, res) => {
   try {
-    const { type, guardianName, guardianAddress, guardianPhone, ghanaCard } = req.body || {};
+    const { type, guardianName, guardianAddress, guardianPhone, ghanaCard, ghanaCardFront, ghanaCardBack } = req.body || {};
     if (type !== 'IN' && type !== 'OUT') return res.status(400).json({ error: 'type must be IN or OUT' });
+    // Only accept genuine image data URLs, and cap size defensively.
+    const asPhoto = (v: unknown): string | null =>
+      typeof v === 'string' && v.startsWith('data:image/') && v.length < 8_000_000 ? v : null;
 
     const reg = await prisma.registration.findUnique({ where: { id: req.params.registrationId }, include: { child: true } });
 
@@ -167,6 +170,8 @@ router.post('/:registrationId', stationAuth, async (req, res) => {
         guardianAddress: String(guardianAddress),
         guardianPhone: String(guardianPhone),
         ghanaCard: String(ghanaCard),
+        ghanaCardFront: asPhoto(ghanaCardFront),
+        ghanaCardBack: asPhoto(ghanaCardBack),
       },
     });
 
